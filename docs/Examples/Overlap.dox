@@ -99,7 +99,7 @@ int main(){
     };
 
 
-    my_menu = nocterm_menu_new(5,5, attr, 3, 5, 6, NULL);
+    my_menu = nocterm_menu_new(5,5, attr, 3, 5, 6, NULL, NULL);
 
     nocterm_menu_item_t items[5] = {0};
     nocterm_menu_item_constructor(&items[0], "1-AAA", 6, NOCTERM_ATTRIBUTE_EMPTY);
