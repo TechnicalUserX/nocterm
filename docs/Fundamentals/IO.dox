@@ -1,0 +1,65 @@
+\page io I/O
+
+Terminals work byte per byte. Depending on the bytes you send to it (order matters), they can either print characters or change their output color, or move their cursors to somewhere else so you can start printing characters from different positions. 
+
+Nocterm library uses these terminal features to realize user interfaces on the terminals!
+
+To achieve this, a uniform I/O (Input and Output) function interface is implemented to be used by Nocterm internally. Under the hood, all of these functions rely on `write()`, `read()`, and `select()` system calls.
+
+---
+
+Nocterm I/O implementation's two most fundamental functions are `nocterm_io_read()` and `nocterm_io_write()`. `nocterm_io_read()` is used to read input from terminals byte per byte, while `nocterm_io_write()` allows writing in bytes. These functions are high level abstractions of `read()` and `write()` but with more read/write guarantees.
+
+> Nocterm I/O functions are essentially designed to be used by widget refresh mechanism (Refer to \ref widgets), but these functions can be used individually by any program, including simple ones.
+
+
+---
+# API Overview
+
+Following code prints 6th row and 11th column of the terminal:
+
+> Nocterm I/O functions are zero-indexed in terms of row and column position.
+
+```c
+#include <nocterm/nocterm.h>
+
+int main(){
+
+	// Allows formatting like printf()
+    nocterm_io_print_at(5,10,"My name is %s", "Jeff");
+ 
+    return 0;
+}
+```
+
+Following code prints bytes directly, no formatting:
+
+```c
+#include <nocterm/nocterm.h>
+
+int main(){
+
+	// Similar to write()
+    nocterm_io_write("Hello",5);
+ 
+    return 0;
+}
+```
+
+Following code reads 4 bytes into a char array buffer:
+
+```c
+#include <nocterm/nocterm.h>
+
+int main(){
+
+    char buf[5] = {0};
+    nocterm_io_read(buf,4);
+ 
+    nocterm_io_print("I have read: %s\n", buf);
+
+    return 0;
+}
+```
+
+

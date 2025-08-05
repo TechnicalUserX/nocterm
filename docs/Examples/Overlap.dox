@@ -1,0 +1,150 @@
+\page examples_overlap Overlapping Widgets
+
+> You may use `RIGHT ARROW`, `LEFT ARROW`, `ENTER`, and `BACKSPACE` buttons to observe the overlapping behavior of widgets.
+
+# Source Code
+
+```c
+#include <nocterm/nocterm.h>
+
+
+nocterm_menu_t* my_menu = NULL;
+nocterm_textview_t*  my_textview = NULL;
+nocterm_decorbox_t *d1, *d2;
+
+NOCTERM_WIDGET_KEY_HANDLER(handler){
+
+    switch(nocterm_key_translate(key)){
+
+        case NOCTERM_KEY_EVENT_ENTER:{
+
+            static int state = 1;
+
+            if(state){
+                state = 0;
+                nocterm_widget_set_visible(NOCTERM_WIDGET(d1), false);
+            }else{
+                state = 1;
+                nocterm_widget_set_visible(NOCTERM_WIDGET(d1), true);
+            }
+
+
+        }break;
+
+
+        case NOCTERM_KEY_EVENT_BACKSPACE:{
+
+
+            static int state = 1;
+
+            if(state){
+                state = 0;
+                nocterm_widget_set_visible(NOCTERM_WIDGET(d2), false);
+
+            }else{
+                state = 1;
+                nocterm_widget_set_visible(NOCTERM_WIDGET(d2), true);
+            }
+
+        }break;
+
+        case NOCTERM_KEY_EVENT_LEFT:{
+
+            static int state = 1;
+
+            if(state){
+                state = 0;
+                nocterm_widget_set_position(NOCTERM_WIDGET(d2), 2,15);
+
+            }else{
+                state = 1;
+                nocterm_widget_set_position(NOCTERM_WIDGET(d2), 2,9);
+            }
+        }break;
+
+        case NOCTERM_KEY_EVENT_RIGHT:{
+
+            static int state = 1;
+
+            if(state){
+                state = 0;
+                nocterm_widget_set_position(NOCTERM_WIDGET(d1), 1,5);
+
+            }else{
+                state = 1;
+                nocterm_widget_set_position(NOCTERM_WIDGET(d1), 1,3);
+            }
+        }break;
+
+    }
+
+}
+
+int main(){
+
+    setlocale(LC_ALL, "");
+
+    nocterm_widget_t* my_widget = nocterm_widget_new((nocterm_dimension_t){0,0,10,10}, NOCTERM_WIDGET_FOCUSABLE_YES, NOCTERM_WIDGET_TYPE_VIRTUAL);
+    nocterm_widget_add_key_handler(my_widget, handler);
+    nocterm_page_t* main_page = nocterm_page_new("Main page", sizeof("Main page"), my_widget);
+ 
+    nocterm_attribute_t attr = {
+        .color.ansi.fg = true,
+        .color.ansi.codes.fg = 6
+    };
+
+    nocterm_attribute_t attr2 = {
+        .color.ansi.fg = true,
+        .color.ansi.codes.fg = 4
+    };
+
+
+    my_menu = nocterm_menu_new(5,5, attr, 3, 5, 6, NULL);
+
+    nocterm_menu_item_t items[5] = {0};
+    nocterm_menu_item_constructor(&items[0], "1-AAA", 6, NOCTERM_ATTRIBUTE_EMPTY);
+    nocterm_menu_item_constructor(&items[1], "2-BBB", 6, NOCTERM_ATTRIBUTE_EMPTY);
+    nocterm_menu_item_constructor(&items[2], "3-CCC", 6, NOCTERM_ATTRIBUTE_EMPTY);
+    nocterm_menu_item_constructor(&items[3], "4-DDD", 6, NOCTERM_ATTRIBUTE_EMPTY);
+    nocterm_menu_item_constructor(&items[4], "5-EEE", 6, NOCTERM_ATTRIBUTE_EMPTY);
+
+    nocterm_menu_add_item(my_menu, items[0]);
+    nocterm_menu_add_item(my_menu, items[1]);
+    nocterm_menu_add_item(my_menu, items[2]);
+    nocterm_menu_add_item(my_menu, items[3]);
+    nocterm_menu_add_item(my_menu, items[4]);
+
+
+    my_textview = nocterm_textview_new((nocterm_dimension_t){0,0,4,8}, attr2);
+    nocterm_textview_set_text(my_textview, "This text shall overlap", 24);
+
+    d1 = nocterm_decorbox_new(1,3, NOCTERM_WIDGET(my_menu));
+    d2 = nocterm_decorbox_new(2,9, NOCTERM_WIDGET(my_textview));
+
+    nocterm_decorbox_border_shape_t border_shape = nocterm_decorbox_border_shape(NOCTERM_DECORBOX_BORDER_SHAPE_TYPE_UNICODE_ROUND);
+
+    nocterm_decorbox_border(d1, border_shape, NOCTERM_ATTRIBUTE_EMPTY, attr);
+    nocterm_decorbox_border(d2, border_shape, NOCTERM_ATTRIBUTE_EMPTY, attr2);
+
+    nocterm_widget_add_subwidget(my_widget, NOCTERM_WIDGET(d2));
+    nocterm_widget_add_subwidget(my_widget, NOCTERM_WIDGET(d1));
+
+    nocterm_page_stack_push(main_page);
+ 
+    nocterm_loop(); 
+ 
+    nocterm_widget_delete(my_widget);
+    nocterm_page_delete(main_page); 
+    nocterm_textview_delete(my_textview);
+    nocterm_menu_delete(my_menu);
+    nocterm_decorbox_delete(d1);
+    nocterm_decorbox_delete(d2);
+ 
+    return 0;
+}
+```
+
+# Output
+
+![](images/examples_overlap.png)
+

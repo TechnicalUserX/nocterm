@@ -1,0 +1,54 @@
+\page examples_menu Menu Example
+
+# Source Code
+
+```c
+#include <nocterm/nocterm.h>
+
+
+int main(){
+
+    nocterm_widget_t* my_widget = nocterm_widget_new((nocterm_dimension_t){0,0,10,10}, NOCTERM_WIDGET_FOCUSABLE_YES, NOCTERM_WIDGET_TYPE_REAL);
+    nocterm_page_t* main_page = nocterm_page_new("Main page", sizeof("Main page"), my_widget);
+ 
+    nocterm_attribute_t attr = {
+        .color.ansi.fg = true,
+        .color.ansi.codes.fg = 5
+    };
+
+
+    nocterm_menu_t* my_menu = nocterm_menu_new(1,1, attr, 3, 10, 10, NULL, NULL);
+
+    nocterm_menu_item_t items[5] = {0};
+    nocterm_menu_item_constructor(&items[0], "Hello1", sizeof("Hello1"), NOCTERM_ATTRIBUTE_EMPTY);
+    nocterm_menu_item_constructor(&items[1], "Hello2", sizeof("Hello2"), NOCTERM_ATTRIBUTE_EMPTY);
+    nocterm_menu_item_constructor(&items[2], "Hello3", sizeof("Hello3"), NOCTERM_ATTRIBUTE_EMPTY);
+    nocterm_menu_item_constructor(&items[3], "Hello4", sizeof("Hello4"), NOCTERM_ATTRIBUTE_EMPTY);
+    nocterm_menu_item_constructor(&items[4], "Hello5", sizeof("Hello5"), NOCTERM_ATTRIBUTE_EMPTY);
+
+    nocterm_menu_add_item(my_menu, items[0]);
+    nocterm_menu_add_item(my_menu, items[1]);
+    nocterm_menu_add_item(my_menu, items[2]);
+    nocterm_menu_add_item(my_menu, items[3]);
+    nocterm_menu_add_item(my_menu, items[4]);
+
+
+    nocterm_widget_add_subwidget(my_widget, NOCTERM_WIDGET(my_menu));
+
+    nocterm_page_stack_push(main_page); 
+ 
+    nocterm_loop(); 
+ 
+    nocterm_widget_delete(my_widget);
+    nocterm_page_delete(main_page); 
+    nocterm_menu_delete(my_menu);
+ 
+    return 0;
+}
+```
+
+# Output
+
+![](images/examples_menu.png)
+
+

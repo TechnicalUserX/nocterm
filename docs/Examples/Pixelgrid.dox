@@ -1,0 +1,50 @@
+\page examples_pixelgrid Pixelgrid Example
+
+# Source Code
+
+```c
+#include <nocterm/nocterm.h>
+
+int main(){
+    setlocale(LC_ALL, "");
+
+    nocterm_pixelgrid_t* my_pixelgrid = nocterm_pixelgrid_new(5,5,10,10);
+    nocterm_decorbox_t* my_decorbox = nocterm_decorbox_new(0,0,NOCTERM_WIDGET(my_pixelgrid));
+    nocterm_widget_t* my_widget = nocterm_widget_new((nocterm_dimension_t){0,0,10,20},NOCTERM_WIDGET_FOCUSABLE_YES, NOCTERM_WIDGET_TYPE_VIRTUAL);
+
+    nocterm_decorbox_border_shape_t border_shape = nocterm_decorbox_border_shape(NOCTERM_DECORBOX_BORDER_SHAPE_TYPE_UNICODE_ROUND);
+
+    nocterm_attribute_t attr = {
+        .color.ansi.fg = true,
+        .color.ansi.codes.fg = 4
+    };
+
+    nocterm_decorbox_border(my_decorbox, border_shape, NOCTERM_ATTRIBUTE_EMPTY, attr);
+
+    nocterm_page_t* main_page = nocterm_page_new("Main page", sizeof("Main page"), NOCTERM_WIDGET(my_widget));
+
+    for(uint16_t i = 0; i < 10; i++){
+        for(uint16_t j = 0; j < 10; j++){
+            nocterm_pixelgrid_print(my_pixelgrid, i,j, i*10 + j*10, i*10 + j*10, i*10 + j*10);
+        }
+    }
+
+    nocterm_widget_add_subwidget(my_widget,NOCTERM_WIDGET(my_decorbox));
+
+    nocterm_page_stack_push(main_page);
+
+    nocterm_loop();
+
+    nocterm_widget_delete(my_widget);
+    nocterm_page_delete(main_page); 
+    nocterm_decorbox_delete(my_decorbox);
+    nocterm_pixelgrid_delete(my_pixelgrid);
+
+    return 0;
+}
+```
+
+# Output
+
+![](images/examples_pixelgrid.png)
+

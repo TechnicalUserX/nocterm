@@ -1,0 +1,222 @@
+\page widgetdemo Widget Demo App
+
+# Source Code
+
+```c
+#include <nocterm/nocterm.h>
+
+struct add_item_handler_arg_t{
+    void* entry;
+    void* listview;
+};
+
+nocterm_attribute_t generic_widget_attribute_normal = {
+    .color.ansi.fg = true,
+    .color.ansi.codes.fg = 7
+};
+
+nocterm_attribute_t generic_widget_attribute_focused = {
+    .color.ansi.fg = true,
+    .color.ansi.codes.fg = 4
+};
+
+nocterm_attribute_t generic_widget_attribute_focused_2 = {
+    .color.ansi.fg = true,
+    .color.ansi.codes.fg = 5
+};
+
+
+NOCTERM_CHECKBOX_ONCHECK_HANDLER(make_menu_visible_handler){
+    static bool state = true;
+    if(state){
+        state = false;
+        nocterm_widget_set_visible(NOCTERM_WIDGET(user_data),false);
+    }else{
+        state = true;
+        nocterm_widget_set_visible(NOCTERM_WIDGET(user_data),true);
+
+    }
+    
+}
+
+NOCTERM_MENU_ONSELECT_HANDLER(menu_select_handler){
+
+
+    switch(selected_item){
+        case 0:
+            nocterm_textview_set_text(NOCTERM_TEXTVIEW(user_data), "First item selected", 20);
+            break;
+        case 1:
+            nocterm_textview_set_text(NOCTERM_TEXTVIEW(user_data), "Second item selected", 21);
+            break;            
+        case 2:
+            nocterm_textview_set_text(NOCTERM_TEXTVIEW(user_data), "Did you like this demo application?", 36);
+            break; 
+        case 3:
+            nocterm_textview_set_text(NOCTERM_TEXTVIEW(user_data), "Never gonna give you up, never gonna let you down", 50);
+            break; 
+        case 4:
+            nocterm_textview_set_text(NOCTERM_TEXTVIEW(user_data), "Last item selected", 19);
+            break;
+        default:
+
+    }
+}
+
+NOCTERM_BUTTON_ONPRESS_HANDLER(add_item_handler){
+
+    char buf[100];
+
+    nocterm_entry_t* entry = ((struct add_item_handler_arg_t*)user_data)->entry;
+    nocterm_listview_t* listview = ((struct add_item_handler_arg_t*)user_data)->listview;
+
+    uint64_t text_length = 0;
+    nocterm_entry_get_text(entry, buf, 100, &text_length);
+
+
+    if(text_length > 0){
+        nocterm_listview_item_t new_item = {0};
+        nocterm_listview_item_constructor(&new_item, buf, 100, NOCTERM_ATTRIBUTE_EMPTY);
+        nocterm_listview_push_back(listview, new_item);
+    }
+
+
+}
+
+int main(){
+
+    nocterm_decorbox_border_shape_t generic_widget_border_shape = nocterm_decorbox_border_shape(NOCTERM_DECORBOX_BORDER_SHAPE_TYPE_UNICODE_ROUND);
+
+
+    nocterm_widget_t* main_widget = nocterm_widget_new((nocterm_dimension_t){0,0, 10, 60}, NOCTERM_WIDGET_FOCUSABLE_NO, NOCTERM_WIDGET_TYPE_VIRTUAL);
+    nocterm_decorbox_t* main_widget_decorbox = nocterm_decorbox_new(1,1, main_widget);
+    nocterm_decorbox_border(main_widget_decorbox, generic_widget_border_shape, generic_widget_attribute_normal, generic_widget_attribute_focused); 
+
+
+    nocterm_textview_t* textview = nocterm_textview_new((nocterm_dimension_t){0,0, 8, 20}, NOCTERM_ATTRIBUTE_EMPTY);
+    nocterm_decorbox_t* textview_decorbox = nocterm_decorbox_new(0, 38, NOCTERM_WIDGET(textview));
+    nocterm_decorbox_border(textview_decorbox, generic_widget_border_shape, generic_widget_attribute_normal, generic_widget_attribute_focused); 
+
+
+    // Menu
+    nocterm_menu_t* menu = nocterm_menu_new(1,5, generic_widget_attribute_focused, 3, 10, 16, menu_select_handler, textview);
+    nocterm_menu_item_t menu_items[5] = {0};
+    nocterm_menu_item_constructor(&menu_items[0], "Item 1", 7, NOCTERM_ATTRIBUTE_EMPTY);
+    nocterm_menu_item_constructor(&menu_items[1], "Item 2", 7, NOCTERM_ATTRIBUTE_EMPTY);
+    nocterm_menu_item_constructor(&menu_items[2], "Item 3", 7, NOCTERM_ATTRIBUTE_EMPTY);
+    nocterm_menu_item_constructor(&menu_items[3], "Item 4", 7, NOCTERM_ATTRIBUTE_EMPTY);
+    nocterm_menu_item_constructor(&menu_items[4], "Item 5", 7, NOCTERM_ATTRIBUTE_EMPTY);
+    nocterm_menu_add_item_multiple(menu, menu_items, 5);
+    nocterm_decorbox_t* menu_decorbox = nocterm_decorbox_new(5,1, NOCTERM_WIDGET(menu));
+    nocterm_decorbox_border(menu_decorbox, generic_widget_border_shape, generic_widget_attribute_normal, generic_widget_attribute_focused);
+
+
+    // Checkbox that enables menu
+    nocterm_checkbox_t* make_menu_visible = nocterm_checkbox_new(1,1, generic_widget_attribute_focused_2, make_menu_visible_handler, false, menu_decorbox);
+
+
+    nocterm_entry_t* entry = nocterm_entry_new(0, 0, 16, generic_widget_attribute_focused_2);
+    nocterm_decorbox_t* entry_decorbox = nocterm_decorbox_new(2, 1, NOCTERM_WIDGET(entry));
+    nocterm_decorbox_border(entry_decorbox, generic_widget_border_shape, generic_widget_attribute_normal, generic_widget_attribute_focused); 
+    
+    nocterm_label_t* enable_menu_label = nocterm_label_new(1,5, "Show/Hide Menu", 15, NOCTERM_ATTRIBUTE_EMPTY);
+
+
+    nocterm_listview_t* item_list = nocterm_listview_new(0, 0, 3, 20, 16);
+    nocterm_decorbox_t* item_list_decorbox = nocterm_decorbox_new(5,20, NOCTERM_WIDGET(item_list));
+    nocterm_decorbox_border(item_list_decorbox, generic_widget_border_shape, generic_widget_attribute_normal, generic_widget_attribute_focused); 
+
+
+    struct add_item_handler_arg_t* add_item_handler_arg = (struct add_item_handler_arg_t*)malloc(sizeof(struct add_item_handler_arg_t));
+    add_item_handler_arg->entry = entry;
+    add_item_handler_arg->listview = item_list;
+
+    nocterm_button_t* add_items_to_list = nocterm_button_new(0, 0, "Add Item", 9, NOCTERM_ATTRIBUTE_EMPTY, generic_widget_attribute_focused_2, add_item_handler, add_item_handler_arg);
+    nocterm_decorbox_t* add_items_to_list_decorbox = nocterm_decorbox_new(2, 20, NOCTERM_WIDGET(add_items_to_list));
+    nocterm_decorbox_border(add_items_to_list_decorbox, generic_widget_border_shape, generic_widget_attribute_normal, generic_widget_attribute_focused); 
+
+
+    nocterm_pixelgrid_t* pixelgrid = nocterm_pixelgrid_new(0, 0, 6, 6);
+    nocterm_decorbox_t* pixelgrid_decorbox = nocterm_decorbox_new(0, 30, NOCTERM_WIDGET(pixelgrid));
+    nocterm_decorbox_border(pixelgrid_decorbox, generic_widget_border_shape, generic_widget_attribute_normal, generic_widget_attribute_focused); 
+
+    for(uint16_t i = 0; i < 10; i++){
+        for(uint16_t j = 0; j < 10; j++){
+            nocterm_pixelgrid_print(pixelgrid, i,j, i*10 + j*10, i*10 + j*10, i*10 + j*10);
+        }
+    }
+
+    nocterm_loadingbar_t* loadingbar = nocterm_loadingbar_new(1,24,200, NOCTERM_ATTRIBUTE_EMPTY);
+
+
+
+    nocterm_widget_add_subwidget(main_widget, NOCTERM_WIDGET(enable_menu_label));
+    nocterm_widget_add_subwidget(main_widget, NOCTERM_WIDGET(make_menu_visible));
+    nocterm_widget_add_subwidget(main_widget, NOCTERM_WIDGET(entry_decorbox));
+    nocterm_widget_add_subwidget(main_widget, NOCTERM_WIDGET(add_items_to_list_decorbox));
+    nocterm_widget_add_subwidget(main_widget, NOCTERM_WIDGET(menu_decorbox));
+    nocterm_widget_add_subwidget(main_widget, NOCTERM_WIDGET(item_list_decorbox));
+    nocterm_widget_add_subwidget(main_widget, NOCTERM_WIDGET(textview_decorbox));
+    nocterm_widget_add_subwidget(main_widget, NOCTERM_WIDGET(pixelgrid_decorbox));
+    nocterm_widget_add_subwidget(main_widget, NOCTERM_WIDGET(loadingbar));
+
+    nocterm_loadingbar_enable(loadingbar);
+
+    nocterm_widget_center_position_horizontal(NOCTERM_WIDGET(main_widget_decorbox));
+
+    nocterm_page_t* main_page = nocterm_page_new("Main Page", 10, NOCTERM_WIDGET(main_widget_decorbox));
+    nocterm_page_stack_push(main_page);
+
+    // Main Loop
+    nocterm_loop();
+
+    // Delete Listview
+    nocterm_decorbox_delete(add_items_to_list_decorbox);
+    nocterm_button_delete(add_items_to_list);
+
+    // Delete Pixelgrid
+    nocterm_pixelgrid_delete(pixelgrid);
+    nocterm_decorbox_delete(pixelgrid_decorbox);
+
+    // Delete Main Widget
+    nocterm_widget_delete(main_widget);
+    nocterm_decorbox_delete(main_widget_decorbox);
+
+    // Delete Menu
+    nocterm_menu_delete(menu);
+    nocterm_decorbox_delete(menu_decorbox);
+
+    // Delete Entry
+    nocterm_decorbox_delete(entry_decorbox);
+    nocterm_entry_delete(entry);
+
+    // Delete Textview
+    nocterm_textview_delete(textview);
+    nocterm_decorbox_delete(textview_decorbox);
+
+    // Delete Listview
+    nocterm_listview_delete(item_list);
+    nocterm_decorbox_delete(item_list_decorbox);
+
+    // Delete Checkbox
+    nocterm_checkbox_delete(make_menu_visible);
+
+    // Delete Loadingbar
+    nocterm_loadingbar_delete(loadingbar);
+
+    // Delete Label
+    nocterm_label_delete(enable_menu_label);
+
+    // Delete Page
+    nocterm_page_delete(main_page);
+
+    free(add_item_handler_arg);
+    
+    return 0;
+}
+```
+
+# Output
+
+![](images/examples_widgetdemo.png)
+

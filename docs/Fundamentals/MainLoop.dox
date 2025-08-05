@@ -1,0 +1,76 @@
+\page mainloop Main Loop
+
+The real action begins when the program enters the main loop, which is handled via the function `nocterm_loop()`.
+
+Main loop handles numerous tasks:
+- Capturing keys with `nocterm_key_capture()` in non-blocking manner
+- Handling timers
+- Refreshing the widgets of the current page (I/O operations)
+
+The image below is a representation of the main loop:
+
+![](images/mainloop.png)
+
+When `nocterm_loop()` is called, it first initializes the terminal with internal function `nocterm_init()` and enters the loop.
+
+# Main Loop Phases
+
+### 1. Initalize Phase
+
+This phase initalizes terminal to raw mode, assigns a signal handler function for terminal resize signal `SIGWINCH`, and makes the cursor invisible.
+
+### 2. Capture Key
+
+Main loop detects whether a key is available by polling the system input buffer via `select()` system call.
+
+If a valid key stroke is found, main loop takes various actions depending on the key event:
+- If the key is `TAB` or `SHIFT+TAB`, then main loop attempts to focus next or previous widget respectively.
+- If the key is `ESC`, then main loop pops the current page and goes one back, if no more page left on the stack, main loop enters the "End Phase".
+- If the key is different than listed above, then main loop looks for a key handler of the currently focused widget and redirects the key stroke to the key handler of the current widget.
+
+### 3. Execute Timer Callbacks
+
+With each loop iteration, main loop looks for possible timeouts for each widget via the function `nocterm_timer_tick()`. If a timer exceeds its inverval, then main loop executes the corresponding timer callback, these executions are synchronous.
+
+### 4. Refresh Screen
+
+This phase is the only phase where I/O operations are performed. Main loop iterates over every widget on the widget tree, starting from the root widget, and looks for possible screen updates via checking `soft_refresh` and `hard_refresh` flags of each widget. 
+
+> If screen is resized, this phase clears the screen completely before any widget is drawn to the screen.
+
+
+### 5. End Phase
+
+In this phase, terminal is reverted to its original form and cursor is being made visible again.
+
+# API Overview
+
+Below is a simple application which enters the main loop.
+
+```c
+#include <nocterm/nocterm.h>
+ 
+int main(){
+ 
+    nocterm_dimension_size_t row = 0, col = 0, height = 10, width = 10;
+ 
+    nocterm_widget_focusable_t focusable = NOCTERM_WIDGET_FOCUSABLE_YES;
+    nocterm_widget_type_t type = NOCTERM_WIDGET_TYPE_REAL;
+ 
+    nocterm_widget_t* my_widget = nocterm_widget_new((nocterm_dimension_t){row, col, height, width}, focusable, type);
+ 
+    nocterm_page_t* main_page = nocterm_page_new("Main page", sizeof("Main page"), my_widget);
+
+	// At least 1 page required on the stack
+    nocterm_page_stack_push(main_page); 
+
+	// Main loop starts here
+    nocterm_loop(); 
+
+    nocterm_widget_delete(my_widget);
+    nocterm_page_delete(main_page); 
+ 
+    return 0;
+}
+```
+

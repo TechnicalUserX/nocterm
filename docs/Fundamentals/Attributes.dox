@@ -1,0 +1,93 @@
+\page attributes Attributes
+
+An attribute in terms of Nocterm is a generic character formatting structure, eventually converted to an ANSI escape sequence to change the 
+formatting of the current terminal.
+
+The attribute type `nocterm_attribute_t` has boolean fields that affects the creation of final ANSI escape sequence.
+
+`Example`
+
+```c
+// C Syntax
+nocterm_attribute_t attr = {
+	.italic = true,
+	.bold = true
+};
+```
+
+`Example`
+
+```cpp
+// C++ Syntax
+nocterm_attribute_t attr = {0};
+attr.italic = true
+attr.bold = true;
+```
+
+Here are the possible flags that one can set to enable a feature:
+
+- `underline`
+- `bold`
+- `italic`
+- `inverse`
+- `strikethrough`
+- `color.ansi.fg`
+- `color.ansi.bg`
+- `color.c256.fg`
+- `color.c256.bg`
+- `color.rgb.fg`
+- `color.rgb.bg`
+
+After setting the color flags, you still need to define which color to use:
+
+**ANSI Colors**
+
+```c
+attr.color.ansi.codes.fg = 3;
+attr.color.ansi.codes.bg = 5;
+```
+
+**256 Color Mode**
+
+```c
+attr.color.c256.codes.fg = 30;
+attr.color.c256.codes.bg = 200;
+```
+
+**RGB Truecolor**
+
+```c
+attr.color.rgb.codes.fg.red = 255;
+attr.color.rgb.codes.bg.green = 255;
+```
+
+---
+
+There is a special flag called `clear`, which dictates attribute type to reset everything before applying the other flags.
+
+If used solely, it just causes every applied attribute to be reset.
+
+```c
+attr.clear = true;
+```
+
+---
+
+The function `nocterm_attribute_set()` is used internally by Nocterm to apply attributes to the current terminal.
+
+```c
+nocterm_attribute_t attr = {
+	.bold = true;
+};
+
+nocterm_attribute_set(attr);
+```
+
+---
+
+There is a predefined constant named `NOCTERM_ATTRIBUTE_EMPTY` that can be used when you don't want to set any attribute for anything.
+
+```c
+nocterm_attribute_set(NOCTERM_ATTRIBUTE_EMPTY);
+```
+

@@ -1,0 +1,12 @@
+\mainpage Nocterm
+
+Welcome to Nocterm Documentation!
+
+Nocterm is a terminal user interface library for basic needs, designed to be used with C/C++.
+It is expected to evolve and improve in time. 
+New widgets will be added when there is a need.
+
+- \subpage installation
+- \subpage usinglibrary
+- \subpage fundamentals
+- \subpage examples

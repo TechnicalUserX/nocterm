@@ -1,0 +1,15 @@
+\page fundamentals Fundamentals
+
+The Nocterm project is built on top of following fundamental components:
+
+- \subpage io
+- \subpage char
+- \subpage key
+- \subpage attributes
+- \subpage widgets
+- \subpage pagestack
+- \subpage mainloop
+- \subpage timers
+
+
+

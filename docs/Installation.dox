@@ -1,0 +1,60 @@
+\page installation Installation
+
+This page explains how to install the Nocterm terminal UI library to your system.
+
+> Nocterm library is intended to be used with Linux-based systems.
+
+
+---
+# From Source
+
+## 1. Prerequisites
+
+To build and install Nocterm to your Linux system, you need to install the following packages/programs:
+
+- `make`
+- `gcc`
+- `git`
+
+To install these requirements:
+
+**Ubuntu/Debian**
+
+```shell
+sudo apt install gcc make git
+```
+
+## 2. Building & Installing
+
+To build and install the library, you have to clone the project to your system via `git` first:
+
+```shell
+git clone https://github.com/technicaluserx/nocterm.git
+```
+
+Go inside the `nocterm` directory:
+
+```c
+cd nocterm
+```
+
+The project must be configured first:
+
+```c
+./configure --targets=nocterm
+```
+
+After configuration, we compile the project:
+
+```shell
+make
+```
+
+Last step is to install the library to system directories:
+
+```shell
+sudo make install
+```
+
+> Header files are copied to `/usr/local/include` and library binary is copied to `/usr/local/lib`.
+

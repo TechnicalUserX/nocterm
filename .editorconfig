@@ -1,0 +1,30 @@
+root = true
+
+[*]
+end_of_line = lf
+insert_final_newline = true
+indent_style = space
+indent_size = 4
+
+[makefile]
+indent_style = tab
+insert_final_newline = true
+
+[base.mk.in]
+indent_style = tab
+insert_final_newline = true
+
+[build/base.mk]
+indent_style = tab
+insert_final_newline = true
+
+[build/sources.mk]
+indent_style = tab
+insert_final_newline = true
+
+[build/configs.mk]
+indent_style = tab
+insert_final_newline = true
+
+[VERSION]
+insert_final_newline = false

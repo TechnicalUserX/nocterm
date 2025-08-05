@@ -1,0 +1,282 @@
+\page widgets Widgets
+
+A widget is a 2-dimensional buffer made out of `nocterm_widget_cell_t` with each cell in the buffer contains `nocterm_char_t` for ASCII/Unicode characters and an attribute type as `nocterm_attribute_t` field to store text format such as italic, bold etc.
+
+---
+# Widget Dimensions
+
+Widgets have 2 types of dimensions:
+
+![](./images/dimensions.png)
+## 1. Bounds
+
+If the widget is created as *real*, then widget covers an area on the terminal with its allocated buffer.
+If the widget is created as *virtual*, then widget does not cover an area and has the buffer size of zero.
+
+Bounds has the following fields:
+- `row`: Relative row position to its parent widget (If widget is root widget, then it is relative to the terminal)
+- `col`: Relative column position to its parent widget (If widget is root widget, then it is relative to the terminal)
+- `height`: Cell count vertically
+- `width`: Cell count horizontally
+
+> Widgets are either real or virtual. Real widgets contain a real buffer, while virtual widgets have no buffer allocated to them but they may still have bound dimensions.
+
+## 2. Viewport
+
+Viewport has the same fields as Bounds but it covers an area less or equal to the bounds of the widget.
+
+Viewport has the following fields:
+- `row`:  Row position relative to the leftmost of the widget
+- `col`: Column position relative to the leftmost of the widget
+- `height`: Cells visible vertically
+- `width`: Cells visible horizontally
+
+Viewport allows widgets to wander around its buffer area, which eventually made some widgets possible such as `listview`, `menu`, `entry`.
+
+> While bounds may have a larger area, viewport is the only area drawn to the screen, other portions are not drawn but still there, waiting for viewport overlap.
+
+
+---
+
+# Subwidgets
+
+![](images/subwidgets.png)
+
+Each widget has the capability to contain subwidgets and/or to be a subwidget of another widget. This hierarcy of widgets made possible with n-ary tree data structure.
+
+Each subwidget's leftmost row and column position on the terminal is calculated by summing up the row and column positions of its all parents starting from the root widget and coming down to its exact parent.
+
+---
+
+# Drawing Widgets
+
+Each widget is drawn on the screen with a simple yet effective criterion: _If the `refresh` flag is set in a cell, then that cell must be printed to the terminal screen_. This flag is set when the function `nocterm_widget_update()` is called on a widget.
+
+While `refresh` flag is a very crucial element for a widget cell to be printed to the terminal screen, there are other criteria:
+- Widget must be **visible**. (`visible` flag is set to `true` inside the widget)
+- Viewport of the widget must overlap with the cell position
+
+![](images/update_not_drawn.png)
+
+There are two types of refresh mechanisms of widgets.
+
+## 1. Soft Refresh
+
+This happens when a widget is only updated with a `nocerm_widget_update()` call. This function sets the flag `soft_refresh` to `true` for a widget, indicating that the widget has at least $1$ cell that can be drawn to the screen without clearing the screen. 
+
+`Example`
+
+![](images/soft_refresh.png)
+
+While iterating over a menu widget, it is **NOT** necessary to redraw everything. It is enough to update the current selected item to its normal attributes and change the attribute of the next item.
+
+In this case, `Apple` was yellow before. We moved one down. Then `Apple`'s color turned to white and Banana become yellow.
+While updating the widget, we did not need to redraw the `Orange` and `Cherry`.
+
+## 2. Hard Refresh
+
+There are some actions that cannot be resolved with a redraw operation with small updates. What if you move the widget to somewhere else, terminal may be resized, or you set the visibility of the widget to false? These types of operations necessitate the redraw of affected widgets. 
+
+Some operations that trigger hard refresh:
+- Terminal is resized
+- Widget visibility changed
+- Widget moved to another location
+- Widget viewport is changed
+- Widget is resized
+- Current page is changed (Refer to \ref pagestack)
+
+> If a widget becomes visible from a hidden state, only that widget and its subwidget's are redrawn; if it becomes invisible, then all widgets are redrawn.
+
+
+---
+
+# Focusability
+
+Widgets are either focusable or not. If a widget is focused at the moment, then it is possible to send key strokes to that widget. Some widgets are not focusable by nature, (e.g. label).
+
+The `TAB` key shall iterate forwards on the n-ary widget tree and `SHIFT+TAB` shall iterate backwards until it finds a focusable widget. By default, no widget is focused when a page (Refer to \pages) is first pushed to the stack.
+
+---
+# API Overview
+
+## Widget Creation
+
+Example below illustrates a simple widget creation:
+
+```c
+#include <nocterm/nocterm.h>
+
+int main(){
+
+	nocterm_dimension_size_t row = 0, col = 0, height = 10, width = 10;
+
+	nocterm_widget_focusable_t focusable = NOCTERM_WIDGET_FOCUSABLE_YES;
+	nocterm_widget_type_t type = NOCTERM_WIDGET_TYPE_REAL;
+
+	nocterm_widget_t* my_widget = nocterm_widget_new((nocterm_dimension_t){row, col, height, width}, focusable, type);
+
+	nocterm_widget_delete(my_widget);
+	
+	return 0;
+}
+```
+
+- `row` and `col` are the left and top positions of the widget respectively. 
+- `height` and `width` are the cell dimensions, where each cell occupies a single character.
+- `focusable` allows the widget to be focused with `TAB` or `SHIFT+TAB`.
+- `type` defines whether the widget has real cell buffer or is a virtual widget.
+
+> Widgets are allocated with `malloc()`, do not forget to free allocated space with the function `nocterm_widget_delete()`.
+
+## Updating Widget Cell Buffer
+
+Widget cell buffer is modified only via `nocterm_widget_update()`, it is highly discouraged to modify the buffer manually since it may cause unexpected results.
+
+Below is an example of putting a single character on a widget cell buffer.
+
+```c
+#include <nocterm/nocterm.h>
+
+int main(){
+
+	nocterm_dimension_size_t row = 0, col = 0, height = 10, width = 10;
+
+	nocterm_widget_focusable_t focusable = NOCTERM_WIDGET_FOCUSABLE_YES;
+	nocterm_widget_type_t type = NOCTERM_WIDGET_TYPE_REAL;
+
+	nocterm_widget_t* my_widget = nocterm_widget_new((nocterm_dimension_t){row, col, height, width}, focusable, type);
+
+	nocterm_char_t my_char = {
+		.bytes = {'a'},
+		.byte_size = 1,
+		.is_utf8 = false
+	};
+
+	nocterm_attribute_t attr = {
+		.bold = true,
+		.italic = true
+	};
+
+	nocterm_widget_update(2,5, my_char, attr);
+
+	nocterm_widget_delete(my_widget);
+	
+	return 0;
+}
+
+```
+
+> Normally, you would not need to call `nocterm_widget_update()` by hand, this function is used internally by Nocterm.
+
+## Widget Handlers
+
+Widgets have handler functions to manage various processes internally.
+
+### 1. Focus Handler
+
+Widgets shall have some kind of a mechanism to indicate which widget is currently focused and read for any key press action. This might be either highlighting some parts of the widget or maybe inverting all the colors in the widget. No matter the methodology, the user should be able to perceive which widget is currently focused and used. This is achieved by focus handlers.
+
+Below is an example of adding a focus handler to a widget:
+
+```c
+#include <nocterm/nocterm.h>
+
+NOCTERM_WIDGET_FOCUS_HANDLER(my_widget_focus_handler){
+	switch(focus){
+		case NOCTERM_WIDGET_FOCUS_ENTER:
+			// Do focus enter action
+			break;
+
+		case NOCTERM_WIDGET_FOCUS_LEAVE:
+			// Do focus leave action
+			break;
+	}
+}
+
+int main(){
+
+	nocterm_dimension_size_t row = 0, col = 0, height = 10, width = 10;
+
+	nocterm_widget_focusable_t focusable = NOCTERM_WIDGET_FOCUSABLE_YES;
+	nocterm_widget_type_t type = NOCTERM_WIDGET_TYPE_REAL;
+
+	nocterm_widget_t* my_widget = nocterm_widget_new((nocterm_dimension_t){row, col, height, width}, focusable, type);
+
+	nocterm_widget_add_focus_handler(my_widget, my_widget_focus_handler);
+
+	nocterm_widget_delete(my_widget);
+	
+	return 0;
+}
+```
+
+### 2. Key Handler
+
+The key handler functions handle key presses sent to widgets. Technically each widget receives any key press you send them, but they ignore key presses if widgets do not contain a key handler function.
+
+> If a widget cannot be focused, then it cannot receive key presses.
+
+Below is an example of adding a key handler to a widget:
+
+```c
+#include <nocterm/nocterm.h>
+
+NOCTERM_WIDGET_KEY_HANDLER(my_widget_key_handler){
+	switch(nocterm_key_translate(key)){
+		case NOCTERM_KEY_EVENT_ENTER:
+			// Handle key event
+			break;
+	}
+}
+
+int main(){
+
+	nocterm_dimension_size_t row = 0, col = 0, height = 10, width = 10;
+
+	nocterm_widget_focusable_t focusable = NOCTERM_WIDGET_FOCUSABLE_YES;
+	nocterm_widget_type_t type = NOCTERM_WIDGET_TYPE_REAL;
+
+	nocterm_widget_t* my_widget = nocterm_widget_new((nocterm_dimension_t){row, col, height, width}, focusable, type);
+
+	nocterm_widget_add_key_handler(my_widget, my_widget_key_handler);
+
+	nocterm_widget_delete(my_widget);
+	
+	return 0;
+}
+```
+
+## Adding Subwidgets
+
+Each widget can be a subwidget of another widget. 
+
+Adding subwidgets to widgets is the only way of creating complex pages with numerous widgets due to the fact that there is only a single root widget for a page (Refer to \ref pagestack).
+
+Below is an example of adding a subwidget to a widget:
+
+```c
+#include <nocterm/nocterm.h>
+
+int main(){
+
+	nocterm_dimension_size_t row = 0, col = 0, height = 10, width = 10;
+
+	nocterm_widget_focusable_t focusable = NOCTERM_WIDGET_FOCUSABLE_YES;
+	nocterm_widget_type_t type = NOCTERM_WIDGET_TYPE_REAL;
+
+	nocterm_widget_t* my_widget = nocterm_widget_new((nocterm_dimension_t){row, col, height, width}, focusable, type);
+	nocterm_widget_t* my_subwidget = nocterm_widget_new((nocterm_dimension_t){row, col, height, width}, focusable, type);
+
+	nocterm_widget_add_subwidget(my_widget, my_subwidget);
+
+	nocterm_widget_delete(my_widget);
+	nocterm_widget_delete(my_subwidget);	
+
+	return 0;
+}
+```
+
+Each widget must be deleted separately.
+
+> A widget cannot be a subwidget of two widgets (i.e. a widget cannot contain 2 parents). This would cause cyclic behavior which may yield infinite loop in the widget refresh process.
+

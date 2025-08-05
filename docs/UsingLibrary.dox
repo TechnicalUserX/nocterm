@@ -1,0 +1,60 @@
+\page usinglibrary Using Library
+
+This page explains how to use the Nocterm library in your C/C++ projects.
+
+---
+
+# From Source
+
+If you have built the project from source and installed by following the given instructions, the header files and library binary is installed to `/usr/local/include` and `/usr/local/lib` respectively. In this case, related library files must be visible from the search paths of the compiler and linker.
+
+**Sample Scenario**
+
+Create a file `main.c` in a directory of your desire:
+
+```c
+#include <nocterm/nocterm.h>
+ 
+int main(){
+ 
+    nocterm_dimension_size_t row = 0, col = 0, height = 10, width = 10;
+ 
+    nocterm_widget_focusable_t focusable = NOCTERM_WIDGET_FOCUSABLE_YES;
+    nocterm_widget_type_t type = NOCTERM_WIDGET_TYPE_REAL;
+ 
+    nocterm_widget_t* my_widget = nocterm_widget_new((nocterm_dimension_t){row, col, height, width}, focusable, type);
+ 
+    nocterm_page_t* main_page = nocterm_page_new("Main page", sizeof("Main page"), my_widget);
+ 
+    nocterm_page_stack_push(main_page); 
+
+    nocterm_loop(); 
+ 
+    nocterm_widget_delete(my_widget);
+    nocterm_page_delete(main_page); 
+ 
+    return 0;
+}
+```
+
+To compile your program with the library linkage:
+
+
+```shell
+# C program
+gcc main.c -lnocterm -o hello_nocterm
+```
+
+```shell
+# C++ pogram
+g++ main.c -lnocterm -o hello_nocterm
+```
+
+To run the compiled binary:
+
+```c
+./hello_nocterm
+```
+
+> If you have come across with linkage error, indicating that the library `nocterm` is not found, your system probably lacks the `/usr/local/lib` directory in the linker search path. To add this directory to the search path, add the following line  to your shell initialization script (e.g. `.bashrc` in Ubuntu/Debian) or execute it in your terminal every time you want to compile and link against this library: `export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/usr/local/lib"`
+

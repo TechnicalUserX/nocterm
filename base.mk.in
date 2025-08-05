@@ -1,0 +1,141 @@
+# Configuration Base Makefile Fragment
+
+########################################
+# Version
+
+VERSION_MAJOR := @VERSION_MAJOR@
+VERSION_MINOR := @VERSION_MINOR@
+VERSION_PATCH := @VERSION_PATCH@
+VERSION_PRERELEASE := @VERSION_PRERELEASE@
+VERSION := @VERSION@
+
+########################################
+# Project
+
+PROJECT := @PROJECT@
+
+########################################
+# Targets
+
+TARGETS := @TARGETS@
+TARGETS_INSTALL = $(foreach var, ${TARGETS}, ${var}-install)
+TARGETS_UNINSTALL = $(foreach var, ${TARGETS}, ${var}-uninstall)
+
+########################################
+# Root Path
+
+ROOT_DIR := @ROOT_DIR@
+
+########################################
+# Miscellaneous
+
+MKDIR_P := mkdir -p
+SHELL := /bin/bash
+
+########################################
+# Prefix - Used For Installation Directory
+
+PREFIX := $(if ${DESTDIR}, /usr, /usr/local)
+
+########################################
+# Directories
+
+HDR_DIR := ${ROOT_DIR}/include
+BUILD_DIR := ${ROOT_DIR}/build
+BUILD_OBJ_DIR = ${BUILD_DIR}/obj
+BUILD_BIN_DIR := ${BUILD_DIR}/bin
+BUILD_LIB_DIR := ${BUILD_DIR}/lib
+BUILD_PKG_DIR := ${BUILD_DIR}/pkg
+
+########################################
+# Logging
+
+BUILD_LOG_FILE = ${BUILD_DIR}/build.log
+
+########################################
+# Superuser
+
+IS_SUPERUSER = $(shell [ `id -u` -eq 0 ] && echo 1 || echo 0)
+
+########################################
+# Compiler, Preprocessor, Linker
+
+CC := @CC@
+CXX := @CXX@
+CFLAGS := @CFLAGS@
+CXXFLAGS := @CXXFLAGS@
+CPPFLAGS := @CPPFLAGS@
+LDFLAGS := @LDFLAGS@
+
+########################################
+# Definitions
+
+define build_log
+	@echo "$(shell date "+%d/%m/%Y %X.%06N") $(1)"
+	@echo "$(shell date "+%d/%m/%Y %X.%06N") $(1)" >> ${BUILD_LOG_FILE}
+endef
+
+########################################
+# Generic Targets
+
+.PHONY: all install uninstall superuser no-superuser clean
+
+all: ${TARGETS}
+
+-include ${BUILD_DIR}/sources.mk
+-include ${BUILD_DIR}/configs.mk
+
+install: ${TARGETS_INSTALL}
+
+uninstall: ${TARGETS_UNINSTALL}
+
+${BUILD_OBJ_DIR}/%.o: ${ROOT_DIR}/%.c
+	@${MKDIR_P} $(dir $@)
+	@$(call build_log, ${CC} ${CPPFLAGS} ${CFLAGS} -c $< -o $@) 
+	@${CC} ${CPPFLAGS} ${CFLAGS} -c $< -o $@ >> ${BUILD_LOG_FILE} 2>&1 || (echo "Error(s) detected! Please refer to '${BUILD_LOG_FILE}'"; exit 1)
+ 
+${BUILD_OBJ_DIR}/%.o: ${ROOT_DIR}/%.cpp
+	@${MKDIR_P} $(dir $@)
+	@$(call build_log, ${CXX} ${CPPFLAGS} ${CXXFLAGS} -c $< -o $@)
+	@${CXX} ${CPPFLAGS} ${CXXFLAGS} -c $< -o $@  >> ${BUILD_LOG_FILE} 2>&1 || (echo "Error(s) detected! Please refer to '${BUILD_LOG_FILE}'"; exit 1)
+
+
+superuser:
+ifneq ($(IS_SUPERUSER),1)
+	@echo "Superuser privileges needed to proceed!"
+	@exit 1
+endif
+
+no-superuser:
+ifneq ($(IS_SUPERUSER),0)
+	@echo "Do not use superuser privileges here!"
+	@exit 1
+endif
+
+clean:
+	@rm -rf ${BUILD_OBJ_DIR}/*
+	@rm -f ${BUILD_LOG_FILE}
+
+########################################
+# User-Defined Targets (MODIFY HERE)
+
+nocterm: ${BUILD_LIB_DIR}/libnocterm.a no-superuser
+
+${BUILD_LIB_DIR}/libnocterm.a: ${NOCTERM_OBJ}
+	@$(call build_log, ${CC} <objects> -o $@)
+	@ar rcs $@ $^
+	@echo Build Successful
+
+nocterm-install: superuser
+	@$(call build_log, "Installing...")
+	@install --target-directory ${DESTDIR}${PREFIX}/lib ${BUILD_LIB_DIR}/libnocterm.a
+	@cp -r ${HDR_DIR}/nocterm ${DESTDIR}${PREFIX}/include
+
+nocterm-uninstall: superuser
+	@$(call build_log, "Uninstalling...")
+	@rm -f ${DESTDIR}${PREFIX}/lib/libnocterm.a
+	@rm -rf ${DESTDIR}${PREFIX}/include/nocterm
+
+nocterm-update: superuser
+	@${MAKE} --no-print-directory nocterm-uninstall
+	@${MAKE} --no-print-directory nocterm-install

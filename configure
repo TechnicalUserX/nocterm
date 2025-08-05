@@ -1,0 +1,908 @@
+#!/bin/bash
+# Configuration script for C/C++ (c) 2024-2025 Kaan Baydemir
+# Out-of-source build is adopted
+
+# shellcheck disable=SC2034
+# shellcheck disable=SC2059
+# shellcheck disable=SC1091
+
+########################################
+# Project (MODIFY HERE)
+
+PROJECT="Nocterm"
+PROJECT_BRIEF="Simple Terminal UI Library"
+
+########################################
+# Targets
+
+# Chosen Targets - Do not modify!
+TARGETS=""
+
+# Available Targets (MODIFY HERE)
+TARGETS_AVAILABLE="nocterm"
+
+########################################
+# Default Source Extensions (MODIFY HERE)
+
+SRC_EXT="c"
+
+########################################
+# Functions
+
+# config_validate_var_name "_var"
+function config_validate_var_name(){
+
+    if test -z "$1"; then
+        return 1
+    fi
+
+    if grep -qP "^[a-zA-Z_][a-zA-Z0-9_]*$"  <<< "$1"; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+# config_validate_target_name "target-name"
+function config_validate_target_name(){
+    if test -z "$1"; then
+        return 1
+    fi
+
+    if grep -qP "^([a-z][a-z0-9]*)(-([a-z][a-z0-9]*))*$"  <<< "$1"; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+# config_parse_semver "$(cat VERSION)" VERSION_MAJOR VERSION_MINOR VERSION_PATCH VERSION_PRERELEASE
+function config_parse_semver(){
+
+    local version_full= # Default
+
+    if test -n "$1"; then
+        version_full=$1
+    else 
+        return 1
+    fi
+
+    local IFS="-"
+    read -ra version <<< "${version_full}"
+    local parsed_count=${#version[@]}
+    
+    if test "${parsed_count}" -ge "1" && test "${parsed_count}" -le 2; then
+
+        local regex_pattern_1="^([0]|[1-9][0-9]*)([.]([1-9]+|[0])){2}$"
+
+        grep -qP "${regex_pattern_1}" <<< "${version[0]}"
+        if test "$?" != "0"; then
+            return 1
+        fi
+
+        local mmp=
+        IFS="."
+        read -ra mmp <<< "${version[0]}"
+        
+        if test ${#mmp[@]} != 3; then
+            return 1;
+        fi
+
+        if test "${parsed_count}" = "2"; then
+            
+            local regex_pattern_2="^(([0]|[1-9][0-9]*)|([a-zA-Z][a-zA-Z0-9]*))"
+            regex_pattern_2+="([.](([0]|[1-9][0-9]*)|([a-zA-Z][a-zA-Z0-9]*)))*$"
+
+            grep -qP "${regex_pattern_2}" <<< "${version[1]}"
+
+            if test "$?" != "0"; then
+                return 1
+            fi
+
+        fi
+
+    else
+        return 1
+    fi
+
+    if test -n "$2" && config_validate_var_name "$2"; then
+        eval "$2=\"${version[0]}${version[1]:+-${version[1]}}\""
+    fi
+
+    if test -n "$3" && config_validate_var_name "$3"; then
+        eval "$3=\"${mmp[0]}\""
+    fi
+
+    if test -n "$4" && config_validate_var_name "$4"; then
+        eval "$4=\"${mmp[1]}\""
+    fi
+
+    if test -n "$5" && config_validate_var_name "$5"; then
+        eval "$5=\"${mmp[2]}\""
+    fi
+
+    if test -n "$6" && config_validate_var_name "$6"; then
+        if test -n "${version[1]}"; then
+            eval "$6=\"${version[1]}\""
+        else
+            eval "$6=\"\""
+        fi
+    
+    fi
+
+    return 0;
+}
+
+# config_build_in "makefile.in" "build/makefile"
+function config_build_in(){
+
+    if ! test -f "$1"; then
+        return 1
+    fi
+
+    if test -z "$2"; then
+        return 1
+    fi
+
+    local build_dir
+    build_dir=$(dirname "$2")
+    
+    if ! test -d "${build_dir}"; then
+        mkdir -p "${build_dir}"
+    fi
+
+    local template_variables
+    template_variables=$(grep -oP "@[A-Z_]+@" "$1")
+
+    if test -z "${template_variables}"; then
+        config_log WARN "$1 does not contain template variables"
+        return 0
+    fi
+
+    local template_variables_trimmed=
+    local trimmed_variable=
+
+    local i=
+    for i in $template_variables; do
+        trimmed_variable="${i:1:-1}"
+        if ! test -v "${trimmed_variable}"; then
+            config_log WARN "${trimmed_variable} is not set in the script"
+            return 1
+        fi
+        template_variables_trimmed="${template_variables_trimmed} ${trimmed_variable} "
+    done
+
+    local substitute_expression="sed"
+
+    for i in $template_variables_trimmed; do
+        substitute_expression+=" -e \"s|@$i@|${!i}|g\""
+    done
+
+    substitute_expression+=" \"$1\" > \"$2\""
+    eval "${substitute_expression}"
+    return 0
+}
+
+# config_log PASS "Build"
+function config_log(){
+
+    if test "$OPTION_SUPRESS_LOGS" = "true"; then
+        return 0
+    fi
+
+    if test -z "$1"; then
+        return 1    
+    fi
+
+    if test $# -ne 2; then
+        return 1
+    fi
+
+    local output_stdout=""
+    local output_file=""
+    
+    output_stdout+="\033[3mconfigure\033[0m ["
+    output_file="configure ["
+
+    case $1 in
+
+        INFO)
+            output_stdout+="\033[34mINFO"
+            output_file+=INFO
+        ;;
+
+        WARN)
+            output_stdout+="\033[33mWARN"
+            output_file+=WARN
+        ;;
+
+        FAIL)
+            output_stdout+="\033[31mFAIL"
+            output_file+="FAIL"
+        ;;
+
+        PASS)
+            output_stdout+="\033[32mPASS"
+            output_file+="PASS"
+        ;;
+
+        DEBG)
+            output_stdout+="\033[35mDEBG"
+            output_file+="DEBG"
+        ;;
+
+        *)
+            return 1
+        ;;
+
+    esac
+    output_stdout+="\033[0m]: "
+    output_file+="]: "
+
+    shift
+
+    output_stdout+="$*"
+    output_file+="$*"
+
+    printf "$(date "+%d/%m/%Y %X.%06N") ${output_stdout}\n"
+    printf "$(date "+%d/%m/%Y %X.%06N") %s\n" "${output_file}" >> "${CONFIG_LOG_FILE}"
+    return 0
+}
+
+# config_softlink here go/there
+function config_softlink(){
+
+    if test -e "$2" && ! test -L "$2"; then
+        config_log WARN "'$2' is not a symbolic link"
+        return 1
+    fi
+
+    rm -f "$2"
+    mkdir -p "$(dirname "$2")"
+    ln -s "$1" "$2"
+    return 0
+}
+
+# EXT is used for overriding SRC_EXT variable
+# EXT="c" config_sources "TARGET" "src files" test
+function config_sources(){
+
+    if test $# -lt 2; then
+        return 1
+    fi
+
+    if ! config_validate_target_name "$1"; then
+        return 1
+    fi
+
+
+    if ! config_check_target_available "$1"; then
+        return 1
+    fi
+
+    if (! test "${EXT}" && ! test "${SRC_EXT}"); then
+        return 1
+    fi
+
+	if ! test "${EXT}"; then
+		EXT="${SRC_EXT}"
+	fi
+
+    local MK_TARGET="$1"
+    
+    local MK_TARGET_SRC
+    MK_TARGET_SRC="$(sed s/-/_/g <<< "$(config_uppercase "${MK_TARGET}")_SRC")"
+    
+    local MK_TARGET_OBJ
+    MK_TARGET_OBJ="$(sed s/-/_/g <<< "$(config_uppercase "${MK_TARGET}")_OBJ")"
+
+    shift
+
+    local SRC_CONF=""
+    local SRC_CONF_FIND=""
+    local MK_SRC_CONF=""
+    local SRC_CONF_FIND_ARR=
+
+    local i=
+    for i in "$@"; do
+        if test -f "$i" && grep -qP ".+[.]${EXT}" <<< "$(basename "$i")"; then
+            SRC_CONF+="\"$(readlink -f "$i")\" "
+
+        elif test -d "$i"; then
+
+            SRC_CONF_FIND=$(find "$i" -type f -name "*.${EXT}" -printf "\"%p\" ")
+            eval "SRC_CONF_FIND_ARR=($(echo "${SRC_CONF_FIND}"))"
+
+            for j in "${SRC_CONF_FIND_ARR[@]}"; do
+                SRC_CONF+="\"$(readlink -f "$j")\" "
+            done
+
+        fi
+    done
+
+    local SRC_CONF_ARR=
+    eval "SRC_CONF_ARR=(${SRC_CONF})"
+
+    for i in "${SRC_CONF_ARR[@]}"; do
+        MK_SRC_CONF+="${MK_TARGET_SRC} += $i"
+        MK_SRC_CONF+=$'\n'
+    done
+
+    config_file_append "${BUILD_DIR}/sources.mk" ".PHONY: ${MK_TARGET} ${MK_TARGET}-objects" 
+    config_file_append "${BUILD_DIR}/sources.mk" "${MK_SRC_CONF}"
+	config_file_append "${BUILD_DIR}/sources.mk" "${MK_TARGET_OBJ} = \$(patsubst \${ROOT_DIR}/%, \${BUILD_OBJ_DIR}/%, \${${MK_TARGET_SRC}:.${EXT}=.o})"
+    config_file_append "${BUILD_DIR}/sources.mk" "${MK_TARGET}-objects: \${${MK_TARGET_OBJ}}"
+    config_file_append "${BUILD_DIR}/sources.mk" "${MK_TARGET}: ${MK_TARGET}-objects" 
+
+    return 0
+}
+
+
+# config_text X << EOF
+# hello world
+# EOF
+#
+# config_text << EOF
+# hello world
+# EOF
+function config_text(){
+
+    if test $# != 1 && test $# != 0; then
+        return 1
+    fi
+
+    if test $# = 1; then 
+        if ! config_validate_var_name "$1"; then
+            return 1
+        fi
+    fi
+
+    local output=""
+    while IFS= read -r line; do
+        if test -n "${output}"; then 
+            output+=$'\n'
+        fi
+        output+="${line}"
+    done
+
+    if test $# = 1; then
+        local cmd="$1=\"$output\""
+        eval "$cmd"
+    else
+        printf "%s" "$output"
+    fi
+
+    return 0
+}
+
+# config_file_write "new_file.txt" "$output"
+#
+# config_file_write "new_file.txt" << EOF
+# hello there
+# EOF
+function config_file_write(){
+    
+    if test $# = 1; then
+
+        local output=""
+        while IFS= read -r line; do
+            if test -n "${output}"; then 
+                output+=$'\n'
+            fi
+            output+="${line}"
+        done
+
+        if test -z "$output"; then
+            return 1
+        fi
+
+        mkdir -p "$(dirname "$1")"
+
+        printf "%s\n" "$output" > "$1"
+
+        return 0
+    elif test $# = 2; then
+
+        mkdir -p "$(dirname "$1")"
+
+        printf "%s\n" "$2" > "$1"
+
+    else
+        return 1
+    fi
+
+}
+
+# config_file_append "new_file.txt" "$output"
+#
+# config_file_append "new_file.txt" << EOF
+# hello there
+# EOF
+function config_file_append(){
+    
+    if test $# = 1; then
+
+        local output=" "
+        while IFS= read -r line; do
+            if test -n "${output}"; then 
+                output+=$'\n'
+            fi
+            output+="${line}"
+        done
+
+        if test -z "$output"; then
+            return 1
+        fi
+
+        mkdir -p "$(dirname "$1")"
+
+        printf "%s\n" "$output" >> "$1"
+
+        return 0
+    elif test $# = 2; then
+
+        mkdir -p "$(dirname "$1")"
+        printf "%s\n" "$2" >> "$1"
+
+    else
+        return 1
+    fi
+
+}
+
+# config_debug "something wrong"
+function config_debug(){
+
+    if test -z "$@"; then   
+        return 1
+    fi
+
+    if test "${OPTION_DEBUG}" = true; then
+        config_log DEBG "$@"
+    fi
+
+    return 0
+}
+
+# config_debug X
+function config_uppercase(){
+
+    if test $# != 1; then
+        return 1
+    fi
+
+    echo "$1" | tr '[:lower:]' '[:upper:]'
+
+    return 0
+}
+
+# config_search_text "hello" "hello input"
+function config_search_text(){
+
+    if test $# != 2; then
+        return 1
+    fi
+
+    if grep -q "$1" <<< "$2"
+    then
+        return 0
+    else
+        return 1
+    fi
+}
+
+# config_check_target_set "TARGET"
+function config_check_target_set(){
+
+    if test $# != 1; then
+        return 1
+    fi
+
+    if ! config_validate_target_name "$1"; then
+        return 1
+    fi
+
+    local target_set=
+    IFS=" " read -ra target_set <<< "${TARGETS}"
+
+    local i=
+    for i in "${target_set[@]}"; do
+        if test "$i" = "$1"; then
+            return 0
+        fi
+    done
+
+    return 1
+}
+
+# config_check_target_available "TARGET"
+function config_check_target_available(){
+
+    if test $# != 1; then
+        return 1
+    fi
+
+    if ! config_validate_target_name "$1"; then
+        return 1
+    fi
+
+    local target_available=
+    IFS=" " read -ra target_available <<< "${TARGETS_AVAILABLE}"
+    
+    local i=
+    for i in "${target_available[@]}"; do
+        if test "$i" = "$1"; then
+            return 0
+        fi
+    done
+
+    return 1
+}
+
+function config_banner(){
+    printf "\nConfiguring Project: \033[34m\033[1m%s\033[0m\nTime: \033[32m%s\033[0m\n\n" "${PROJECT}" "$(date "+%d/%m/%Y %X.%06N")" 
+    printf "\nConfiguring Project: %s\nTime: %s\n\n" "${PROJECT}" "$(date "+%d/%m/%Y %X.%06N")" >> "${CONFIG_LOG_FILE}"
+    return 0
+}
+
+function config_builddir_create(){
+    if ! test -d "${BUILD_DIR}"; then 
+        mkdir -p "${BUILD_DIR}"
+        touch "${MARKER}"
+        mkdir -p "${BUILD_OBJ_DIR}"
+        mkdir -p "${BUILD_LIB_DIR}"
+        mkdir -p "${BUILD_BIN_DIR}"
+        mkdir -p "${BUILD_DOC_DIR}"
+        mkdir -p "${BUILD_PKG_DIR}"
+    fi
+
+    return
+}
+
+function config_builddir_sanity_check(){
+    if ! test -f "${MARKER}" && test -d "${BUILD_DIR}"; then
+        config_log FAIL "This repository is not configured with configure script"
+        return 1
+    else
+        return 0
+    fi
+}
+
+function config_builddir_clean(){
+    # Clean well-known files and directories
+    rm -f "${BUILD_DIR:?}/makefile"
+    rm -f "${BUILD_DIR:?}/configs.mk"
+    rm -f "${BUILD_DIR:?}/sources.mk"
+    rm -f "${BUILD_DIR:?}/makefile.mk"
+    rm -f "${BUILD_DIR:?}/config.log"
+    rm -f "${BUILD_DIR:?}/build.log"
+    rm -rf "${BUILD_OBJ_DIR:?}/*"
+    rm -rf "${BUILD_BIN_DIR:?}/*"
+    rm -rf "${BUILD_LIB_DIR:?}/*"
+    rm -rf "${BUILD_DOC_DIR:?}/*"
+    rm -rf "${BUILD_PKG_DIR:?}/*"
+
+
+    # Clean all symbolic links
+    for i in "${BUILD_DIR}"/*; do
+        if test -L "$i"; then
+            rm -f "$i"
+        fi
+    done
+}
+
+function config_kconfig_targets(){
+
+    if test "${OPTION_KCONFIG}" = "false"; then
+        return
+    fi
+
+    source "${BUILD_DIR}/.config" 2>/dev/null
+
+    if test $? = 0; then
+
+        for i in ${TARGETS}; do
+            target_name_sanitized="$(sed s/-/_/g <<< "$(config_uppercase "${i}")")"
+
+            target_kconfig_option_key="CONFIG_TARGET_${target_name_sanitized}_CC"
+            target_kconfig_option_value="${!target_kconfig_option_key}"
+            if test -n "${target_kconfig_option_value}"; then
+                config_file_append "${BUILD_DIR}/configs.mk" <<< "${i}: CC=${target_kconfig_option_value}"
+            fi
+
+            target_kconfig_option_key="CONFIG_TARGET_${target_name_sanitized}_CXX"
+            target_kconfig_option_value="${!target_kconfig_option_key}"
+            if test -n "${target_kconfig_option_value}"; then
+                config_file_append "${BUILD_DIR}/configs.mk" <<< "${i}: CXX=${target_kconfig_option_value}"
+            fi
+
+            target_kconfig_option_key="CONFIG_TARGET_${target_name_sanitized}_CFLAGS"
+            target_kconfig_option_value="${!target_kconfig_option_key}"
+            if test -n "${target_kconfig_option_value}"; then
+                config_file_append "${BUILD_DIR}/configs.mk" <<< "${i}: CFLAGS=${target_kconfig_option_value}"
+            fi
+
+            target_kconfig_option_key="CONFIG_TARGET_${target_name_sanitized}_CPPFLAGS"
+            target_kconfig_option_value="${!target_kconfig_option_key}"
+            if test -n "${target_kconfig_option_value}"; then
+                config_file_append "${BUILD_DIR}/configs.mk" <<< "${i}: CPPFLAGS=${target_kconfig_option_value}"
+            fi
+
+            target_kconfig_option_key="CONFIG_TARGET_${target_name_sanitized}_CXXFLAGS"
+            target_kconfig_option_value="${!target_kconfig_option_key}"
+            if test -n "${target_kconfig_option_value}"; then
+                config_file_append "${BUILD_DIR}/configs.mk" <<< "${i}: CXXFLAGS=${target_kconfig_option_value}"
+            fi
+
+            target_kconfig_option_key="CONFIG_TARGET_${target_name_sanitized}_LDFLAGS"
+            target_kconfig_option_value="${!target_kconfig_option_key}"
+            if test -n "${target_kconfig_option_value}"; then
+                config_file_append "${BUILD_DIR}/configs.mk" <<< "${i}: LDFLAGS=${target_kconfig_option_value}"
+            fi
+        
+        done
+    fi
+
+    return
+}
+
+function config_doxygen(){
+
+    if test "${OPTION_DOXYGEN}" = "false"; then
+        return
+    fi
+
+    if test "$(command -v doxygen)" && test -f "${ROOT_DIR}/Doxyfile.in"; then
+
+        if config_build_in "${ROOT_DIR}/Doxyfile.in" "${BUILD_DIR}/Doxyfile"; then
+            config_log PASS "Doxyfile.in"
+        else
+            config_log FAIL "Doxyfile.in"
+        fi
+
+        doxygen "${BUILD_DIR}/Doxyfile" 1>/dev/null 2>/dev/null
+        
+    else
+        config_log WARN "doxygen is not found or Doxyfile is missing"
+    fi
+
+    exit 0
+}
+
+function config_kconfig_menu(){
+
+    if test "${OPTION_KCONFIG_MENU}" = "false"; then
+        return
+    fi
+
+    if test "$(command -v menuconfig)" && test -f "${ROOT_DIR}/Kconfig"; then
+        KCONFIG_CONFIG="${BUILD_DIR}/.config" menuconfig
+        config_log INFO "Kconfig Menu Configuration"
+    else
+        config_log WARN "menuconfig is not found or Kconfig is missing"
+    fi
+
+    exit 0
+}
+
+########################################
+# Root Directory Detection
+
+ROOT_DIR=$(cd "$(dirname -- "$0")" || exit; pwd)
+
+if ! test "$ROOT_DIR" = "$PWD"; then
+    exit 1
+fi
+
+########################################
+# Default Compiler, Preprocessor,
+# and Linker Flags
+
+CC="gcc"
+CXX="g++"
+CFLAGS="-Wall -Werror -I\"${ROOT_DIR}/include\""
+CPPFLAGS=""
+CXXFLAGS=""
+LDFLAGS="-static"
+
+########################################
+# Directories
+
+BUILD_DIR="${ROOT_DIR}/build"
+BUILD_OBJ_DIR="${BUILD_DIR}/obj"
+BUILD_BIN_DIR="${BUILD_DIR}/bin"
+BUILD_LIB_DIR="${BUILD_DIR}/lib"
+BUILD_DOC_DIR="${BUILD_DIR}/docs"
+BUILD_PKG_DIR="${BUILD_DIR}/pkg"
+
+########################################
+# Build Directory Marker
+
+MARKER="${BUILD_DIR}/auto-configure-marker"
+
+########################################
+# Logging
+
+CONFIG_LOG_FILE="${BUILD_DIR}/config.log"
+
+########################################
+# Options
+
+OPTION_DEBUG=false
+OPTION_SUPRESS_LOGS=false
+OPTION_TARGETS=""
+OPTION_KCONFIG_MENU=false
+OPTION_DOXYGEN=false
+
+# Based on Main Programming Language (MODIFY HERE)
+OPTION_DOXYGEN_OPTIMIZE_OUTPUT_FOR_C=YES
+
+########################################
+# Extra Options (MODIFY HERE)
+
+OPTION_DOXYGEN_INPUT="docs src include"
+OPTION_DOXYGEN_EXCLUDE="docs/doxygen-theme"
+
+########################################
+# Sanity Check Before Creating Build Dir
+
+if ! config_builddir_sanity_check; then
+    exit 1
+fi
+
+config_builddir_create
+
+########################################
+# Add options when necessary
+# Some defaults can be overrided here
+
+for opt do
+  optarg=$(expr "x$opt" : 'x[^=]*=\(.*\)')
+
+  case "$opt" in
+
+    # Opens up the Kconfig Menu and exits
+    --kconfig-menu)
+        OPTION_KCONFIG_MENU=true
+    ;;
+
+    # Creates documentation from Doxyfile and exits
+    --doxygen)
+        OPTION_DOXYGEN=true
+    ;;
+
+    # Optimize Doxygen output for C language
+    --doxygen-optimize-c)
+        OPTION_DOXYGEN_OPTIMIZE_OUTPUT_FOR_C=YES
+    ;;
+
+    --doxygen-input)
+        OPTION_DOXYGEN_INPUT="$optarg"
+    ;;
+
+    # Deletes build directory
+    --clean)
+        rm -rf "${BUILD_DIR:?}"
+        exit 0
+    ;;
+
+    # Shows extra information
+    --debug)
+        OPTION_DEBUG=true
+    ;;
+
+    # Override Makefile Default CC
+    --cc=*)
+        CC="$optarg"
+    ;;
+
+    # Override Makefile Default CXX
+    --cxx=*)
+        CXX="$optarg"
+    ;;
+
+    # Override Makefile Default CFLAGS
+    --cflags=*)
+        CFLAGS="$optarg"
+    ;;
+
+    # Override Makefile Default CPPFLAGS
+    --cppflags=*)
+        CPPFLAGS="$optarg"
+    ;;
+    
+    # Override Makefile Default CXXFLAGS
+    --cxxflags=*)
+        CXXFLAGS="$optarg"
+    ;;
+
+    # Override Makefile Default LDFLAGS
+    --ldflags=*)
+        LDFLAGS="$optarg"
+    ;;
+
+    # Disables log outputs
+    --suppress-logs)
+        OPTION_SUPRESS_LOGS=true
+    ;;
+
+    # Select Targets
+    --targets=*)
+		if test "$optarg" = "*" || test "$optarg" = "all"; then
+			TARGETS="${TARGETS_AVAILABLE}"
+		else
+			IFS="," read -ra OPTION_TARGETS <<< "$optarg"
+			for i in "${OPTION_TARGETS[@]}"; do
+				if ! config_check_target_available "$i"; then
+					config_log WARN "${i} is not a valid target."
+					exit 1
+				fi
+				TARGETS+="$i "
+			done
+		fi
+    ;;
+
+    *)
+        config_log FAIL "Unknown option specified: '${opt}'"
+        exit 1
+    ;;
+    
+  esac
+
+done
+
+config_builddir_clean
+
+########################################
+# Default Configuration
+
+config_banner
+
+if config_parse_semver "$(cat VERSION)" \
+    VERSION \
+    VERSION_MAJOR \
+    VERSION_MINOR \
+    VERSION_PATCH \
+    VERSION_PRERELEASE; 
+    then
+    config_log PASS "Parse semantic version"
+else
+    config_log FAIL "Parse semantic version"
+    exit 1
+fi
+
+config_doxygen
+
+config_kconfig_menu
+
+if test -z "$TARGETS"; then
+    config_log WARN "No target specified"
+    exit 1
+fi
+
+if config_build_in "base.mk.in" "${BUILD_DIR}/base.mk"; then
+    config_log PASS "base.mk"
+else
+    config_log FAIL "base.mk"
+fi
+
+config_kconfig_targets
+
+########################################
+# Target Configuration (MODIFY HERE)
+
+for target in ${TARGETS}; do
+
+     case "$target" in
+
+        nocterm)
+            if config_sources "$target" "src"; then
+                config_log PASS "${PROJECT} sources"
+            else
+                config_log FAIL "${PROJECT} sources"
+            fi
+        ;;
+
+    esac
+    
+done

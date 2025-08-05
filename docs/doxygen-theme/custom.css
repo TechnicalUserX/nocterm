@@ -1,0 +1,4 @@
+html:not(.light-mode) {
+    color-scheme: dark;
+    --primary-color: #8b8b8b;
+}

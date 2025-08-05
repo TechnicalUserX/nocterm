@@ -1,0 +1,16 @@
+\page char Character
+
+Everything displayed on the terminal is whether an ASCII or an UTF-8 character.
+To encompass all the possible characters, a type named `nocterm_char_t` with 4 byte buffer is created for the Nocterm project.
+
+This type is one of the building blocks of the **buffers** of **widgets** alongside with `nocterm_attribute_t`.
+
+---
+
+There are 2 predefined constants for characters:
+
+- `NOCTERM_CHAR_EMPTY`: Literally nothing, all zeroes
+- `NOCTERM_CHAR_NULL`: Equivalent to null terminator character (`.byte_size` field is set to 1)
+
+
+

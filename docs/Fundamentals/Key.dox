@@ -1,0 +1,38 @@
+\page key Key
+
+The key type `nocterm_key_t` is the container for all possible key strokes sent over the keyboard, ranging from ASCII characters to large escape sequences.
+
+Key strokes are detected via `nocterm_key_capture()` function.
+
+There are 3 different types of key detection that is being made by `nocterm_key_capture()` at the very core. Each `nocterm_key_t` has either one of the following types:
+
+| Nocterm Key Type           | Description                                                           |
+| -------------------------- | --------------------------------------------------------------------- |
+| NOCTERM_KEY_TYPE_PRINTABLE | The key is whether an ASCII or UTF-8 character                        |
+| NOCTERM_KEY_TYPE_CONTROL   | Special control keys, such as `Ctrl + C`, `TAB`, `SHIFT+TAB` or `ESC` |
+| NOCTERM_KEY_TYPE_ESCSEQ    | Special byte sequence                                                 |
+
+---
+
+To further evaluate the key's buffer to detect special cases, such as certain key presses, we use `nocterm_key_translate()` function, which returns the the key event type `nocterm_key_event_t`.
+
+Below is the exhaustive list of possible key events that can be returned by `nocterm_key_translate()`:
+
+| Nocterm Key Event           | Description                      |
+| --------------------------- | -------------------------------- |
+| NOCTERM_KEY_EVENT_PRINTABLE | ASCII/UTF-8 printable characters |
+| NOCTERM_KEY_EVENT_UP        | Up arrow key                     |
+| NOCTERM_KEY_EVENT_DOWN      | Down arrow key                   |
+| NOCTERM_KEY_EVENT_RIGHT     | Right arrow key                  |
+| NOCTERM_KEY_EVENT_LEFT      | Left arrow key                   |
+| NOCTERM_KEY_EVENT_BACKSPACE | Backspace key                    |
+| NOCTERM_KEY_EVENT_ENTER     | Enter key                        |
+| NOCTERM_KEY_EVENT_DELETE    | Delete key                       |
+| NOCTERM_KEY_EVENT_TAB       | Tab key                          |
+| NOCTERM_KEY_EVENT_SHIFT_TAB | Shift + Tab                      |
+| NOCTERM_KEY_EVENT_ESCAPE    | Escape key                       |
+| NOCTERM_KEY_EVENT_BREAK     | Ctrl + C                         |
+| NOCTERM_KEY_EVENT_EOF       | Ctrl + D                         |
+| NOCTERM_KEY_EVENT_BS        | Ctrl + H                         |
+| NOCTERM_KEY_EVENT_FF        | Ctrl + L                         |
+| NOCTERM_KEY_EVENT_UNDEFINED | No meaningful key stroke         |
