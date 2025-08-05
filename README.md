@@ -1,18 +1,8 @@
 # Nocterm - Simple Terminal UI Library
 
 <p align="center">
-  <table>
-    <tr>
-      <td><img src="docs/logo.png" width="100"/></td>  
-      <td style="vertical-align: middle; padding-left: 20px;">
-        <p><strong>Nocterm</strong></p>
-        <p>Simple Terminal UI Library</p>
-      </td>
-    </tr>
-  </table>
+    <img src="docs/logo.png" width="100"/>  
 </p>
-
-
 
 Nocterm is a terminal user interface library for basic needs, designed to be used with C/C++. 
 It is expected to evolve and improve in time. New widgets will be added when there is a need.
