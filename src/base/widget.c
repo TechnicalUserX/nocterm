@@ -550,6 +550,7 @@ int nocterm_widget_refresh(nocterm_widget_t* widget){
         }
     }
 
+    bool at_least_one_refresh_remaining = false;
 
     // If there is no change at all, then there is no need to perform this loop, so exhausting! :D
     if((widget->soft_refresh || widget->hard_refresh) && widget->is_virtual == false){
@@ -562,9 +563,7 @@ int nocterm_widget_refresh(nocterm_widget_t* widget){
                 if(widget->hard_refresh || widget->buffer[buffer_index].refresh){
                     
                     uint64_t screen_index = (relative_row + row) * nocterm_screen_width + (relative_col + col);
-
                     uint64_t screen_size = nocterm_screen_height * nocterm_screen_width;
-
                     nocterm_screen_ownership_t* current_ownership = NULL;
 
                     if(screen_index < screen_size){
@@ -591,6 +590,8 @@ int nocterm_widget_refresh(nocterm_widget_t* widget){
 
                         current_ownership->owner = (void*)widget;
                         widget->buffer[buffer_index].refresh = false;
+                    }else{
+                        at_least_one_refresh_remaining = true;
                     }
 
                 }
@@ -599,9 +600,13 @@ int nocterm_widget_refresh(nocterm_widget_t* widget){
 
     }
 
-    widget->soft_refresh = false;
-    widget->hard_refresh = false;
+    if(at_least_one_refresh_remaining == true){
+        widget->soft_refresh = true;
+    }else{
+        widget->soft_refresh = false;
+    }
 
+    widget->hard_refresh = false;
 
     return NOCTERM_SUCCESS;
 }
