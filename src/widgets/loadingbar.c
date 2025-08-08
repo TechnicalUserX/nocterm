@@ -8,6 +8,8 @@ nocterm_loadingbar_t* nocterm_loadingbar_new(nocterm_dimension_size_t row, nocte
         return NULL;
     }
 
+    memset(new_loadingbar, 0x0, sizeof(nocterm_loadingbar_t));
+
     if(nocterm_widget_constructor(NOCTERM_WIDGET(new_loadingbar),(nocterm_dimension_t){row,col,1,1}, false, false) == NOCTERM_FAILURE){
         return NULL;
     }

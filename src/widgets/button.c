@@ -12,6 +12,8 @@ nocterm_button_t* nocterm_button_new(nocterm_dimension_size_t row, nocterm_dimen
         return NULL;
     }
 
+    memset(new_button, 0x0, sizeof(nocterm_button_t));
+
     nocterm_char_t button_string[text_size];
     memset(button_string, 0x0, sizeof(nocterm_char_t) * text_size);
     uint64_t button_string_length = nocterm_char_string_from_stream(button_string, text_size, text, text_size);

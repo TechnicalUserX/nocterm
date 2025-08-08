@@ -8,6 +8,8 @@ nocterm_pixelgrid_t *nocterm_pixelgrid_new(nocterm_dimension_size_t row, nocterm
         return NULL;
     }
 
+    memset(new_pixelgrid, 0x0, sizeof(nocterm_pixelgrid_t));
+
     if(nocterm_pixelgrid_constructor(new_pixelgrid, row, col, pixel_height, pixel_width) == NOCTERM_FAILURE){
         free(new_pixelgrid);
         return NULL;
@@ -18,15 +20,23 @@ nocterm_pixelgrid_t *nocterm_pixelgrid_new(nocterm_dimension_size_t row, nocterm
 
 int nocterm_pixelgrid_constructor(nocterm_pixelgrid_t *pixelgrid, nocterm_dimension_size_t row, nocterm_dimension_size_t col, uint32_t pixel_height, uint16_t pixel_width){
 
+
+    if(pixelgrid == NULL){
+        errno = EINVAL;
+        return NOCTERM_FAILURE;
+    }
+
     nocterm_dimension_size_t cell_height = (nocterm_dimension_size_t)(((pixel_height % 2 == 0) ? pixel_height : pixel_height + 1) / 2);
     nocterm_dimension_size_t cell_width = (nocterm_dimension_size_t)pixel_width;
 
     pixelgrid->cells = (nocterm_pixelgrid_cell_t *)malloc(sizeof(nocterm_pixelgrid_cell_t) * cell_height * cell_width);
-
+    
     if(pixelgrid->cells == NULL){
         free(pixelgrid);
         return NOCTERM_FAILURE;
     }
+
+    memset(pixelgrid->cells, 0x0, sizeof(nocterm_pixelgrid_cell_t) * cell_height * cell_width);
 
     pixelgrid->pixel_height = pixel_height;
     pixelgrid->pixel_width = pixel_width;

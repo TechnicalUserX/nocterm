@@ -12,6 +12,8 @@ nocterm_label_t* nocterm_label_new(nocterm_dimension_size_t row, nocterm_dimensi
         return NULL;
     }
 
+    memset(new_label, 0x0, sizeof(nocterm_label_t));
+
     // Giving width as text_size considers the worst case
     if(nocterm_widget_constructor(NOCTERM_WIDGET(new_label),(nocterm_dimension_t){row, col, 1, text_size-1}, false, false) == NOCTERM_FAILURE){
         return NULL;

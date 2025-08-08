@@ -8,6 +8,8 @@ nocterm_textview_t* nocterm_textview_new(nocterm_dimension_t bounds, nocterm_att
         return NULL;
     }
 
+    memset(new_textview, 0x0, sizeof(nocterm_textview_t));
+
     if(nocterm_widget_constructor(NOCTERM_WIDGET(new_textview), bounds, false, false) == NOCTERM_FAILURE){
         return NULL;
     }

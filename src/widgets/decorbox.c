@@ -8,10 +8,13 @@ nocterm_decorbox_t* nocterm_decorbox_new(nocterm_dimension_size_t row, nocterm_d
     }
 
     nocterm_decorbox_t* new_decorbox = (nocterm_decorbox_t*)malloc(sizeof(nocterm_decorbox_t));
+    
     if(new_decorbox == NULL){
         errno = ENOMEM;
         return NULL;
     }
+
+    memset(new_decorbox, 0x0, sizeof(nocterm_decorbox_t));
 
     nocterm_dimension_size_t decorbox_heght = contained_widget->viewport.height + 2;
     nocterm_dimension_size_t decorbox_width = contained_widget->viewport.width + 2;

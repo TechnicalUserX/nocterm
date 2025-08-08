@@ -360,6 +360,9 @@ void nocterm_menu_item_array_increase_capacity(nocterm_menu_item_array_t* nocter
         if(new_items == NULL){
             exit(EXIT_FAILURE);
         }        
+
+        memset(new_items, 0x0, sizeof(nocterm_menu_item_t) * (new_capacity));
+
         if(nocterm_menu_item_array->items){
             memcpy(new_items, nocterm_menu_item_array->items, sizeof(nocterm_menu_item_t) * nocterm_menu_item_array->size);
             free(nocterm_menu_item_array->items);
@@ -471,6 +474,7 @@ int nocterm_menu_item_array_shrink_to_fit(nocterm_menu_item_array_t* nocterm_men
     if(new_items == NULL){
         exit(EXIT_FAILURE);
     }
+    memset(new_items, 0x0, sizeof(nocterm_menu_item_t) * (nocterm_menu_item_array->size));
     memcpy(new_items, nocterm_menu_item_array->items, sizeof(nocterm_menu_item_t) * nocterm_menu_item_array->size);
     free(nocterm_menu_item_array->items);
     nocterm_menu_item_array->items = new_items;

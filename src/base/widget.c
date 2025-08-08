@@ -9,6 +9,8 @@ nocterm_widget_t* nocterm_widget_new(nocterm_dimension_t bounds, nocterm_widget_
         return NULL;
     }
     
+    memset(new_widget, 0x0, sizeof(nocterm_widget_t));
+
     if(nocterm_widget_constructor(new_widget, bounds, focusable, type) == NOCTERM_FAILURE){
         free(new_widget);
         return NULL;
@@ -20,7 +22,10 @@ nocterm_widget_t* nocterm_widget_new(nocterm_dimension_t bounds, nocterm_widget_
 int nocterm_widget_constructor(nocterm_widget_t* widget, nocterm_dimension_t bounds, nocterm_widget_focusable_t focusable, nocterm_widget_type_t type){
     // Do not call this function directly, instead call nocterm_widget_new
 
-    memset(widget, 0x0, sizeof(nocterm_widget_t));
+    if(widget == NULL){
+        errno = EINVAL;
+        return NOCTERM_FAILURE;
+    }
 
     widget->bounds.row = bounds.row;
     widget->bounds.col = bounds.col;
@@ -556,9 +561,17 @@ int nocterm_widget_refresh(nocterm_widget_t* widget){
 
                 if(widget->hard_refresh || widget->buffer[buffer_index].refresh){
                     
-                    nocterm_screen_ownership_t* current_ownership = &(nocterm_screen_ownership[(relative_row + row) * nocterm_screen_width + (relative_col + col)]);
+                    uint64_t screen_index = (relative_row + row) * nocterm_screen_width + (relative_col + col);
 
-                    if(current_ownership->owner == (void*)widget || current_ownership->owner == NULL){
+                    uint64_t screen_size = nocterm_screen_height * nocterm_screen_width;
+
+                    nocterm_screen_ownership_t* current_ownership = NULL;
+
+                    if(screen_index < screen_size){
+                        current_ownership = &(nocterm_screen_ownership[screen_index]);
+                    }
+
+                    if(current_ownership && (current_ownership->owner == (void*)widget || current_ownership->owner == NULL)){
 
                         if(widget->buffer[buffer_index].character.bytes_size != 0){
                             if(nocterm_attribute_set(widget->buffer[buffer_index].attribute) == NOCTERM_FAILURE){
@@ -575,10 +588,11 @@ int nocterm_widget_refresh(nocterm_widget_t* widget){
                                 return NOCTERM_FAILURE;
                             }
                         }
+
                         current_ownership->owner = (void*)widget;
+                        widget->buffer[buffer_index].refresh = false;
                     }
 
-                    widget->buffer[buffer_index].refresh = false;
                 }
             }
         }

@@ -34,6 +34,7 @@ nocterm_listview_t* nocterm_listview_new(nocterm_dimension_size_t row, nocterm_d
     if(new_listview == NULL){
         return NULL;
     }
+
     memset(new_listview, 0x0, sizeof(nocterm_listview_t));
 
     if(nocterm_widget_constructor(NOCTERM_WIDGET(new_listview),(nocterm_dimension_t){row, col, items_total, item_width}, true, false) == NOCTERM_FAILURE){
@@ -358,10 +359,14 @@ void nocterm_listview_item_array_increase_capacity(nocterm_listview_item_array_t
         if(new_items == NULL){
             exit(NOCTERM_FAILURE);
         }        
+
+        memset(new_items, 0x0, sizeof(nocterm_listview_item_t) * (new_capacity));
+
         if(dynamic_array->items){
             memcpy(new_items, dynamic_array->items, sizeof(nocterm_listview_item_t) * dynamic_array->size);
             free(dynamic_array->items);
         }
+
         dynamic_array->items = new_items;
         dynamic_array->capacity = new_capacity;
     }
@@ -469,6 +474,9 @@ int nocterm_listview_item_array_shrink_to_fit(nocterm_listview_item_array_t* dyn
     if(new_items == NULL){
         exit(NOCTERM_FAILURE);
     }
+    
+    memset(new_items, 0x0, sizeof(nocterm_listview_item_t) * (dynamic_array->size));
+
     memcpy(new_items, dynamic_array->items, sizeof(nocterm_listview_item_t) * dynamic_array->size);
     free(dynamic_array->items);
     dynamic_array->items = new_items;

@@ -8,6 +8,8 @@ nocterm_checkbox_t* nocterm_checkbox_new(nocterm_dimension_size_t row, nocterm_d
         return NULL;
     }
 
+    memset(new_checkbox, 0x0, sizeof(nocterm_checkbox_t));
+
     if(nocterm_widget_constructor(NOCTERM_WIDGET(new_checkbox), (nocterm_dimension_t){row, col, 1, 3}, true, false) == NOCTERM_FAILURE){
         return NULL;
     }

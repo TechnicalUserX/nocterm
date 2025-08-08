@@ -7,6 +7,8 @@ nocterm_entry_t* nocterm_entry_new(nocterm_dimension_size_t row, nocterm_dimensi
     if(new_entry == NULL){
         return NULL;
     }
+    
+    memset(new_entry, 0x0, sizeof(nocterm_entry_t));
 
     // Extra space for cursor
     if(nocterm_widget_constructor(NOCTERM_WIDGET(new_entry),(nocterm_dimension_t){row, col, 1, NOCTERM_ENTRY_BUFFER_MAX_SIZE + 1}, true, false) == NOCTERM_FAILURE){
