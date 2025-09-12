@@ -22,9 +22,17 @@ int nocterm_init(void){
         return NOCTERM_FAILURE;
     }
 
+    if(nocterm_mouse_support_flag){
+        if(nocterm_mouse_enable() == NOCTERM_FAILURE){
+            return NOCTERM_FAILURE;
+        }
+    }
+
     if(nocterm_io_clear() == NOCTERM_FAILURE){
         return NOCTERM_FAILURE;
     }
+
+
 
     struct winsize w = {0};
     if(ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) == -1){
@@ -59,6 +67,12 @@ int nocterm_end(void){
         return NOCTERM_FAILURE;
     }
 
+    if(nocterm_mouse_support_flag){
+        if(nocterm_mouse_disable() == NOCTERM_FAILURE){
+            return NOCTERM_FAILURE;
+        }
+    }
+
     if(nocterm_io_end() == NOCTERM_FAILURE){
         return NOCTERM_FAILURE;
     }
@@ -74,13 +88,9 @@ int nocterm_end(void){
 
 int nocterm_loop(void){
 
-    // INITIALIZE PHASE
-    if(nocterm_init() == NOCTERM_FAILURE){
-        return EXIT_FAILURE;
-    }
-
     nocterm_page_t* current_page = NULL;
 
+    // EVENT LOOP
     while(1){
 
         nocterm_key_t key = {0};
@@ -93,13 +103,24 @@ int nocterm_loop(void){
                 // This runs everytime the page changes
                 // Including initial opening
                 top_page = nocterm_page_stack[nocterm_page_stack_size-1];
-                
-                if(top_page->root_widget->focusable){
-                    top_page->focused_widget = top_page->root_widget;
-                    if(top_page->focused_widget->focus_handler){
-                        top_page->focused_widget->focus_handler(top_page->focused_widget,NOCTERM_WIDGET_FOCUS_ENTER);
+
+                if(top_page->root_widget){
+
+                    if(top_page->root_widget->focusable){
+
+                        top_page->focused_widget = top_page->root_widget;
+                        if(top_page->focused_widget->focus_handler){
+
+                            top_page->focused_widget->focus_handler(top_page->focused_widget,NOCTERM_WIDGET_FOCUS_ENTER);
+                        }
                     }
+
+                    // Everytime the page changes, alignments are updated,
+                    // not waiting a screen resize event
+                    nocterm_widget_align_update(top_page->root_widget);
+
                 }
+
                 nocterm_io_clear();
             }
 
@@ -126,22 +147,29 @@ int nocterm_loop(void){
         }
     
         if(key_captured){
+
             nocterm_key_event_t key_event = nocterm_key_translate(&key);
+
             if(key_event == NOCTERM_KEY_EVENT_TAB){
                 // Change focus to the next item in the tree
                 nocterm_page_change_focus(current_page, NOCTERM_PAGE_FOCUS_NEXT);
+
             }else if(key_event == NOCTERM_KEY_EVENT_SHIFT_TAB){
                 // Change focus to the previous item in the tree
                 nocterm_page_change_focus(current_page, NOCTERM_PAGE_FOCUS_PREV);
+
             }else if(key_event == NOCTERM_KEY_EVENT_ESCAPE){
                 // Call the key_handler for the focused widget
                 if(nocterm_page_stack_size > 1){
                     nocterm_page_stack_pop();
+
                 }else{
                     nocterm_io_clear();
                     nocterm_io_cursor_move(0,0);
                     break;
                 }
+            }else if(key_event == NOCTERM_KEY_EVENT_MOUSE){
+                nocterm_mouse_controller(&key);
             }else{
                 if(current_page && current_page->focused_widget && current_page->focused_widget->key_handler){
                     current_page->focused_widget->key_handler(current_page->focused_widget, &key);
@@ -178,7 +206,7 @@ int nocterm_loop(void){
             memset(nocterm_screen_ownership, 0x0, sizeof(nocterm_screen_ownership_t) * nocterm_screen_height * nocterm_screen_width);
 
             // We need to traverse over the widgets to reset their positions after resize
-            nocterm_widget_center_position_update(current_page->root_widget);
+            nocterm_widget_align_update(current_page->root_widget);
         }
 
         // REFRESH PHASE
@@ -194,10 +222,6 @@ int nocterm_loop(void){
     }
 
     // END PHASE
-
-    if(nocterm_end() == NOCTERM_FAILURE){
-        return EXIT_FAILURE;
-    }    
 
     return EXIT_SUCCESS;
 }

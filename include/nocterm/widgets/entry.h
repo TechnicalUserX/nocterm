@@ -44,6 +44,25 @@ typedef struct nocterm_entry_t{
 nocterm_entry_t* nocterm_entry_new(nocterm_dimension_size_t row, nocterm_dimension_size_t col, nocterm_dimension_size_t width, nocterm_attribute_t attribute);
 
 /**
+ * @brief Constructs an entry widget.
+ * 
+ * @param row 
+ * @param col 
+ * @param width 
+ * @param attribute 
+ * @return int 
+ */
+int nocterm_entry_constructor(nocterm_entry_t* entry, nocterm_dimension_size_t row, nocterm_dimension_size_t col, nocterm_dimension_size_t width, nocterm_attribute_t attribute);
+
+/**
+ * @brief Destructs an entry widget.
+ * 
+ * @param entry 
+ * @return int 
+ */
+int nocterm_entry_destructor(nocterm_entry_t* entry);
+
+/**
  * @brief Deletes an entry widget.
  * 
  * @param entry 
@@ -98,3 +117,4 @@ int nocterm_entry_set_text(nocterm_entry_t* entry, char* buffer, uint64_t buffer
 #endif
 
 #endif
+

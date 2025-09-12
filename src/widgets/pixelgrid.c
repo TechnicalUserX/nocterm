@@ -20,7 +20,6 @@ nocterm_pixelgrid_t *nocterm_pixelgrid_new(nocterm_dimension_size_t row, nocterm
 
 int nocterm_pixelgrid_constructor(nocterm_pixelgrid_t *pixelgrid, nocterm_dimension_size_t row, nocterm_dimension_size_t col, uint32_t pixel_height, uint16_t pixel_width){
 
-
     if(pixelgrid == NULL){
         errno = EINVAL;
         return NOCTERM_FAILURE;
@@ -32,7 +31,6 @@ int nocterm_pixelgrid_constructor(nocterm_pixelgrid_t *pixelgrid, nocterm_dimens
     pixelgrid->cells = (nocterm_pixelgrid_cell_t *)malloc(sizeof(nocterm_pixelgrid_cell_t) * cell_height * cell_width);
     
     if(pixelgrid->cells == NULL){
-        free(pixelgrid);
         return NOCTERM_FAILURE;
     }
 
@@ -51,22 +49,29 @@ int nocterm_pixelgrid_constructor(nocterm_pixelgrid_t *pixelgrid, nocterm_dimens
 }
 
 int nocterm_pixelgrid_destructor(nocterm_pixelgrid_t *pixelgrid){
+
     if(pixelgrid == NULL){
+        errno = EINVAL;
         return NOCTERM_SUCCESS;
     }
 
     free(pixelgrid->cells);
+
+    if(nocterm_widget_destructor(NOCTERM_WIDGET(pixelgrid)) == NOCTERM_FAILURE){
+        return NOCTERM_FAILURE;
+    }
 
     return NOCTERM_SUCCESS;
 }
 
 int nocterm_pixelgrid_delete(nocterm_pixelgrid_t *pixelgrid){
 
-    if(nocterm_pixelgrid_destructor(pixelgrid) == NOCTERM_FAILURE){
-        return NOCTERM_FAILURE;
+    if(pixelgrid == NULL){
+        errno = EINVAL;
+        return NOCTERM_SUCCESS;
     }
 
-    if(nocterm_widget_destructor(NOCTERM_WIDGET(pixelgrid)) == NOCTERM_FAILURE){
+    if(nocterm_pixelgrid_destructor(pixelgrid) == NOCTERM_FAILURE){
         return NOCTERM_FAILURE;
     }
 

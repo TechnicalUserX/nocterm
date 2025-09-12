@@ -10,18 +10,52 @@ nocterm_textview_t* nocterm_textview_new(nocterm_dimension_t bounds, nocterm_att
 
     memset(new_textview, 0x0, sizeof(nocterm_textview_t));
 
-    if(nocterm_widget_constructor(NOCTERM_WIDGET(new_textview), bounds, false, false) == NOCTERM_FAILURE){
+    if(nocterm_textview_constructor(new_textview, bounds, attribute) == NOCTERM_FAILURE){
+        free(new_textview);
         return NULL;
     }
-
-    new_textview->attribute = attribute;
 
     return new_textview;
 }
 
-int nocterm_textview_delete(nocterm_textview_t* textview){
+int nocterm_textview_constructor(nocterm_textview_t* textview, nocterm_dimension_t bounds, nocterm_attribute_t attribute){
+
+    if(textview == NULL){
+        errno = EINVAL;
+        return NOCTERM_FAILURE;
+    }
+    
+    if(nocterm_widget_constructor(NOCTERM_WIDGET(textview), bounds, false, false) == NOCTERM_FAILURE){
+        return NOCTERM_FAILURE;
+    }
+
+    textview->attribute = attribute;
+
+    return NOCTERM_SUCCESS;
+}
+
+int nocterm_textview_destructor(nocterm_textview_t* textview){
+    
+    if(textview == NULL){
+        errno = EINVAL;
+        return NOCTERM_FAILURE;
+    }
 
     if(nocterm_widget_destructor(NOCTERM_WIDGET(textview)) == NOCTERM_FAILURE){
+        return NOCTERM_FAILURE;
+    }
+
+    return NOCTERM_SUCCESS;
+}
+
+int nocterm_textview_delete(nocterm_textview_t* textview){
+
+    if(textview == NULL){
+        errno = EINVAL;
+        return NOCTERM_FAILURE;
+    }
+
+    if(nocterm_textview_destructor(textview) == NOCTERM_FAILURE){
         return NOCTERM_FAILURE;
     }
 

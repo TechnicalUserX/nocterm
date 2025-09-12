@@ -27,14 +27,17 @@ int main(){
     
     nocterm_page_t* main_page = nocterm_page_new("Main page", sizeof("Main page"), NOCTERM_WIDGET(my_decorbox));
 
-    nocterm_widget_center_position_horizontal(NOCTERM_WIDGET(my_decorbox));
-    nocterm_widget_center_position_vertical(NOCTERM_WIDGET(my_decorbox));
-    nocterm_widget_center_position_horizontal(NOCTERM_WIDGET(my_label));
+    nocterm_widget_align_center_horizontal(NOCTERM_WIDGET(my_decorbox));
+    nocterm_widget_align_center_vertical(NOCTERM_WIDGET(my_decorbox));
+    nocterm_widget_align_center_horizontal(NOCTERM_WIDGET(my_label));
+    nocterm_widget_align_center_vertical(NOCTERM_WIDGET(my_label));
 
     nocterm_page_stack_push(main_page); 
  
+    nocterm_init();
     nocterm_loop(); 
- 
+    nocterm_end();
+
     nocterm_widget_delete(my_widget);
     nocterm_page_delete(main_page); 
     nocterm_decorbox_delete(my_decorbox);

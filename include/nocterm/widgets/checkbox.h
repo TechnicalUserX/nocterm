@@ -55,6 +55,28 @@ typedef struct nocterm_checkbox_t{
 nocterm_checkbox_t* nocterm_checkbox_new(nocterm_dimension_size_t row, nocterm_dimension_size_t col, nocterm_attribute_t attribute, nocterm_checkbox_oncheck_handler_t oncheck_handler, bool checked, void* user_data);
 
 /**
+ * @brief Constructs a checkbox widget.
+ * 
+ * @param checkbox 
+ * @param row 
+ * @param col 
+ * @param attribute 
+ * @param oncheck_handler 
+ * @param checked 
+ * @param user_data 
+ * @return int 
+ */
+int nocterm_checkbox_constructor(nocterm_checkbox_t* checkbox, nocterm_dimension_size_t row, nocterm_dimension_size_t col, nocterm_attribute_t attribute, nocterm_checkbox_oncheck_handler_t oncheck_handler, bool checked, void* user_data);
+
+/**
+ * @brief Destructs a checkbox widget.
+ * 
+ * @param checkbox 
+ * @return int 
+ */
+int nocterm_checkbox_destructor(nocterm_checkbox_t* checkbox);
+
+/**
  * @brief Deletes a checkbox widget.
  * 
  * @param checkbox 

@@ -23,6 +23,7 @@
 #include <nocterm/base/page.h>
 #include <nocterm/base/encoding.h>
 #include <nocterm/base/screen.h>
+#include <nocterm/base/mouse.h>
 
 #include <nocterm/widgets/loadingbar.h>
 #include <nocterm/widgets/label.h>
@@ -39,10 +40,8 @@
     extern "C" {
 #endif
 
-NOCTERM_INTERNAL
 int nocterm_init(void);
 
-NOCTERM_INTERNAL
 int nocterm_end(void);
 
 /**

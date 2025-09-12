@@ -39,6 +39,25 @@ typedef struct nocterm_loadingbar_t{
 nocterm_loadingbar_t* nocterm_loadingbar_new(nocterm_dimension_size_t row, nocterm_dimension_size_t col, uint64_t interval, nocterm_attribute_t attribute);
 
 /**
+ * @brief Constructs a loadingbar widget.
+ * 
+ * @param row 
+ * @param col 
+ * @param interval 
+ * @param attribute 
+ * @return int 
+ */
+int nocterm_loadingbar_constructor(nocterm_loadingbar_t* loadingbar, nocterm_dimension_size_t row, nocterm_dimension_size_t col, uint64_t interval, nocterm_attribute_t attribute);
+
+/**
+ * @brief Destructs a loadingbar widget.
+ * 
+ * @param loadingbar 
+ * @return int 
+ */
+int nocterm_loadingbar_destructor(nocterm_loadingbar_t* loadingbar);
+
+/**
  * @brief Deletes a loadingbar widget.
  * 
  * @param loadingbar 

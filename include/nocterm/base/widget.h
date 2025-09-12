@@ -41,6 +41,29 @@ typedef enum nocterm_widget_focus_t{
     NOCTERM_WIDGET_FOCUS_LEAVE 
 }nocterm_widget_focus_t;
 
+typedef struct nocterm_widget_align_percent_values_t{
+    uint8_t horizontal;                 
+    uint8_t vertical;
+}nocterm_widget_align_percent_values_t;
+
+typedef uint16_t nocterm_widget_align_edge_margin_t;
+
+typedef struct nocterm_widget_align_flags_t{
+    bool none:1;
+    bool left:1;
+    bool right:1;
+    bool top:1;
+    bool bottom:1;
+    bool percent_horizontal:1; // Starts from left
+    bool percent_vertical:1; // Starts from top
+}nocterm_widget_align_flags_t;
+
+typedef struct nocterm_widget_align_t{
+    nocterm_widget_align_flags_t flags;
+    nocterm_widget_align_percent_values_t percent_values;
+    nocterm_widget_align_edge_margin_t edge_margin;
+}nocterm_widget_align_t;
+
 typedef struct nocterm_widget_t nocterm_widget_t;
 
 typedef void (*nocterm_widget_key_handler_t)(nocterm_widget_t* self, nocterm_key_t* key);
@@ -53,7 +76,8 @@ typedef void (*nocterm_widget_focus_handler_t)(nocterm_widget_t* self, nocterm_w
 typedef struct nocterm_widget_t{
 
     struct nocterm_widget_t* parent;
-
+    struct nocterm_widget_t* owner;
+    
     uint64_t subwidgets_size;
     struct nocterm_widget_t** subwidgets;
 
@@ -72,8 +96,8 @@ typedef struct nocterm_widget_t{
     bool is_virtual;
     bool visible; // No longer drawn if false, all subwdigets also not drawn
     bool focusable;
-    bool center_horizontal; // Omits col bound when true
-    bool center_vertical; // Omits row bound when true
+
+    nocterm_widget_align_t align;
 
     nocterm_widget_key_handler_t key_handler;
     nocterm_widget_focus_handler_t focus_handler;
@@ -196,7 +220,7 @@ int nocterm_widget_set_position_col(nocterm_widget_t* widget, nocterm_dimension_
  * @param widget 
  * @return int 
  */
-int nocterm_widget_center_position_horizontal(nocterm_widget_t* widget);
+int nocterm_widget_align_center_horizontal(nocterm_widget_t* widget);
 
 /**
  * @brief Centers a widget vertically.
@@ -204,7 +228,61 @@ int nocterm_widget_center_position_horizontal(nocterm_widget_t* widget);
  * @param widget 
  * @return int 
  */
-int nocterm_widget_center_position_vertical(nocterm_widget_t* widget);
+int nocterm_widget_align_center_vertical(nocterm_widget_t* widget);
+
+/**
+ * @brief Aligns a widget to the left
+ * 
+ * @param widget 
+ * @param margin 
+ * @return int 
+ */
+int nocterm_widget_align_left(nocterm_widget_t* widget, nocterm_widget_align_edge_margin_t margin);
+
+/**
+ * @brief Aligns a widget to the right
+ * 
+ * @param widget 
+ * @param margin 
+ * @return int 
+ */
+int nocterm_widget_align_right(nocterm_widget_t* widget, nocterm_widget_align_edge_margin_t margin);
+
+/**
+ * @brief Aligns a widget to the top
+ * 
+ * @param widget 
+ * @param margin 
+ * @return int 
+ */
+int nocterm_widget_align_top(nocterm_widget_t* widget, nocterm_widget_align_edge_margin_t margin);
+
+/**
+ * @brief Aligns a widget to the bottom
+ * 
+ * @param widget 
+ * @param margin 
+ * @return int 
+ */
+int nocterm_widget_align_bottom(nocterm_widget_t* widget, nocterm_widget_align_edge_margin_t margin);
+
+/**
+ * @brief Aligns a widget with a horizontal percentage from left
+ * 
+ * @param widget 
+ * @param percent 
+ * @return int 
+ */
+int nocterm_widget_align_percent_horizontal(nocterm_widget_t* widget, uint8_t percent);
+
+/**
+ * @brief Aligns a widget with a vertical percentage from top
+ * 
+ * @param widget 
+ * @param percent 
+ * @return int 
+ */
+int nocterm_widget_align_percent_vertical(nocterm_widget_t* widget, uint8_t percent);
 
 /**
  * @brief Update positions of widgets if they are centered in any way.
@@ -212,7 +290,7 @@ int nocterm_widget_center_position_vertical(nocterm_widget_t* widget);
  * @param widget 
  * @return int 
  */
-int nocterm_widget_center_position_update(nocterm_widget_t* widget);
+int nocterm_widget_align_update(nocterm_widget_t* widget);
 
 /**
  * @brief Gets the visibility of a widget.

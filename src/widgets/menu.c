@@ -1,6 +1,6 @@
 #include <nocterm/widgets/menu.h>
 
-nocterm_menu_t* nocterm_menu_new(nocterm_dimension_size_t row, nocterm_dimension_size_t col, nocterm_attribute_t attribute_selection, nocterm_dimension_size_t items_displayed, uint64_t items_total, nocterm_dimension_size_t item_width, nocterm_menu_onselect_handler_t onselect_handler, void* user_data){
+nocterm_menu_t* nocterm_menu_new(nocterm_dimension_size_t row, nocterm_dimension_size_t col, nocterm_attribute_t selection, nocterm_dimension_size_t items_displayed, uint64_t items_total, nocterm_dimension_size_t item_width, nocterm_menu_onselect_handler_t onselect_handler, void* user_data){
     nocterm_menu_t* new_menu = (nocterm_menu_t*)malloc(sizeof(nocterm_menu_t));
 
     if(new_menu == NULL){
@@ -8,35 +8,68 @@ nocterm_menu_t* nocterm_menu_new(nocterm_dimension_size_t row, nocterm_dimension
     }
     memset(new_menu, 0x0, sizeof(nocterm_menu_t));
 
-    if(nocterm_widget_constructor(NOCTERM_WIDGET(new_menu), (nocterm_dimension_t){row, col, items_total, item_width}, true, false) == NOCTERM_FAILURE){
-        return NULL;
-    }
-
-    nocterm_widget_viewport(NOCTERM_WIDGET(new_menu), (nocterm_dimension_t){0, 0, items_displayed, NOCTERM_WIDGET(new_menu)->bounds.width});
-    
-    new_menu->item_array = nocterm_menu_item_array_new();
-    if(new_menu->item_array == NULL){
+    if(nocterm_menu_constructor(new_menu,row, col, selection, items_displayed, items_total, item_width, onselect_handler, user_data) == NOCTERM_FAILURE){
         free(new_menu);
         return NULL;
     }
 
-    new_menu->current_item = 0;
-    new_menu->selection_position = 0;
-    new_menu->attribute_selection = attribute_selection;
-    new_menu->onselect_handler = onselect_handler;
-    new_menu->user_data = user_data;
-
-    nocterm_widget_add_key_handler(NOCTERM_WIDGET(new_menu), nocterm_menu_key_handler);
-    nocterm_widget_add_focus_handler(NOCTERM_WIDGET(new_menu), nocterm_menu_focus_handler);
-
     return new_menu;
+}
+
+int nocterm_menu_constructor(nocterm_menu_t* menu, nocterm_dimension_size_t row, nocterm_dimension_size_t col, nocterm_attribute_t selection, nocterm_dimension_size_t items_displayed, uint64_t items_total, nocterm_dimension_size_t item_width, nocterm_menu_onselect_handler_t onselect_handler, void* user_data){
+
+    if(menu == NULL){
+        errno = EINVAL;
+        return NOCTERM_FAILURE;
+    }
+
+    if(nocterm_widget_constructor(NOCTERM_WIDGET(menu), (nocterm_dimension_t){row, col, items_total, item_width}, true, false) == NOCTERM_FAILURE){
+        return NOCTERM_FAILURE;
+    }
+
+    nocterm_widget_viewport(NOCTERM_WIDGET(menu), (nocterm_dimension_t){0, 0, items_displayed, NOCTERM_WIDGET(menu)->bounds.width});
+    
+    menu->item_array = nocterm_menu_item_array_new();
+    if(menu->item_array == NULL){
+        return NOCTERM_FAILURE;
+    }
+
+    menu->current_item = 0;
+    menu->selection_position = 0;
+    menu->attribute_selection = selection;
+    menu->onselect_handler = onselect_handler;
+    menu->user_data = user_data;
+
+    nocterm_widget_add_key_handler(NOCTERM_WIDGET(menu), nocterm_menu_key_handler);
+    nocterm_widget_add_focus_handler(NOCTERM_WIDGET(menu), nocterm_menu_focus_handler);
+
+    return NOCTERM_SUCCESS;
+}
+
+int nocterm_menu_destructor(nocterm_menu_t* menu){
+
+    if(menu == NULL){
+        errno = EINVAL;
+        return NOCTERM_FAILURE;
+    }
+    
+    nocterm_menu_item_array_delete(menu->item_array);
+
+    if(nocterm_widget_destructor(NOCTERM_WIDGET(menu)) == NOCTERM_FAILURE){
+        return NOCTERM_FAILURE;
+    }
+
+    return NOCTERM_SUCCESS;
 }
 
 int nocterm_menu_delete(nocterm_menu_t* menu){
 
-    nocterm_menu_item_array_delete(menu->item_array);
+    if(menu == NULL){
+        errno = EINVAL;
+        return NOCTERM_FAILURE;
+    }
 
-    if(nocterm_widget_destructor(NOCTERM_WIDGET(menu)) == NOCTERM_FAILURE){
+    if(nocterm_menu_destructor(menu) == NOCTERM_FAILURE){
         return NOCTERM_FAILURE;
     }
 

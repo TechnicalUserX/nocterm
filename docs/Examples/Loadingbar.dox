@@ -19,8 +19,10 @@ int main(){
 
     nocterm_page_stack_push(main_page); 
  
+    nocterm_init();
     nocterm_loop(); 
- 
+    nocterm_end();
+  
     nocterm_widget_delete(my_widget);
     nocterm_page_delete(main_page); 
     nocterm_loadingbar_delete(my_loadingbar);

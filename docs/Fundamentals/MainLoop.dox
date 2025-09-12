@@ -11,15 +11,13 @@ The image below is a representation of the main loop:
 
 ![](images/mainloop.png)
 
-When `nocterm_loop()` is called, it first initializes the terminal with internal function `nocterm_init()` and enters the loop.
-
-# Main Loop Phases
-
-### 1. Initalize Phase
+## Initalize Phase
 
 This phase initalizes terminal to raw mode, assigns a signal handler function for terminal resize signal `SIGWINCH`, and makes the cursor invisible.
 
-### 2. Capture Key
+# Main Loop Phases
+
+### 1. Capture Key
 
 Main loop detects whether a key is available by polling the system input buffer via `select()` system call.
 
@@ -28,18 +26,18 @@ If a valid key stroke is found, main loop takes various actions depending on the
 - If the key is `ESC`, then main loop pops the current page and goes one back, if no more page left on the stack, main loop enters the "End Phase".
 - If the key is different than listed above, then main loop looks for a key handler of the currently focused widget and redirects the key stroke to the key handler of the current widget.
 
-### 3. Execute Timer Callbacks
+### 2. Execute Timer Callbacks
 
 With each loop iteration, main loop looks for possible timeouts for each widget via the function `nocterm_timer_tick()`. If a timer exceeds its inverval, then main loop executes the corresponding timer callback, these executions are synchronous.
 
-### 4. Refresh Screen
+### 3. Refresh Screen
 
 This phase is the only phase where I/O operations are performed. Main loop iterates over every widget on the widget tree, starting from the root widget, and looks for possible screen updates via checking `soft_refresh` and `hard_refresh` flags of each widget. 
 
 > If screen is resized, this phase clears the screen completely before any widget is drawn to the screen.
 
 
-### 5. End Phase
+## End Phase
 
 In this phase, terminal is reverted to its original form and cursor is being made visible again.
 
@@ -64,8 +62,12 @@ int main(){
 	// At least 1 page required on the stack
     nocterm_page_stack_push(main_page); 
 
+    nocterm_init();
+
 	// Main loop starts here
     nocterm_loop(); 
+
+    nocterm_end();
 
     nocterm_widget_delete(my_widget);
     nocterm_page_delete(main_page); 

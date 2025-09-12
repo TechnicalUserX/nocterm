@@ -10,33 +10,66 @@ nocterm_loadingbar_t* nocterm_loadingbar_new(nocterm_dimension_size_t row, nocte
 
     memset(new_loadingbar, 0x0, sizeof(nocterm_loadingbar_t));
 
-    if(nocterm_widget_constructor(NOCTERM_WIDGET(new_loadingbar),(nocterm_dimension_t){row,col,1,1}, false, false) == NOCTERM_FAILURE){
+    if(nocterm_loadingbar_constructor(new_loadingbar, row, col, interval, attribute) == NOCTERM_FAILURE){
+        free(new_loadingbar);
         return NULL;
     }
-
-    new_loadingbar->state = 0;
-    new_loadingbar->timer = nocterm_timer_create(NOCTERM_WIDGET(&(new_loadingbar->widget)), interval, nocterm_loadingbar_timer_callback, NULL);
-    new_loadingbar->attribute = attribute;
-
-    nocterm_char_t ch = {.bytes = {0}, .bytes_size = 3, .is_utf8 = true};
-    memcpy(ch.bytes, "|", 1);
-
-    if(new_loadingbar->timer == NULL){
-        return NULL;
-    }
-
-    nocterm_widget_update(NOCTERM_WIDGET(new_loadingbar), 0, 0, ch, new_loadingbar->attribute);
 
     return new_loadingbar;
 }
 
-int nocterm_loadingbar_delete(nocterm_loadingbar_t* loadingbar){
+int nocterm_loadingbar_constructor(nocterm_loadingbar_t* loadingbar, nocterm_dimension_size_t row, nocterm_dimension_size_t col, uint64_t interval, nocterm_attribute_t attribute){
+    
+    if(loadingbar == NULL){
+        errno = EINVAL;
+        return NOCTERM_FAILURE;
+    }
+
+    if(nocterm_widget_constructor(NOCTERM_WIDGET(loadingbar),(nocterm_dimension_t){row,col,1,1}, false, false) == NOCTERM_FAILURE){
+        return NOCTERM_FAILURE;
+    }
+
+    loadingbar->state = 0;
+    loadingbar->timer = nocterm_timer_create(NOCTERM_WIDGET(&(loadingbar->widget)), interval, nocterm_loadingbar_timer_callback, NULL);
+    loadingbar->attribute = attribute;
+
+    nocterm_char_t ch = {.bytes = {0}, .bytes_size = 3, .is_utf8 = true};
+    memcpy(ch.bytes, "|", 1);
+
+    if(loadingbar->timer == NULL){
+        return NOCTERM_FAILURE;
+    }
+
+    nocterm_widget_update(NOCTERM_WIDGET(loadingbar), 0, 0, ch, loadingbar->attribute);
+
+    return NOCTERM_SUCCESS;
+}
+
+int nocterm_loadingbar_destructor(nocterm_loadingbar_t* loadingbar){
+    if(loadingbar == NULL){
+        errno = EINVAL;
+        return NOCTERM_FAILURE;
+    }
 
     if(nocterm_timer_delete(loadingbar->timer) == NOCTERM_FAILURE){
         return NOCTERM_FAILURE;
     }
 
     if(nocterm_widget_destructor(NOCTERM_WIDGET(loadingbar)) == NOCTERM_FAILURE){
+        return NOCTERM_FAILURE;
+    }
+
+    return NOCTERM_SUCCESS;
+}
+
+int nocterm_loadingbar_delete(nocterm_loadingbar_t* loadingbar){
+
+    if(loadingbar == NULL){
+        errno = EINVAL;
+        return NOCTERM_FAILURE;
+    }
+
+    if(nocterm_loadingbar_destructor(loadingbar) == NOCTERM_FAILURE){
         return NOCTERM_FAILURE;
     }
 

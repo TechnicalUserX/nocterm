@@ -16,32 +16,59 @@ nocterm_decorbox_t* nocterm_decorbox_new(nocterm_dimension_size_t row, nocterm_d
 
     memset(new_decorbox, 0x0, sizeof(nocterm_decorbox_t));
 
-    nocterm_dimension_size_t decorbox_heght = contained_widget->viewport.height + 2;
-    nocterm_dimension_size_t decorbox_width = contained_widget->viewport.width + 2;
-
-    if(nocterm_widget_constructor(NOCTERM_WIDGET(new_decorbox), (nocterm_dimension_t){row, col, decorbox_heght, decorbox_width}, NOCTERM_WIDGET_FOCUSABLE_YES, NOCTERM_WIDGET_TYPE_REAL) == NOCTERM_FAILURE){
-        return NULL;
-    }
-
-    new_decorbox->contained_widget = contained_widget;
-    new_decorbox->contained_widget->focusable = false; // Now the ownership of the focusability is switched to decorbox
-    new_decorbox->contained_widget->bounds.row = 1; // Relative position just beneath the border 
-    new_decorbox->contained_widget->bounds.col = 1; // Relative position just next to the border
-
-
-    nocterm_widget_add_subwidget(NOCTERM_WIDGET(new_decorbox), contained_widget);
-
-    if(nocterm_widget_add_focus_handler(NOCTERM_WIDGET(new_decorbox), nocterm_decorbox_focus_handler) == NOCTERM_FAILURE){
-        free(new_decorbox);
-        return NULL;
-    }
-
-    if(nocterm_widget_add_key_handler(NOCTERM_WIDGET(new_decorbox), nocterm_decorbox_key_handler) == NOCTERM_FAILURE){
+    if(nocterm_decorbox_constructor(new_decorbox,row, col, contained_widget) == NOCTERM_FAILURE){
         free(new_decorbox);
         return NULL;
     }
 
     return new_decorbox;
+}
+
+int nocterm_decorbox_constructor(nocterm_decorbox_t* decorbox, nocterm_dimension_size_t row, nocterm_dimension_size_t col, nocterm_widget_t* contained_widget){
+
+    if(decorbox == NULL){
+        errno = EINVAL;
+        return NOCTERM_FAILURE;
+    }
+
+    nocterm_dimension_size_t decorbox_height = contained_widget->viewport.height + 2;
+    nocterm_dimension_size_t decorbox_width = contained_widget->viewport.width + 2;
+
+    if(nocterm_widget_constructor(NOCTERM_WIDGET(decorbox), (nocterm_dimension_t){row, col, decorbox_height, decorbox_width}, NOCTERM_WIDGET_FOCUSABLE_YES, NOCTERM_WIDGET_TYPE_REAL) == NOCTERM_FAILURE){
+        return NOCTERM_FAILURE;
+    }
+
+    decorbox->contained_widget = contained_widget;
+    decorbox->contained_widget->focusable = false; // Now the ownership of the focusability is switched to decorbox
+    decorbox->contained_widget->bounds.row = 1; // Relative position just beneath the border 
+    decorbox->contained_widget->bounds.col = 1; // Relative position just next to the border
+    decorbox->contained_widget->owner = NOCTERM_WIDGET(decorbox);
+
+    nocterm_widget_add_subwidget(NOCTERM_WIDGET(decorbox), contained_widget);
+
+    if(nocterm_widget_add_focus_handler(NOCTERM_WIDGET(decorbox), nocterm_decorbox_focus_handler) == NOCTERM_FAILURE){
+        return NOCTERM_FAILURE;
+    }
+
+    if(nocterm_widget_add_key_handler(NOCTERM_WIDGET(decorbox), nocterm_decorbox_key_handler) == NOCTERM_FAILURE){
+        return NOCTERM_FAILURE;
+    }
+
+    return NOCTERM_SUCCESS;
+}
+
+int nocterm_decorbox_destructor(nocterm_decorbox_t* decorbox){
+
+    if(decorbox == NULL){
+        errno = EINVAL;
+        return NOCTERM_FAILURE;
+    }
+
+    if(nocterm_widget_destructor(NOCTERM_WIDGET(decorbox)) == NOCTERM_FAILURE){
+        return NOCTERM_FAILURE;
+    }
+
+    return NOCTERM_SUCCESS;
 }
 
 int nocterm_decorbox_delete(nocterm_decorbox_t* decorbox){
@@ -50,7 +77,7 @@ int nocterm_decorbox_delete(nocterm_decorbox_t* decorbox){
         return NOCTERM_FAILURE;
     }
 
-    if(nocterm_widget_destructor(NOCTERM_WIDGET(decorbox)) == NOCTERM_FAILURE){
+    if(nocterm_decorbox_destructor(decorbox) == NOCTERM_FAILURE){
         return NOCTERM_FAILURE;
     }
 
@@ -67,11 +94,14 @@ int nocterm_decorbox_border_draw(nocterm_decorbox_t* decorbox, nocterm_decorbox_
         return NOCTERM_FAILURE;
     }
 
+
+
     for(nocterm_dimension_size_t i = 1; i < NOCTERM_WIDGET(decorbox)->bounds.height-1; i++){
         if(nocterm_widget_update(NOCTERM_WIDGET(decorbox),i,0, border_shape.vertical,attribute) == NOCTERM_FAILURE){
             return NOCTERM_FAILURE;
         }
-        if(nocterm_widget_update(NOCTERM_WIDGET(decorbox),i, NOCTERM_WIDGET(decorbox)->bounds.width-1, border_shape.vertical,attribute) == NOCTERM_FAILURE){
+
+        if(nocterm_widget_update(NOCTERM_WIDGET(decorbox), i, NOCTERM_WIDGET(decorbox)->bounds.width-1, border_shape.vertical, attribute) == NOCTERM_FAILURE){
             return NOCTERM_FAILURE;
         }
 
@@ -83,7 +113,7 @@ int nocterm_decorbox_border_draw(nocterm_decorbox_t* decorbox, nocterm_decorbox_
         }
         if(nocterm_widget_update(NOCTERM_WIDGET(decorbox),NOCTERM_WIDGET(decorbox)->bounds.height-1, i, border_shape.horizontal, attribute) == NOCTERM_FAILURE){
             return NOCTERM_FAILURE;
-        } 
+        }
     }
 
     // Top left
@@ -311,8 +341,9 @@ NOCTERM_WIDGET_FOCUS_HANDLER(nocterm_decorbox_focus_handler){
     
     switch(focus){
         case NOCTERM_WIDGET_FOCUS_ENTER:{
-            
-            if(NOCTERM_DECORBOX(self)->border.enabled){
+
+
+            if(NOCTERM_DECORBOX(self)->border.enabled){               
                 nocterm_decorbox_border_draw(NOCTERM_DECORBOX(self),NOCTERM_DECORBOX(self)->border.shape, NOCTERM_DECORBOX(self)->border.attributes.focused);
             }
 
@@ -321,10 +352,13 @@ NOCTERM_WIDGET_FOCUS_HANDLER(nocterm_decorbox_focus_handler){
                     nocterm_widget_update(NOCTERM_WIDGET(self), 0, i + NOCTERM_DECORBOX(self)->label.left_offset, NOCTERM_DECORBOX(self)->label.content[i].character, NOCTERM_DECORBOX(self)->label.content[i].attribute);
                 }                
             }
-            
+
             if(NOCTERM_DECORBOX(self)->contained_widget && NOCTERM_DECORBOX(self)->contained_widget->focus_handler){
                 NOCTERM_DECORBOX(self)->contained_widget->focus_handler(NOCTERM_DECORBOX(self)->contained_widget, NOCTERM_WIDGET_FOCUS_ENTER);
             }
+
+
+
 
         }break;
         case NOCTERM_WIDGET_FOCUS_LEAVE:{

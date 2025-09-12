@@ -148,8 +148,6 @@ int main(){
 
     nocterm_loadingbar_t* loadingbar = nocterm_loadingbar_new(1,24,200, NOCTERM_ATTRIBUTE_EMPTY);
 
-
-
     nocterm_widget_add_subwidget(main_widget, NOCTERM_WIDGET(enable_menu_label));
     nocterm_widget_add_subwidget(main_widget, NOCTERM_WIDGET(make_menu_visible));
     nocterm_widget_add_subwidget(main_widget, NOCTERM_WIDGET(entry_decorbox));
@@ -162,14 +160,20 @@ int main(){
 
     nocterm_loadingbar_enable(loadingbar);
 
-    nocterm_widget_center_position_horizontal(NOCTERM_WIDGET(main_widget_decorbox));
+    nocterm_widget_align_center_horizontal(NOCTERM_WIDGET(main_widget_decorbox));
 
     nocterm_page_t* main_page = nocterm_page_new("Main Page", 10, NOCTERM_WIDGET(main_widget_decorbox));
     nocterm_page_stack_push(main_page);
 
-    // Main Loop
-    nocterm_loop();
+    // Enable mouse support
+    // Use on supporting temrinals
+    // nocterm_mouse_support(true);
 
+    // Main Loop
+    nocterm_init();
+    nocterm_loop(); 
+    nocterm_end();
+ 
     // Delete Listview
     nocterm_decorbox_delete(add_items_to_list_decorbox);
     nocterm_button_delete(add_items_to_list);

@@ -10,53 +10,85 @@ nocterm_entry_t* nocterm_entry_new(nocterm_dimension_size_t row, nocterm_dimensi
     
     memset(new_entry, 0x0, sizeof(nocterm_entry_t));
 
-    // Extra space for cursor
-    if(nocterm_widget_constructor(NOCTERM_WIDGET(new_entry),(nocterm_dimension_t){row, col, 1, NOCTERM_ENTRY_BUFFER_MAX_SIZE + 1}, true, false) == NOCTERM_FAILURE){
+    if(nocterm_entry_constructor(new_entry, row, col, width, attribute) == NOCTERM_FAILURE){
         free(new_entry);
         return NULL;
     }
 
-    new_entry->normal_attribute = attribute;
-    new_entry->buffer_position = 0;
-    new_entry->cursor_position = 0;
-    new_entry->current_length = 0;
-    
-    new_entry->cursor_attribute = new_entry->normal_attribute;
-
-    new_entry->cursor_attribute.color.ansi.bg = new_entry->normal_attribute.color.ansi.fg;
-    new_entry->cursor_attribute.color.ansi.fg = new_entry->normal_attribute.color.ansi.bg;
-    new_entry->cursor_attribute.color.ansi.codes.fg = new_entry->normal_attribute.color.ansi.codes.bg;
-    new_entry->cursor_attribute.color.ansi.codes.bg = new_entry->normal_attribute.color.ansi.codes.fg;
-
-    new_entry->cursor_attribute.color.c256.bg = new_entry->normal_attribute.color.c256.fg;
-    new_entry->cursor_attribute.color.c256.fg = new_entry->normal_attribute.color.c256.bg;  
-    new_entry->cursor_attribute.color.c256.codes.fg = new_entry->normal_attribute.color.c256.codes.bg;
-    new_entry->cursor_attribute.color.c256.codes.bg = new_entry->normal_attribute.color.c256.codes.fg;
-
-
-    new_entry->cursor_attribute.color.rgb.bg = new_entry->normal_attribute.color.rgb.fg;
-    new_entry->cursor_attribute.color.rgb.fg = new_entry->normal_attribute.color.rgb.bg;
-    new_entry->cursor_attribute.color.rgb.codes.fg = new_entry->normal_attribute.color.rgb.codes.bg;
-    new_entry->cursor_attribute.color.rgb.codes.bg = new_entry->normal_attribute.color.rgb.codes.fg;
-
-    if(nocterm_widget_add_key_handler(NOCTERM_WIDGET(new_entry), nocterm_entry_key_handler) == NOCTERM_FAILURE){
-        free(new_entry);
-        return NULL;
-    }
-    if(nocterm_widget_add_focus_handler(NOCTERM_WIDGET(new_entry), nocterm_entry_focus_handler) == NOCTERM_FAILURE){
-        free(new_entry);
-        return NULL;
-    }
-
-    nocterm_widget_viewport(NOCTERM_WIDGET(new_entry), (nocterm_dimension_t){0, 0, 1, width});
-
-    nocterm_widget_update(NOCTERM_WIDGET(new_entry), 0, 0, NOCTERM_ENTRY_CURSOR_CHAR, new_entry->normal_attribute);
     return new_entry;
+}
+
+int nocterm_entry_constructor(nocterm_entry_t* entry, nocterm_dimension_size_t row, nocterm_dimension_size_t col, nocterm_dimension_size_t width, nocterm_attribute_t attribute){
+
+    if(entry == NULL){
+        errno = EINVAL;
+        return NOCTERM_FAILURE;
+    }
+
+    // Extra space for cursor
+    if(nocterm_widget_constructor(NOCTERM_WIDGET(entry),(nocterm_dimension_t){row, col, 1, NOCTERM_ENTRY_BUFFER_MAX_SIZE + 1}, true, false) == NOCTERM_FAILURE){
+        return NOCTERM_FAILURE;
+    }
+
+    entry->normal_attribute = attribute;
+    entry->buffer_position = 0;
+    entry->cursor_position = 0;
+    entry->current_length = 0;
+    
+    entry->cursor_attribute = entry->normal_attribute;
+
+    entry->cursor_attribute.color.ansi.bg = entry->normal_attribute.color.ansi.fg;
+    entry->cursor_attribute.color.ansi.fg = entry->normal_attribute.color.ansi.bg;
+    entry->cursor_attribute.color.ansi.codes.fg = entry->normal_attribute.color.ansi.codes.bg;
+    entry->cursor_attribute.color.ansi.codes.bg = entry->normal_attribute.color.ansi.codes.fg;
+
+    entry->cursor_attribute.color.c256.bg = entry->normal_attribute.color.c256.fg;
+    entry->cursor_attribute.color.c256.fg = entry->normal_attribute.color.c256.bg;  
+    entry->cursor_attribute.color.c256.codes.fg = entry->normal_attribute.color.c256.codes.bg;
+    entry->cursor_attribute.color.c256.codes.bg = entry->normal_attribute.color.c256.codes.fg;
+
+
+    entry->cursor_attribute.color.rgb.bg = entry->normal_attribute.color.rgb.fg;
+    entry->cursor_attribute.color.rgb.fg = entry->normal_attribute.color.rgb.bg;
+    entry->cursor_attribute.color.rgb.codes.fg = entry->normal_attribute.color.rgb.codes.bg;
+    entry->cursor_attribute.color.rgb.codes.bg = entry->normal_attribute.color.rgb.codes.fg;
+
+    if(nocterm_widget_add_key_handler(NOCTERM_WIDGET(entry), nocterm_entry_key_handler) == NOCTERM_FAILURE){
+        return NOCTERM_FAILURE;
+    }
+    if(nocterm_widget_add_focus_handler(NOCTERM_WIDGET(entry), nocterm_entry_focus_handler) == NOCTERM_FAILURE){
+        return NOCTERM_FAILURE;
+    }
+
+    nocterm_widget_viewport(NOCTERM_WIDGET(entry), (nocterm_dimension_t){0, 0, 1, width});
+
+    nocterm_widget_update(NOCTERM_WIDGET(entry), 0, 0, NOCTERM_ENTRY_CURSOR_CHAR, entry->normal_attribute);
+
+    return NOCTERM_SUCCESS;
+}
+
+int nocterm_entry_destructor(nocterm_entry_t* entry){
+    
+    if(entry == NULL){
+        errno = EINVAL;
+        return NOCTERM_FAILURE;
+    }
+
+    if(nocterm_widget_destructor(NOCTERM_WIDGET(entry)) == NOCTERM_FAILURE){
+        return NOCTERM_FAILURE;
+    }
+
+    return NOCTERM_SUCCESS;
 }
 
 int nocterm_entry_delete(nocterm_entry_t* entry){
 
-    if(nocterm_widget_destructor(NOCTERM_WIDGET(entry)) == NOCTERM_FAILURE){
+    if(entry == NULL){
+        errno = EINVAL;
+        return NOCTERM_FAILURE;
+    }
+
+    if(nocterm_entry_destructor(entry) == NOCTERM_FAILURE){
         return NOCTERM_FAILURE;
     }
 

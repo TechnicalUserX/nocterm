@@ -52,6 +52,31 @@ typedef struct nocterm_button_t{
 nocterm_button_t* nocterm_button_new(nocterm_dimension_size_t row, nocterm_dimension_size_t col, const char* text, uint64_t text_size, nocterm_attribute_t normal, nocterm_attribute_t focused, nocterm_button_onpress_handler_t onpress_handler, void* user_data);
 
 /**
+ * @brief Constructs a button widget.
+ * 
+ * @param button 
+ * @param row 
+ * @param col 
+ * @param text 
+ * @param text_size 
+ * @param normal 
+ * @param focused 
+ * @param onpress_handler 
+ * @param user_data 
+ * @return int 
+ */
+int nocterm_button_constructor(nocterm_button_t* button, nocterm_dimension_size_t row, nocterm_dimension_size_t col, const char* text, uint64_t text_size, nocterm_attribute_t normal, nocterm_attribute_t focused, nocterm_button_onpress_handler_t onpress_handler, void* user_data);
+
+/**
+ * @brief Destructs a button widget.
+ * 
+ * @param button 
+ * @return int 
+ */
+int nocterm_button_destructor(nocterm_button_t* button);
+
+
+/**
  * @brief Deletes a button widget.
  * 
  * @param button 

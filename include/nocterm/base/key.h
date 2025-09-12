@@ -49,6 +49,7 @@ typedef enum nocterm_key_event_t {
     NOCTERM_KEY_EVENT_EOF,    // Ctrl + D
     NOCTERM_KEY_EVENT_BS,    // Ctrl + H
     NOCTERM_KEY_EVENT_FF,    // Ctrl + L
+    NOCTERM_KEY_EVENT_MOUSE,
     NOCTERM_KEY_EVENT_UNDEFINED
 }nocterm_key_event_t;
 

@@ -27,6 +27,8 @@ int nocterm_widget_constructor(nocterm_widget_t* widget, nocterm_dimension_t bou
         return NOCTERM_FAILURE;
     }
 
+    widget->owner = widget;
+
     widget->bounds.row = bounds.row;
     widget->bounds.col = bounds.col;
     widget->viewport.row = 0;
@@ -52,8 +54,8 @@ int nocterm_widget_constructor(nocterm_widget_t* widget, nocterm_dimension_t bou
     }else{
         widget->focusable = false;
     }
-    widget->center_horizontal = false;
-    widget->center_vertical = false;
+    widget->align.flags.percent_horizontal = false;
+    widget->align.flags.percent_vertical = false;
 
     widget->subwidgets_size = 0;
     widget->subwidgets = NULL;
@@ -197,8 +199,8 @@ int nocterm_widget_set_position(nocterm_widget_t* widget, nocterm_dimension_size
     if(widget->bounds.row != row || widget->bounds.col != col){
         widget->bounds.row = row;
         widget->bounds.col = col;
-        widget->center_horizontal = false;
-        widget->center_vertical = false;
+        widget->align.flags.percent_horizontal = false;
+        widget->align.flags.percent_vertical = false;
         nocterm_screen_ownership_reset();
         nocterm_widget_enforce_root_refresh(widget);        
     }
@@ -216,7 +218,7 @@ int nocterm_widget_set_position_row(nocterm_widget_t* widget, nocterm_dimension_
 
     if(widget->bounds.row != row){
         widget->bounds.row = row;
-        widget->center_vertical = false;
+        widget->align.flags.percent_vertical = false;
         nocterm_screen_ownership_reset();
         nocterm_widget_enforce_root_refresh(widget);
     }
@@ -234,7 +236,7 @@ int nocterm_widget_set_position_col(nocterm_widget_t* widget, nocterm_dimension_
 
     if(widget->bounds.col != col){
         widget->bounds.col = col;
-        widget->center_horizontal = false;
+        widget->align.flags.percent_horizontal = false;
         nocterm_screen_ownership_reset();
         nocterm_widget_enforce_root_refresh(widget);
     }
@@ -242,9 +244,28 @@ int nocterm_widget_set_position_col(nocterm_widget_t* widget, nocterm_dimension_
     return NOCTERM_SUCCESS;
 }
 
-int nocterm_widget_center_position_horizontal(nocterm_widget_t* widget){
-    // Idempotent
+int nocterm_widget_align_center_horizontal(nocterm_widget_t* widget){
 
+    if(widget == NULL){
+        errno = EINVAL;
+        return NOCTERM_FAILURE;
+    }
+
+    return nocterm_widget_align_percent_horizontal(widget, 50);
+}
+
+int nocterm_widget_align_center_vertical(nocterm_widget_t* widget){
+
+    if(widget == NULL){
+        errno = EINVAL;
+        return NOCTERM_FAILURE;
+    }
+
+    return nocterm_widget_align_percent_vertical(widget, 50);
+}
+
+int nocterm_widget_align_left(nocterm_widget_t* widget, nocterm_widget_align_edge_margin_t margin){
+    
     if(widget == NULL){
         errno = EINVAL;
         return NOCTERM_FAILURE;
@@ -252,18 +273,18 @@ int nocterm_widget_center_position_horizontal(nocterm_widget_t* widget){
 
     if(widget->parent == NULL){
         // There is no parent, so we have to look for the actual terminal
+
         struct winsize w = {0};
         if(ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) == -1){
             return NOCTERM_FAILURE;
         }
-        // Let's approximate horizontal center
+
         if(w.ws_col == 0){
             return NOCTERM_SUCCESS;
         }
 
-        if(w.ws_col >= widget->viewport.width){
-            // Widget can fit to the terminal
-            nocterm_dimension_size_t new_col = (w.ws_col - widget->viewport.width)/2;
+        if(w.ws_col >= widget->viewport.width + margin){
+            nocterm_dimension_size_t new_col = 0 + margin;
             widget->bounds.col = new_col;
         }
         // Else no effect
@@ -273,9 +294,9 @@ int nocterm_widget_center_position_horizontal(nocterm_widget_t* widget){
         if(widget->parent->bounds.width != 0 && widget->parent->bounds.height != 0){
             // Parent has dimension
 
-            if(widget->parent->viewport.width >= widget->viewport.width){
-                // We can center because parent has enough width
-                nocterm_dimension_size_t new_col = (widget->parent->viewport.width - widget->viewport.width)/2;
+            if(widget->parent->viewport.width >= widget->viewport.width + margin){
+                // We can align left because parent has enough width
+                nocterm_dimension_size_t new_col = 0 + margin;
                 widget->bounds.col = new_col;
             }
             // Else no effect
@@ -284,16 +305,19 @@ int nocterm_widget_center_position_horizontal(nocterm_widget_t* widget){
 
     }
 
-
     nocterm_widget_enforce_root_refresh(widget);
-    widget->center_horizontal = true;
+
+    widget->align.flags.left = true;
+    widget->align.flags.right = false;
+
+
+    widget->align.edge_margin = margin;
 
     return NOCTERM_SUCCESS;
 }
 
-int nocterm_widget_center_position_vertical(nocterm_widget_t* widget){
-    // Idempotent
-
+int nocterm_widget_align_right(nocterm_widget_t* widget, nocterm_widget_align_edge_margin_t margin){
+    
     if(widget == NULL){
         errno = EINVAL;
         return NOCTERM_FAILURE;
@@ -301,18 +325,69 @@ int nocterm_widget_center_position_vertical(nocterm_widget_t* widget){
 
     if(widget->parent == NULL){
         // There is no parent, so we have to look for the actual terminal
+
         struct winsize w = {0};
         if(ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) == -1){
             return NOCTERM_FAILURE;
         }
-        // Let's approximate horizontal center
+
+        if(w.ws_col == 0){
+            return NOCTERM_SUCCESS;
+        }
+
+        if(w.ws_col >= widget->viewport.width + margin){
+            nocterm_dimension_size_t new_col = w.ws_col - widget->viewport.width - margin;
+            widget->bounds.col = new_col;
+        }
+        // Else no effect
+
+    }else{
+        // There is a parent
+        if(widget->parent->bounds.width != 0 && widget->parent->bounds.height != 0){
+            // Parent has dimension
+
+            if(widget->parent->viewport.width >= widget->viewport.width + margin){
+                // We can align right because parent has enough width
+                nocterm_dimension_size_t new_col = widget->parent->viewport.width - widget->viewport.width - margin;
+                widget->bounds.row = new_col;
+            }
+            // Else no effect
+        }
+        // Otherwise, no effect
+
+    }
+
+    nocterm_widget_enforce_root_refresh(widget);
+
+    widget->align.flags.left = false;
+    widget->align.flags.right = true;
+
+    widget->align.edge_margin = margin;
+
+    return NOCTERM_SUCCESS;
+}
+
+int nocterm_widget_align_top(nocterm_widget_t* widget, nocterm_widget_align_edge_margin_t margin){
+    
+    if(widget == NULL){
+        errno = EINVAL;
+        return NOCTERM_FAILURE;
+    }
+
+    if(widget->parent == NULL){
+        // There is no parent, so we have to look for the actual terminal
+
+        struct winsize w = {0};
+        if(ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) == -1){
+            return NOCTERM_FAILURE;
+        }
+
         if(w.ws_row == 0){
             return NOCTERM_SUCCESS;
         }
 
-        if(w.ws_row >= widget->viewport.height){
-            // Widget can fit to the terminal
-            nocterm_dimension_size_t new_row = (w.ws_row - widget->viewport.height)/2;
+        if(w.ws_row >= widget->viewport.height + margin){
+            nocterm_dimension_size_t new_row = 0 + margin;
             widget->bounds.row = new_row;
         }
         // Else no effect
@@ -322,9 +397,9 @@ int nocterm_widget_center_position_vertical(nocterm_widget_t* widget){
         if(widget->parent->bounds.width != 0 && widget->parent->bounds.height != 0){
             // Parent has dimension
 
-            if(widget->parent->viewport.height >= widget->viewport.height){
-                // We can center because parent has enough width
-                nocterm_dimension_size_t new_row = (widget->parent->viewport.height - widget->viewport.height)/2;
+            if(widget->parent->viewport.height >= widget->viewport.height + margin){
+                // We can align left because parent has enough width
+                nocterm_dimension_size_t new_row = 0 + margin;
                 widget->bounds.row = new_row;
             }
             // Else no effect
@@ -333,32 +408,191 @@ int nocterm_widget_center_position_vertical(nocterm_widget_t* widget){
 
     }
 
-
     nocterm_widget_enforce_root_refresh(widget);
-    widget->center_vertical = true;
+
+    widget->align.flags.top = true;
+    widget->align.flags.bottom = false;
+
+    widget->align.edge_margin = margin;
 
     return NOCTERM_SUCCESS;
 }
 
-int nocterm_widget_center_position_update(nocterm_widget_t* widget){
+int nocterm_widget_align_bottom(nocterm_widget_t* widget, nocterm_widget_align_edge_margin_t margin){
     
     if(widget == NULL){
         errno = EINVAL;
         return NOCTERM_FAILURE;
     }
 
-    if(widget->center_horizontal){
-        nocterm_widget_center_position_horizontal(widget);
+    if(widget->parent == NULL){
+        // There is no parent, so we have to look for the actual terminal
+
+        struct winsize w = {0};
+        if(ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) == -1){
+            return NOCTERM_FAILURE;
+        }
+
+        if(w.ws_row == 0){
+            return NOCTERM_SUCCESS;
+        }
+
+        if(w.ws_row >= widget->viewport.height + margin){
+            nocterm_dimension_size_t new_row = w.ws_row - widget->viewport.height - margin;
+            widget->bounds.row = new_row;
+        }
+        // Else no effect
+
+    }else{
+        // There is a parent
+        if(widget->parent->bounds.width != 0 && widget->parent->bounds.height != 0){
+            // Parent has dimension
+
+            if(widget->parent->viewport.height >= widget->viewport.height + margin){
+                // We can align left because parent has enough width
+                nocterm_dimension_size_t new_row = widget->parent->viewport.height - widget->viewport.height - margin;
+                widget->bounds.row = new_row;
+            }
+            // Else no effect
+        }
+        // Otherwise, no effect
+
     }
-    if(widget->center_vertical){
-        nocterm_widget_center_position_vertical(widget);
+
+    nocterm_widget_enforce_root_refresh(widget);
+
+    widget->align.flags.top = false;
+    widget->align.flags.bottom = true;
+
+    widget->align.edge_margin = margin;
+
+    return NOCTERM_SUCCESS;
+}
+
+int nocterm_widget_align_percent_horizontal(nocterm_widget_t* widget, uint8_t percent){
+
+    if(widget == NULL){
+        errno = EINVAL;
+        return NOCTERM_FAILURE;
+    }
+
+
+    nocterm_dimension_size_t control_width = 0;
+
+    if(widget->parent == NULL){
+        control_width = nocterm_screen_width;
+    }else{
+        control_width = widget->parent->bounds.width;
+    }
+
+    nocterm_dimension_size_t percent_left_size = (control_width * percent)/100;
+    nocterm_dimension_size_t percent_right_size = control_width - percent_left_size;
+    nocterm_dimension_size_t widget_left_size = widget->viewport.width/2;
+    nocterm_dimension_size_t widget_right_size = widget->viewport.width - widget_left_size;
+
+
+    if(control_width > 0 && control_width >= widget->viewport.width){
+        // We can align left because there is enough width
+
+        if((percent_left_size >= widget_left_size) && (percent_right_size >= widget_right_size)){
+            // Widgets fits perfectly    
+            widget->bounds.col = percent_left_size-widget_left_size;   
+        }
+        else if(percent_left_size < percent_right_size){
+            // Left align
+            widget->bounds.col = 0;
+        }else{
+            // Right align
+            widget->bounds.col = control_width - widget->viewport.width;
+        }
+
+    }
+
+    nocterm_widget_enforce_root_refresh(widget);
+
+    widget->align.flags.percent_horizontal = true;
+    widget->align.percent_values.horizontal = percent;
+    widget->align.flags.left = false;
+    widget->align.flags.right = false;
+
+    return NOCTERM_SUCCESS;
+}
+
+int nocterm_widget_align_percent_vertical(nocterm_widget_t* widget, uint8_t percent){
+
+    if(widget == NULL){
+        errno = EINVAL;
+        return NOCTERM_FAILURE;
+    }
+
+
+    nocterm_dimension_size_t control_height = 0;
+
+    if(widget->parent == NULL){
+        control_height = nocterm_screen_height;
+    }else{
+        control_height = widget->parent->bounds.height;
+    }
+
+    nocterm_dimension_size_t percent_top_size = (control_height * percent)/100;
+    nocterm_dimension_size_t percent_bottom_size = control_height - percent_top_size;
+    nocterm_dimension_size_t widget_top_size = widget->viewport.height/2;
+    nocterm_dimension_size_t widget_bottom_size = widget->viewport.height - widget_top_size;
+
+
+    if(control_height > 0 && control_height >= widget->viewport.height){
+        // We can align left because there is enough width
+
+        if((percent_top_size >= widget_top_size) && (percent_bottom_size >= widget_bottom_size)){
+            // Widgets fits perfectly    
+            widget->bounds.row = percent_top_size-widget_top_size;   
+        }
+        else if(percent_top_size < percent_bottom_size){
+            // Left align
+            widget->bounds.row = 0;
+        }else{
+            // Right align
+            widget->bounds.row = control_height - widget->viewport.height;
+        }
+
+    }
+
+    nocterm_widget_enforce_root_refresh(widget);
+
+    widget->align.flags.percent_vertical = true;
+    widget->align.percent_values.vertical = percent;
+    widget->align.flags.top = false;
+    widget->align.flags.bottom = false;
+
+    return NOCTERM_SUCCESS;
+}
+
+int nocterm_widget_align_update(nocterm_widget_t* widget){
+
+    if(widget == NULL){
+        return NOCTERM_SUCCESS;
+    }
+
+    if(widget->align.flags.left){
+        nocterm_widget_align_left(widget, widget->align.edge_margin);
+    }else if(widget->align.flags.right){
+        nocterm_widget_align_right(widget, widget->align.edge_margin);
+    }else if(widget->align.flags.percent_horizontal){
+        nocterm_widget_align_percent_horizontal(widget, widget->align.percent_values.horizontal);
+    }
+    
+    if(widget->align.flags.top){
+        nocterm_widget_align_top(widget, widget->align.edge_margin);
+    }else if(widget->align.flags.bottom){
+        nocterm_widget_align_bottom(widget, widget->align.edge_margin);
+    }else if(widget->align.flags.percent_vertical){
+        nocterm_widget_align_percent_vertical(widget, widget->align.percent_values.vertical);
     }
 
     for(uint64_t i = 0; i < widget->subwidgets_size; i++){
-        nocterm_widget_center_position_update(widget->subwidgets[i]);
+        nocterm_widget_align_update(widget->subwidgets[i]);
     }
 
-    
     return NOCTERM_SUCCESS;
 }
 
@@ -508,6 +742,16 @@ int nocterm_widget_update(nocterm_widget_t* widget, nocterm_dimension_size_t row
         return NOCTERM_FAILURE;
     }
 
+    // if (row >= widget->bounds.height || col >= widget->bounds.width) {
+    //     errno = EINVAL;
+    //     return NOCTERM_FAILURE;
+    // }
+
+    if((row * widget->bounds.width + col) >= widget->buffer_size){
+        errno = EINVAL;
+        return NOCTERM_FAILURE;
+    }
+
     widget->soft_refresh = true;
     
     widget->buffer[row * widget->bounds.width + col].refresh = true;
@@ -562,10 +806,18 @@ int nocterm_widget_refresh(nocterm_widget_t* widget){
 
                 if(widget->hard_refresh || widget->buffer[buffer_index].refresh){
                     
-                    uint64_t screen_index = (relative_row + row) * nocterm_screen_width + (relative_col + col);
+                    uint64_t absolute_row = relative_row + row;
+                    uint64_t absolute_col = relative_col + col;
+
+                    uint64_t screen_index = absolute_row * nocterm_screen_width + absolute_col;
                     uint64_t screen_size = nocterm_screen_height * nocterm_screen_width;
                     nocterm_screen_ownership_t* current_ownership = NULL;
 
+                    if (absolute_row >= nocterm_screen_height || absolute_col >= nocterm_screen_width) {
+                        // Skip this cell - it's outside screen boundaries
+                        continue;
+                    }
+                    
                     if(screen_index < screen_size){
                         current_ownership = &(nocterm_screen_ownership[screen_index]);
                     }

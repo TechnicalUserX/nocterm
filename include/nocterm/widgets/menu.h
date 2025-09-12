@@ -67,6 +67,31 @@ typedef struct nocterm_menu_t{
  */
 nocterm_menu_t* nocterm_menu_new(nocterm_dimension_size_t row, nocterm_dimension_size_t col, nocterm_attribute_t selection, nocterm_dimension_size_t items_displayed, uint64_t items_total, nocterm_dimension_size_t item_width, nocterm_menu_onselect_handler_t onselect_handler, void* user_data);
 
+
+/**
+ * @brief Constructs a menu widget.
+ * 
+ * @param menu 
+ * @param row 
+ * @param col 
+ * @param selection 
+ * @param items_displayed 
+ * @param items_total 
+ * @param item_width 
+ * @param onselect_handler 
+ * @param user_data 
+ * @return int 
+ */
+int nocterm_menu_constructor(nocterm_menu_t* menu, nocterm_dimension_size_t row, nocterm_dimension_size_t col, nocterm_attribute_t selection, nocterm_dimension_size_t items_displayed, uint64_t items_total, nocterm_dimension_size_t item_width, nocterm_menu_onselect_handler_t onselect_handler, void* user_data);
+
+/**
+ * @brief Destructs a menu widget.
+ * 
+ * @param menu 
+ * @return int 
+ */
+int nocterm_menu_destructor(nocterm_menu_t* menu);
+
 /**
  * @brief Deletes a menu widget.
  * 

@@ -10,33 +10,48 @@ nocterm_checkbox_t* nocterm_checkbox_new(nocterm_dimension_size_t row, nocterm_d
 
     memset(new_checkbox, 0x0, sizeof(nocterm_checkbox_t));
 
-    if(nocterm_widget_constructor(NOCTERM_WIDGET(new_checkbox), (nocterm_dimension_t){row, col, 1, 3}, true, false) == NOCTERM_FAILURE){
+    if(nocterm_checkbox_constructor(new_checkbox, row, col, attribute, oncheck_handler, checked, user_data) == NOCTERM_FAILURE){
+        free(new_checkbox);
         return NULL;
     }
 
-    new_checkbox->attribute_normal = attribute;
-    new_checkbox->attribute_cursor = attribute;
+    return new_checkbox;
+}
 
-    new_checkbox->attribute_cursor.color.ansi.bg = new_checkbox->attribute_normal.color.ansi.fg;
-    new_checkbox->attribute_cursor.color.ansi.fg = new_checkbox->attribute_normal.color.ansi.bg;
-    new_checkbox->attribute_cursor.color.ansi.codes.fg = new_checkbox->attribute_normal.color.ansi.codes.bg;
-    new_checkbox->attribute_cursor.color.ansi.codes.bg = new_checkbox->attribute_normal.color.ansi.codes.fg;
+int nocterm_checkbox_constructor(nocterm_checkbox_t* checkbox, nocterm_dimension_size_t row, nocterm_dimension_size_t col, nocterm_attribute_t attribute, nocterm_checkbox_oncheck_handler_t oncheck_handler, bool checked, void* user_data){
 
-    new_checkbox->attribute_cursor.color.c256.bg = new_checkbox->attribute_normal.color.c256.fg;
-    new_checkbox->attribute_cursor.color.c256.fg = new_checkbox->attribute_normal.color.c256.bg;  
-    new_checkbox->attribute_cursor.color.c256.codes.fg = new_checkbox->attribute_normal.color.c256.codes.bg;
-    new_checkbox->attribute_cursor.color.c256.codes.bg = new_checkbox->attribute_normal.color.c256.codes.fg;
+    if(checkbox == NULL){
+        errno = EINVAL;
+        return NOCTERM_FAILURE;
+    }
 
-    new_checkbox->attribute_cursor.color.rgb.bg = new_checkbox->attribute_normal.color.rgb.fg;
-    new_checkbox->attribute_cursor.color.rgb.fg = new_checkbox->attribute_normal.color.rgb.bg;
-    new_checkbox->attribute_cursor.color.rgb.codes.fg = new_checkbox->attribute_normal.color.rgb.codes.bg;
-    new_checkbox->attribute_cursor.color.rgb.codes.bg = new_checkbox->attribute_normal.color.rgb.codes.fg;
+    if(nocterm_widget_constructor(NOCTERM_WIDGET(checkbox), (nocterm_dimension_t){row, col, 1, 3}, true, false) == NOCTERM_FAILURE){
+        return NOCTERM_FAILURE;
+    }
 
-    new_checkbox->checked = checked;
+    checkbox->attribute_normal = attribute;
+    checkbox->attribute_cursor = attribute;
 
-    new_checkbox->oncheck_handler = oncheck_handler;
+    checkbox->attribute_cursor.color.ansi.bg = checkbox->attribute_normal.color.ansi.fg;
+    checkbox->attribute_cursor.color.ansi.fg = checkbox->attribute_normal.color.ansi.bg;
+    checkbox->attribute_cursor.color.ansi.codes.fg = checkbox->attribute_normal.color.ansi.codes.bg;
+    checkbox->attribute_cursor.color.ansi.codes.bg = checkbox->attribute_normal.color.ansi.codes.fg;
 
-    new_checkbox->user_data = user_data;
+    checkbox->attribute_cursor.color.c256.bg = checkbox->attribute_normal.color.c256.fg;
+    checkbox->attribute_cursor.color.c256.fg = checkbox->attribute_normal.color.c256.bg;  
+    checkbox->attribute_cursor.color.c256.codes.fg = checkbox->attribute_normal.color.c256.codes.bg;
+    checkbox->attribute_cursor.color.c256.codes.bg = checkbox->attribute_normal.color.c256.codes.fg;
+
+    checkbox->attribute_cursor.color.rgb.bg = checkbox->attribute_normal.color.rgb.fg;
+    checkbox->attribute_cursor.color.rgb.fg = checkbox->attribute_normal.color.rgb.bg;
+    checkbox->attribute_cursor.color.rgb.codes.fg = checkbox->attribute_normal.color.rgb.codes.bg;
+    checkbox->attribute_cursor.color.rgb.codes.bg = checkbox->attribute_normal.color.rgb.codes.fg;
+
+    checkbox->checked = checked;
+
+    checkbox->oncheck_handler = oncheck_handler;
+
+    checkbox->user_data = user_data;
 
     nocterm_char_t left_side = {
         .bytes = {'['},
@@ -49,8 +64,8 @@ nocterm_checkbox_t* nocterm_checkbox_new(nocterm_dimension_size_t row, nocterm_d
         .is_utf8 = false
     };    
 
-    nocterm_widget_update(NOCTERM_WIDGET(new_checkbox), 0, 0, left_side, attribute);
-    nocterm_widget_update(NOCTERM_WIDGET(new_checkbox), 0, 2, right_side, attribute);
+    nocterm_widget_update(NOCTERM_WIDGET(checkbox), 0, 0, left_side, attribute);
+    nocterm_widget_update(NOCTERM_WIDGET(checkbox), 0, 2, right_side, attribute);
 
     if(checked){
         nocterm_char_t check_character = {
@@ -58,29 +73,36 @@ nocterm_checkbox_t* nocterm_checkbox_new(nocterm_dimension_size_t row, nocterm_d
             .bytes_size = 1,
             .is_utf8 = false
         }; 
-        nocterm_widget_update(NOCTERM_WIDGET(new_checkbox), 0, 1, check_character, attribute);
+        nocterm_widget_update(NOCTERM_WIDGET(checkbox), 0, 1, check_character, attribute);
     }else{
         nocterm_char_t space_character = {
             .bytes = {' '},
             .bytes_size = 1,
             .is_utf8 = false
         };
-        nocterm_widget_update(NOCTERM_WIDGET(new_checkbox), 0, 1, space_character, attribute);
+        nocterm_widget_update(NOCTERM_WIDGET(checkbox), 0, 1, space_character, attribute);
 
     }
 
-    
-    nocterm_widget_add_key_handler(NOCTERM_WIDGET(new_checkbox), nocterm_checkbox_key_handler);
+    nocterm_widget_add_key_handler(NOCTERM_WIDGET(checkbox), nocterm_checkbox_key_handler);
 
-    nocterm_widget_add_focus_handler(NOCTERM_WIDGET(new_checkbox), nocterm_checkbox_focus_handler);
+    nocterm_widget_add_focus_handler(NOCTERM_WIDGET(checkbox), nocterm_checkbox_focus_handler);
 
-    return new_checkbox;
+    return NOCTERM_SUCCESS;
 }
 
+int nocterm_checkbox_destructor(nocterm_checkbox_t* checkbox){
+
+    if(nocterm_widget_destructor(NOCTERM_WIDGET(checkbox)) == NOCTERM_FAILURE){
+        return NOCTERM_FAILURE;
+    }
+
+    return NOCTERM_SUCCESS;
+}
 
 int nocterm_checkbox_delete(nocterm_checkbox_t* checkbox){
 
-    if(nocterm_widget_destructor(NOCTERM_WIDGET(checkbox)) == NOCTERM_FAILURE){
+    if(nocterm_checkbox_destructor(checkbox) == NOCTERM_FAILURE){
         return NOCTERM_FAILURE;
     }
 

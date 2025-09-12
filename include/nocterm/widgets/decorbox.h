@@ -72,6 +72,26 @@ typedef struct nocterm_decorbox_t{
 nocterm_decorbox_t* nocterm_decorbox_new(nocterm_dimension_size_t row, nocterm_dimension_size_t col, nocterm_widget_t* contained_widget);
 
 /**
+ * @brief Constructs a decorbox widget.
+ * 
+ * @param decorbox 
+ * @param row 
+ * @param col 
+ * @param contained_widget 
+ * @return int 
+ */
+int nocterm_decorbox_constructor(nocterm_decorbox_t* decorbox, nocterm_dimension_size_t row, nocterm_dimension_size_t col, nocterm_widget_t* contained_widget);
+
+/**
+ * @brief Destructs a decorbox widget.
+ * 
+ * @param decorbox 
+ * @return int 
+ */
+int nocterm_decorbox_destructor(nocterm_decorbox_t* decorbox);
+
+
+/**
  * @brief Deletes a decorbox widget.
  * 
  * @param decorbox 

@@ -37,28 +37,62 @@ nocterm_listview_t* nocterm_listview_new(nocterm_dimension_size_t row, nocterm_d
 
     memset(new_listview, 0x0, sizeof(nocterm_listview_t));
 
-    if(nocterm_widget_constructor(NOCTERM_WIDGET(new_listview),(nocterm_dimension_t){row, col, items_total, item_width}, true, false) == NOCTERM_FAILURE){
-        return NULL;
-    }
-
-    nocterm_widget_viewport(NOCTERM_WIDGET(new_listview), (nocterm_dimension_t){0, 0, items_displayed, NOCTERM_WIDGET(new_listview)->bounds.width});
-    
-    new_listview->item_array = nocterm_listview_item_array_new();
-    if(new_listview->item_array == NULL){
+    if(nocterm_listview_constructor(new_listview, row, col, items_displayed, items_total, item_width) == NOCTERM_FAILURE){
         free(new_listview);
         return NULL;
     }
 
-    nocterm_widget_add_key_handler(NOCTERM_WIDGET(new_listview), nocterm_listview_key_handler);
-
     return new_listview;
 }
 
-int nocterm_listview_delete(nocterm_listview_t* listview){
+int nocterm_listview_constructor(nocterm_listview_t* listview, nocterm_dimension_size_t row, nocterm_dimension_size_t col, nocterm_dimension_size_t items_displayed, uint64_t items_total, nocterm_dimension_size_t item_width){
+
+    if(listview == NULL){
+        errno = EINVAL;
+        return NOCTERM_FAILURE;
+    }
+
+    if(nocterm_widget_constructor(NOCTERM_WIDGET(listview),(nocterm_dimension_t){row, col, items_total, item_width}, true, false) == NOCTERM_FAILURE){
+        return NOCTERM_FAILURE;
+    }
+
+    nocterm_widget_viewport(NOCTERM_WIDGET(listview), (nocterm_dimension_t){0, 0, items_displayed, NOCTERM_WIDGET(listview)->bounds.width});
+    
+    listview->item_array = nocterm_listview_item_array_new();
+    if(listview->item_array == NULL){
+        return NOCTERM_FAILURE;
+    }
+
+    nocterm_widget_add_key_handler(NOCTERM_WIDGET(listview), nocterm_listview_key_handler);
+
+    return NOCTERM_SUCCESS;
+}
+
+int nocterm_listview_destructor(nocterm_listview_t* listview){
+
+    if(listview == NULL){
+        errno = EINVAL;
+        return NOCTERM_FAILURE;
+    }
 
     nocterm_listview_item_array_delete(listview->item_array);
 
     if(nocterm_widget_destructor(NOCTERM_WIDGET(listview)) == NOCTERM_FAILURE){
+        return NOCTERM_FAILURE;
+    }
+
+    return NOCTERM_SUCCESS;
+}
+
+
+int nocterm_listview_delete(nocterm_listview_t* listview){
+
+    if(listview == NULL){
+        errno = EINVAL;
+        return NOCTERM_FAILURE;
+    }
+
+    if(nocterm_listview_destructor(listview) == NOCTERM_FAILURE){
         return NOCTERM_FAILURE;
     }
 

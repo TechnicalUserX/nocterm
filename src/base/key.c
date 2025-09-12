@@ -202,6 +202,8 @@ nocterm_key_event_t nocterm_key_translate(nocterm_key_t* key){
             return NOCTERM_KEY_EVENT_DELETE;
         }else if(memcmp(key->buffer,"\033[Z", 4) == 0){
             return NOCTERM_KEY_EVENT_SHIFT_TAB;
+        }else if(memcmp(key->buffer, "\033[M",3) == 0){
+            return NOCTERM_KEY_EVENT_MOUSE;
         }
 
     }
