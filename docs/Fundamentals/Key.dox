@@ -35,4 +35,5 @@ Below is the exhaustive list of possible key events that can be returned by `noc
 | NOCTERM_KEY_EVENT_EOF       | Ctrl + D                         |
 | NOCTERM_KEY_EVENT_BS        | Ctrl + H                         |
 | NOCTERM_KEY_EVENT_FF        | Ctrl + L                         |
+| NOCTERM_KEY_EVENT_MOUSE     | Mouse event                      |
 | NOCTERM_KEY_EVENT_UNDEFINED | No meaningful key stroke         |
