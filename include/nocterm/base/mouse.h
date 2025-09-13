@@ -1,3 +1,12 @@
+/**
+ * @file mouse.h
+ * @author TecnicalUserX (technicaluserx@outlook.com)
+ * @date 2025-09-12
+ * 
+ * @copyright Copyright (c) 2025
+ * 
+ */
+
 #ifndef NOCTERM_MOUSE_H
 #define NOCTERM_MOUSE_H
 

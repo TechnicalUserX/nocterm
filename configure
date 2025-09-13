@@ -740,6 +740,7 @@ OPTION_DOXYGEN_OPTIMIZE_OUTPUT_FOR_C=YES
 ########################################
 # Extra Options (MODIFY HERE)
 
+OPTION_DOXYGEN_EXAMPLE_PATH="examples"
 OPTION_DOXYGEN_INPUT="docs src include"
 OPTION_DOXYGEN_EXCLUDE="docs/doxygen-theme"
 

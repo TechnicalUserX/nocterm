@@ -15,7 +15,7 @@ The image below is a representation of the main loop:
 
 This phase initalizes terminal to raw mode, assigns a signal handler function for terminal resize signal `SIGWINCH`, and makes the cursor invisible.
 
-# Main Loop Phases
+## Main Loop Phases
 
 ### 1. Capture Key
 

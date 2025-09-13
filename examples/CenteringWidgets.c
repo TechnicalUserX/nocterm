@@ -1,0 +1,42 @@
+#include <nocterm/nocterm.h>
+
+
+int main(){
+
+    nocterm_widget_t* my_widget = nocterm_widget_new((nocterm_dimension_t){0,0,10,10}, NOCTERM_WIDGET_FOCUSABLE_YES, NOCTERM_WIDGET_TYPE_REAL);
+
+    nocterm_decorbox_t* my_decorbox = nocterm_decorbox_new(1,1, my_widget);
+
+    nocterm_label_t* my_label = nocterm_label_new(0,0, "HI", 3, NOCTERM_ATTRIBUTE_EMPTY);
+
+    nocterm_widget_add_subwidget(my_widget, NOCTERM_WIDGET(my_label));
+ 
+    nocterm_decorbox_border_shape_t border_shape = nocterm_decorbox_border_shape(NOCTERM_DECORBOX_BORDER_SHAPE_TYPE_UNICODE_ROUND);
+
+    nocterm_attribute_t attr = {
+        .color.ansi.fg = true,
+        .color.ansi.codes.fg = 5
+    };
+
+    nocterm_decorbox_border(my_decorbox, border_shape, NOCTERM_ATTRIBUTE_EMPTY, attr);
+    
+    nocterm_page_t* main_page = nocterm_page_new("Main page", sizeof("Main page"), NOCTERM_WIDGET(my_decorbox));
+
+    nocterm_widget_align_center_horizontal(NOCTERM_WIDGET(my_decorbox));
+    nocterm_widget_align_center_vertical(NOCTERM_WIDGET(my_decorbox));
+    nocterm_widget_align_center_horizontal(NOCTERM_WIDGET(my_label));
+    nocterm_widget_align_center_vertical(NOCTERM_WIDGET(my_label));
+
+    nocterm_page_stack_push(main_page); 
+ 
+    nocterm_init();
+    nocterm_loop(); 
+    nocterm_end();
+
+    nocterm_widget_delete(my_widget);
+    nocterm_page_delete(main_page); 
+    nocterm_decorbox_delete(my_decorbox);
+    nocterm_label_delete(my_label);
+ 
+    return 0;
+}

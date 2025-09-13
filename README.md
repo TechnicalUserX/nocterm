@@ -50,8 +50,10 @@ int main(){
 
     nocterm_page_stack_push(main_page);
 
+    nocterm_init();
     nocterm_loop();
-        
+    nocterm_end();
+
     nocterm_page_delete(main_page);
     nocterm_widget_delete(main_widget);
 

@@ -40,8 +40,18 @@
     extern "C" {
 #endif
 
+/**
+ * @brief Initializes terminal modes, signals, io, and mouse support.
+ * 
+ * @return int 
+ */
 int nocterm_init(void);
 
+/**
+ * @brief Reverts all changes made in the initialization.
+ * 
+ * @return int 
+ */
 int nocterm_end(void);
 
 /**
