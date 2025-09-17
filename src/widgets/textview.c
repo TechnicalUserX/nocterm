@@ -71,17 +71,19 @@ int nocterm_textview_set_text(nocterm_textview_t* textview, const char* text, ui
         return NOCTERM_FAILURE;
     }
 
+    pthread_mutex_lock(&NOCTERM_WIDGET(textview)->lock);
+
     nocterm_char_t new_text[text_size];
     memset(new_text, 0x0, sizeof(nocterm_char_t)*text_size);
-
     uint64_t new_text_length = nocterm_char_string_from_stream(new_text, text_size, text, text_size);
 
     if(new_text_length == 0){
+        pthread_mutex_unlock(&NOCTERM_WIDGET(textview)->lock);
         return NOCTERM_FAILURE;
     }
 
-    nocterm_textview_clear(textview);
 
+    nocterm_widget_clear(NOCTERM_WIDGET(textview));
 
     for(uint64_t i = 0; i < new_text_length && i < NOCTERM_WIDGET(textview)->buffer_size; i++){
         nocterm_widget_update(NOCTERM_WIDGET(textview), 0, i, new_text[i], textview->attribute);      
@@ -89,16 +91,26 @@ int nocterm_textview_set_text(nocterm_textview_t* textview, const char* text, ui
 
     NOCTERM_WIDGET(textview)->hard_refresh = true;
 
+    pthread_mutex_unlock(&NOCTERM_WIDGET(textview)->lock);
+
     return NOCTERM_SUCCESS;
 }
 
 int nocterm_textview_set_attribute(nocterm_textview_t* textview, nocterm_attribute_t attribute){
+
     if(textview == NULL){
         errno = EINVAL;
         return NOCTERM_FAILURE;
     }
 
+    pthread_mutex_lock(&NOCTERM_WIDGET(textview)->lock);
+
     textview->attribute = attribute;
+    for(nocterm_widget_buffer_size_t i = 0; i < NOCTERM_WIDGET(textview)->buffer_size; i++){
+        nocterm_widget_update(NOCTERM_WIDGET(textview), 0, i, NOCTERM_WIDGET(textview)->buffer[i].character, attribute);
+    }
+
+    pthread_mutex_unlock(&NOCTERM_WIDGET(textview)->lock);
 
     return NOCTERM_SUCCESS;
 }
@@ -110,11 +122,14 @@ int nocterm_textview_print_text(nocterm_textview_t* textview, nocterm_dimension_
         return NOCTERM_FAILURE;
     }
 
+    pthread_mutex_lock(&NOCTERM_WIDGET(textview)->lock);
+
     nocterm_char_t new_text[NOCTERM_WIDGET(textview)->buffer_size];
 
     uint64_t new_text_length = nocterm_char_string_from_stream(new_text, NOCTERM_WIDGET(textview)->buffer_size, text, text_size);
 
     if(new_text_length == 0){
+        pthread_mutex_unlock(&NOCTERM_WIDGET(textview)->lock);
         return NOCTERM_FAILURE;
     }
 
@@ -126,6 +141,8 @@ int nocterm_textview_print_text(nocterm_textview_t* textview, nocterm_dimension_
 
     // No hard refresh
     
+    pthread_mutex_unlock(&NOCTERM_WIDGET(textview)->lock);
+
     return NOCTERM_SUCCESS;
 }
 
@@ -135,7 +152,12 @@ int nocterm_textview_clear(nocterm_textview_t* textview){
         return NOCTERM_FAILURE;
     }
 
+    pthread_mutex_lock(&NOCTERM_WIDGET(textview)->lock);
+
     nocterm_widget_clear(NOCTERM_WIDGET(textview));
+
+    pthread_mutex_unlock(&NOCTERM_WIDGET(textview)->lock);
+
 
     return NOCTERM_SUCCESS;
 }

@@ -26,7 +26,6 @@
 #endif
 
 typedef void (*nocterm_button_onpress_handler_t)(nocterm_widget_t* self, void* user_data);
-typedef void (*nocterm_button_focus_handler_t)(nocterm_widget_t* self);
 
 typedef struct nocterm_button_t{
     nocterm_widget_t widget;
@@ -43,13 +42,11 @@ typedef struct nocterm_button_t{
  * @param col 
  * @param text 
  * @param text_size 
- * @param normal 
- * @param focused 
  * @param onpress_handler 
  * @param user_data 
  * @return nocterm_button_t* 
  */
-nocterm_button_t* nocterm_button_new(nocterm_dimension_size_t row, nocterm_dimension_size_t col, const char* text, uint64_t text_size, nocterm_attribute_t normal, nocterm_attribute_t focused, nocterm_button_onpress_handler_t onpress_handler, void* user_data);
+nocterm_button_t* nocterm_button_new(nocterm_dimension_size_t row, nocterm_dimension_size_t col, const char* text, uint64_t text_size, nocterm_button_onpress_handler_t onpress_handler, void* user_data);
 
 /**
  * @brief Constructs a button widget.
@@ -59,13 +56,11 @@ nocterm_button_t* nocterm_button_new(nocterm_dimension_size_t row, nocterm_dimen
  * @param col 
  * @param text 
  * @param text_size 
- * @param normal 
- * @param focused 
  * @param onpress_handler 
  * @param user_data 
  * @return int 
  */
-int nocterm_button_constructor(nocterm_button_t* button, nocterm_dimension_size_t row, nocterm_dimension_size_t col, const char* text, uint64_t text_size, nocterm_attribute_t normal, nocterm_attribute_t focused, nocterm_button_onpress_handler_t onpress_handler, void* user_data);
+int nocterm_button_constructor(nocterm_button_t* button, nocterm_dimension_size_t row, nocterm_dimension_size_t col, const char* text, uint64_t text_size, nocterm_button_onpress_handler_t onpress_handler, void* user_data);
 
 /**
  * @brief Destructs a button widget.
@@ -83,6 +78,16 @@ int nocterm_button_destructor(nocterm_button_t* button);
  * @return int 
  */
 int nocterm_button_delete(nocterm_button_t* button);
+
+/**
+ * @brief Sets the attributes of a button widget.
+ * 
+ * @param button 
+ * @param normal 
+ * @param focused 
+ * @return int 
+ */
+int nocterm_button_set_attribute(nocterm_button_t* button, nocterm_attribute_t normal, nocterm_attribute_t focused);
 
 NOCTERM_INTERNAL
 NOCTERM_WIDGET_KEY_HANDLER(nocterm_button_key_handler);

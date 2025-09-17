@@ -17,7 +17,7 @@ int main(){
         .color.ansi.codes.fg = 5
     };
 
-    nocterm_decorbox_border(my_decorbox, border_shape, NOCTERM_ATTRIBUTE_EMPTY, attr);
+    nocterm_decorbox_set_border(my_decorbox, border_shape, NOCTERM_ATTRIBUTE_EMPTY, attr);
 
 
     nocterm_page_stack_push(main_page); 

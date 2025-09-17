@@ -1,6 +1,6 @@
 #include <nocterm/widgets/button.h>
 
-nocterm_button_t* nocterm_button_new(nocterm_dimension_size_t row, nocterm_dimension_size_t col, const char* text, uint64_t text_size, nocterm_attribute_t normal, nocterm_attribute_t focused, nocterm_button_onpress_handler_t onpress_handler, void* user_data){
+nocterm_button_t* nocterm_button_new(nocterm_dimension_size_t row, nocterm_dimension_size_t col, const char* text, uint64_t text_size, nocterm_button_onpress_handler_t onpress_handler, void* user_data){
 
     if(text == NULL || text_size == 0){
         return NULL;
@@ -14,7 +14,7 @@ nocterm_button_t* nocterm_button_new(nocterm_dimension_size_t row, nocterm_dimen
 
     memset(new_button, 0x0, sizeof(nocterm_button_t));
 
-    if(nocterm_button_constructor(new_button, row, col, text, text_size, normal, focused, onpress_handler, user_data) == NOCTERM_FAILURE){
+    if(nocterm_button_constructor(new_button, row, col, text, text_size, onpress_handler, user_data) == NOCTERM_FAILURE){
         free(new_button);
         return NULL;
     }
@@ -22,7 +22,7 @@ nocterm_button_t* nocterm_button_new(nocterm_dimension_size_t row, nocterm_dimen
     return new_button;
 }
 
-int nocterm_button_constructor(nocterm_button_t* button, nocterm_dimension_size_t row, nocterm_dimension_size_t col, const char* text, uint64_t text_size, nocterm_attribute_t normal, nocterm_attribute_t focused, nocterm_button_onpress_handler_t onpress_handler, void* user_data){
+int nocterm_button_constructor(nocterm_button_t* button, nocterm_dimension_size_t row, nocterm_dimension_size_t col, const char* text, uint64_t text_size, nocterm_button_onpress_handler_t onpress_handler, void* user_data){
 
     if(button == NULL){
         errno = EINVAL;
@@ -46,12 +46,12 @@ int nocterm_button_constructor(nocterm_button_t* button, nocterm_dimension_size_
     nocterm_widget_add_focus_handler(NOCTERM_WIDGET(button), nocterm_button_focus_handler);
 
     for(uint64_t i = 0; i < button->widget.buffer_size; i++){
-        nocterm_widget_update(NOCTERM_WIDGET(button), 0, i, button_string[i], normal);
+        nocterm_widget_update(NOCTERM_WIDGET(button), 0, i, button_string[i], NOCTERM_ATTRIBUTE_EMPTY);
     }
 
     button->onpress_handler = onpress_handler;    
-    button->attribute_normal = normal;
-    button->attribute_focused = focused;
+    button->attribute_normal = NOCTERM_ATTRIBUTE_EMPTY;
+    button->attribute_focused = NOCTERM_ATTRIBUTE_EMPTY;
     button->user_data = user_data;
 
     return NOCTERM_SUCCESS;
@@ -73,6 +73,33 @@ int nocterm_button_delete(nocterm_button_t* button){
     }
 
     free(button);
+
+    return NOCTERM_SUCCESS;
+}
+
+int nocterm_button_set_attribute(nocterm_button_t* button, nocterm_attribute_t normal, nocterm_attribute_t focused){
+
+    if(button == NULL){
+        errno = EINVAL;
+        return NOCTERM_FAILURE;
+    }
+
+    pthread_mutex_lock(&NOCTERM_WIDGET(button)->lock);
+
+    button->attribute_normal = normal;
+    button->attribute_focused = focused;
+
+    if(nocterm_widget_is_focused(NOCTERM_WIDGET(button))){
+        for(nocterm_dimension_size_t i = 0; i < NOCTERM_WIDGET(button)->buffer_size; i++){
+            nocterm_widget_update(NOCTERM_WIDGET(button), 0, i, NOCTERM_WIDGET(button)->buffer[i].character, focused);
+        }
+    }else{
+        for(nocterm_dimension_size_t i = 0; i < NOCTERM_WIDGET(button)->buffer_size; i++){
+            nocterm_widget_update(NOCTERM_WIDGET(button), 0, i, NOCTERM_WIDGET(button)->buffer[i].character, normal);
+        }
+    }
+
+    pthread_mutex_unlock(&NOCTERM_WIDGET(button)->lock);
 
     return NOCTERM_SUCCESS;
 }

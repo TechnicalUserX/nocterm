@@ -18,7 +18,7 @@ int main(){
         .color.ansi.codes.fg = 5
     };
 
-    nocterm_decorbox_border(my_decorbox, border_shape, NOCTERM_ATTRIBUTE_EMPTY, attr);
+    nocterm_decorbox_set_border(my_decorbox, border_shape, NOCTERM_ATTRIBUTE_EMPTY, attr);
     
     nocterm_page_t* main_page = nocterm_page_new("Main page", sizeof("Main page"), NOCTERM_WIDGET(my_decorbox));
 

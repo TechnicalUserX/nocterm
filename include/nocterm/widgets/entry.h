@@ -38,10 +38,9 @@ typedef struct nocterm_entry_t{
  * @param row 
  * @param col 
  * @param width 
- * @param attribute 
  * @return nocterm_entry_t* 
  */
-nocterm_entry_t* nocterm_entry_new(nocterm_dimension_size_t row, nocterm_dimension_size_t col, nocterm_dimension_size_t width, nocterm_attribute_t attribute);
+nocterm_entry_t* nocterm_entry_new(nocterm_dimension_size_t row, nocterm_dimension_size_t col, nocterm_dimension_size_t width);
 
 /**
  * @brief Constructs an entry widget.
@@ -49,10 +48,9 @@ nocterm_entry_t* nocterm_entry_new(nocterm_dimension_size_t row, nocterm_dimensi
  * @param row 
  * @param col 
  * @param width 
- * @param attribute 
  * @return int 
  */
-int nocterm_entry_constructor(nocterm_entry_t* entry, nocterm_dimension_size_t row, nocterm_dimension_size_t col, nocterm_dimension_size_t width, nocterm_attribute_t attribute);
+int nocterm_entry_constructor(nocterm_entry_t* entry, nocterm_dimension_size_t row, nocterm_dimension_size_t col, nocterm_dimension_size_t width);
 
 /**
  * @brief Destructs an entry widget.
@@ -69,6 +67,15 @@ int nocterm_entry_destructor(nocterm_entry_t* entry);
  * @return int 
  */
 int nocterm_entry_delete(nocterm_entry_t* entry);
+
+/**
+ * @brief Sets the attribute of an entry widget.
+ * 
+ * @param entry 
+ * @param attribute 
+ * @return int 
+ */
+int nocterm_entry_set_attribute(nocterm_entry_t* entry, nocterm_attribute_t attribute);
 
 NOCTERM_INTERNAL
 int nocterm_entry_cursor_move_left(nocterm_entry_t* entry);

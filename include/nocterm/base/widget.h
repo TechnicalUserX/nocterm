@@ -49,8 +49,7 @@ typedef struct nocterm_widget_align_percent_values_t{
 typedef uint16_t nocterm_widget_align_edge_margin_t;
 
 typedef struct nocterm_widget_align_flags_t{
-    bool none:1;
-    bool left:1;
+    bool left:1; 
     bool right:1;
     bool top:1;
     bool bottom:1;
@@ -77,9 +76,12 @@ typedef struct nocterm_widget_t{
 
     struct nocterm_widget_t* parent;
     struct nocterm_widget_t* owner;
-    
+
     uint64_t subwidgets_size;
     struct nocterm_widget_t** subwidgets;
+
+    // General Widget Lock
+    pthread_mutex_t lock;
 
     // Real dimensions
     nocterm_dimension_t bounds;
@@ -91,10 +93,11 @@ typedef struct nocterm_widget_t{
     nocterm_widget_buffer_size_t buffer_size;
     nocterm_widget_cell_t* buffer; 
 
-    bool soft_refresh; // There is a change in the buffer
-    bool hard_refresh; // Complete redraw required
+    atomic_bool soft_refresh; // There is a change in the buffer
+    atomic_bool hard_refresh; // Complete redraw required
+    atomic_bool visible; // No longer drawn if false, all subwdigets also not drawn
+
     bool is_virtual;
-    bool visible; // No longer drawn if false, all subwdigets also not drawn
     bool focusable;
 
     nocterm_widget_align_t align;
@@ -113,6 +116,13 @@ typedef enum nocterm_widget_focusable_t{
     NOCTERM_WIDGET_FOCUSABLE_NO,
     NOCTERM_WIDGET_FOCUSABLE_YES
 }nocterm_widget_focusable_t;
+
+/**
+ * @brief Keeps track of the currently focused widget, globally.
+ * 
+ */
+NOCTERM_INTERNAL
+extern nocterm_widget_t* nocterm_widget_focused;
 
 /**
  * @brief Creates a new widget.
@@ -401,12 +411,13 @@ int nocterm_widget_clear(nocterm_widget_t* widget);
 int nocterm_widget_resize(nocterm_widget_t* widget, nocterm_dimension_size_t height, nocterm_dimension_size_t width, bool preserve_buffer);
 
 /**
- * @brief Make a widget give away the cell ownerships on the screen.
+ * @brief Checks whether the current widget is the focused one.
  * 
  * @param widget 
- * @return int 
+ * @return true 
+ * @return false 
  */
-int nocterm_widget_lose_screen_ownership(nocterm_widget_t* widget);
+bool nocterm_widget_is_focused(nocterm_widget_t* widget);
 
 #ifdef __cplusplus
     }

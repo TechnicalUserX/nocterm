@@ -14,7 +14,9 @@ int main(){
         .color.ansi.codes.fg = 5
     };
 
-    nocterm_button_t* my_button = nocterm_button_new(1,1,"Press me", 9, NOCTERM_ATTRIBUTE_EMPTY, button_focused, handler, NULL);
+    nocterm_button_t* my_button = nocterm_button_new(1,1,"Press me", 9, handler, NULL);
+
+    nocterm_button_set_attribute(my_button, NOCTERM_ATTRIBUTE_EMPTY, button_focused);
 
     nocterm_widget_add_subwidget(my_widget, NOCTERM_WIDGET(my_button));
 

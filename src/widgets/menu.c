@@ -85,12 +85,16 @@ int nocterm_menu_add_item(nocterm_menu_t* menu, nocterm_menu_item_t item){
         return NOCTERM_FAILURE;
     }
 
+    pthread_mutex_lock(&NOCTERM_WIDGET(menu)->lock);
+
     if(menu->item_array->size == menu->widget.bounds.height){
         errno = ENOMEM;
+        pthread_mutex_unlock(&NOCTERM_WIDGET(menu)->lock);
         return NOCTERM_FAILURE;
     }
 
     if(nocterm_menu_item_array_push_back(menu->item_array, item) == NOCTERM_FAILURE){
+        pthread_mutex_unlock(&NOCTERM_WIDGET(menu)->lock);
         return NOCTERM_FAILURE;
     }
 
@@ -103,6 +107,8 @@ int nocterm_menu_add_item(nocterm_menu_t* menu, nocterm_menu_item_t item){
         }
 
     }
+
+    pthread_mutex_unlock(&NOCTERM_WIDGET(menu)->lock);
 
     return NOCTERM_SUCCESS;
 }
@@ -161,7 +167,10 @@ int nocterm_menu_clear(nocterm_menu_t* menu){
         return NOCTERM_FAILURE;
     }
 
+    pthread_mutex_lock(&NOCTERM_WIDGET(menu)->lock);
+
     if(nocterm_menu_item_array_clear(menu->item_array) == NOCTERM_FAILURE){
+        pthread_mutex_unlock(&NOCTERM_WIDGET(menu)->lock);
         return NOCTERM_FAILURE;
     }
 
@@ -169,10 +178,19 @@ int nocterm_menu_clear(nocterm_menu_t* menu){
 
     NOCTERM_WIDGET(menu)->hard_refresh = true;
 
+    pthread_mutex_unlock(&NOCTERM_WIDGET(menu)->lock);
+
     return NOCTERM_SUCCESS;
 }
 
 int nocterm_menu_get_selection(nocterm_menu_t* menu, uint64_t* selection){
+
+    if(menu == NULL || selection == NULL){
+        errno = EINVAL;
+        return NOCTERM_FAILURE;
+    }
+
+    *selection = menu->current_item;
 
     return NOCTERM_SUCCESS;
 }
@@ -180,12 +198,15 @@ int nocterm_menu_get_selection(nocterm_menu_t* menu, uint64_t* selection){
 int nocterm_menu_selection_move_up(nocterm_menu_t* menu){
 
     if(menu == NULL){
-        return EINVAL;
+        errno = EINVAL;
         return NOCTERM_FAILURE;
     }
 
+    pthread_mutex_lock(&NOCTERM_WIDGET(menu)->lock);
+
     if(menu->selection_position == 0 && menu->current_item == 0){
         // We are at the topmost possible with the selection
+        pthread_mutex_unlock(&NOCTERM_WIDGET(menu)->lock);
         return NOCTERM_SUCCESS;
     }
 
@@ -220,14 +241,19 @@ int nocterm_menu_selection_move_up(nocterm_menu_t* menu){
 
     }
     
+    pthread_mutex_unlock(&NOCTERM_WIDGET(menu)->lock);
+
     return NOCTERM_SUCCESS;
 }
 
 int nocterm_menu_selection_move_down(nocterm_menu_t* menu){
+
     if(menu == NULL){
-        return EINVAL;
+        errno = EINVAL;
         return NOCTERM_FAILURE;
     }
+
+    pthread_mutex_lock(&NOCTERM_WIDGET(menu)->lock);
 
     if(menu->current_item < menu->item_array->size - 1){
         // At least 1 character to go down
@@ -248,14 +274,19 @@ int nocterm_menu_selection_move_down(nocterm_menu_t* menu){
         menu->current_item++;
     }
 
+    pthread_mutex_unlock(&NOCTERM_WIDGET(menu)->lock);
+
     return NOCTERM_SUCCESS;
 }
 
 int nocterm_menu_selection_move_top(nocterm_menu_t* menu){
+    
     if(menu == NULL){
         errno = EINVAL;
         return NOCTERM_FAILURE;
     }
+
+    pthread_mutex_lock(&NOCTERM_WIDGET(menu)->lock);
 
     for(uint64_t i = 0; i < menu->item_array->items[menu->current_item].content_length && i < NOCTERM_WIDGET(menu)->bounds.width; i++){
         nocterm_widget_update(NOCTERM_WIDGET(menu), menu->current_item, i, menu->item_array->items[menu->current_item].content[i].character , menu->item_array->items[menu->current_item].content[i].attribute);
@@ -269,14 +300,19 @@ int nocterm_menu_selection_move_top(nocterm_menu_t* menu){
 
     nocterm_widget_viewport(NOCTERM_WIDGET(menu), (nocterm_dimension_t){0,0, NOCTERM_WIDGET(menu)->viewport.height, NOCTERM_WIDGET(menu)->viewport.width});
 
+    pthread_mutex_unlock(&NOCTERM_WIDGET(menu)->lock);
+
     return NOCTERM_SUCCESS;
 }
 
 int nocterm_menu_selection_move_bottom(nocterm_menu_t* menu){
+    
     if(menu == NULL){
         errno = EINVAL;
         return NOCTERM_FAILURE;
     }
+
+    pthread_mutex_lock(&NOCTERM_WIDGET(menu)->lock);
 
     for(uint64_t i = 0; i < menu->item_array->items[menu->current_item].content_length && i < NOCTERM_WIDGET(menu)->bounds.width; i++){
         nocterm_widget_update(NOCTERM_WIDGET(menu), menu->current_item, i, menu->item_array->items[menu->current_item].content[i].character , menu->item_array->items[menu->current_item].content[i].attribute);
@@ -298,6 +334,7 @@ int nocterm_menu_selection_move_bottom(nocterm_menu_t* menu){
         menu->selection_position = menu->item_array->size-1;
     }
 
+    pthread_mutex_unlock(&NOCTERM_WIDGET(menu)->lock);
 
     return NOCTERM_SUCCESS;
 }

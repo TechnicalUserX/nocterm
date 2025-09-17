@@ -92,6 +92,9 @@ int nocterm_mouse_controller(nocterm_key_t* key){
     nocterm_widget_t* current_mouse_widget = NOCTERM_WIDGET(current_mouse_event_owner.owner);
     
     if(current_mouse_widget == NULL){
+        previous_mouse_widget = NULL;
+        previous_mouse_event = (nocterm_mouse_event_t){0};
+        mouse_progress_state = 0;
         return NOCTERM_SUCCESS;
     }
 
@@ -140,8 +143,11 @@ int nocterm_mouse_controller(nocterm_key_t* key){
     // Multi shot event
     if(mouse_progress_state == 0){
         if(current_mouse_event.button == NOCTERM_MOUSE_BUTTON_RELEASE){
+            previous_mouse_widget = NULL;
+            previous_mouse_event = (nocterm_mouse_event_t){0};            
             return NOCTERM_FAILURE;
         }
+
         previous_mouse_widget = current_mouse_widget;
         previous_mouse_event = current_mouse_event;
         mouse_progress_state++;
@@ -149,6 +155,7 @@ int nocterm_mouse_controller(nocterm_key_t* key){
     }else{
         if(current_mouse_event.button != NOCTERM_MOUSE_BUTTON_RELEASE){
             previous_mouse_widget = current_mouse_widget;
+            previous_mouse_event = current_mouse_event;
             return NOCTERM_SUCCESS;
         }
 
@@ -160,8 +167,7 @@ int nocterm_mouse_controller(nocterm_key_t* key){
                 // Simple click
 
                 // FOCUS_ENTER & FOCUS_LEAVE
-                if(current_page->focused_widget != current_mouse_widget->owner){
-                    
+                if(current_page->focused_widget->owner != current_mouse_widget->owner){
                     if(current_page->focused_widget && current_page->focused_widget->focus_handler){
                         current_page->focused_widget->focus_handler(current_page->focused_widget, NOCTERM_WIDGET_FOCUS_LEAVE);
                     }
@@ -176,11 +182,14 @@ int nocterm_mouse_controller(nocterm_key_t* key){
 
                     if(current_page->focused_widget == current_mouse_widget->owner || previous_mouse_event.modifier.ctrl){
                         
-                        memcpy(crafted_key.buffer, "\n", 1);
-                        crafted_key.buffer_length = 1;
-                        crafted_key.type = NOCTERM_KEY_TYPE_CONTROL;  
+                        if(current_mouse_widget->owner->key_handler){
+                            memcpy(crafted_key.buffer, "\n", 1);
+                            crafted_key.buffer_length = 1;
+                            crafted_key.type = NOCTERM_KEY_TYPE_CONTROL;  
+    
+                            current_mouse_widget->owner->key_handler(current_mouse_widget->owner, &crafted_key);
+                        }
 
-                        current_mouse_widget->owner->key_handler(current_mouse_widget->owner, &crafted_key);
                     }
 
                 }else if(previous_mouse_event.button == NOCTERM_MOUSE_BUTTON_MMB){
@@ -198,6 +207,8 @@ int nocterm_mouse_controller(nocterm_key_t* key){
 
                 if(current_mouse_widget->owner->focusable){
                     current_page->focused_widget = current_mouse_widget->owner;
+                }else{
+                    current_page->focused_widget = NULL;
                 }
 
             }else{
@@ -207,7 +218,7 @@ int nocterm_mouse_controller(nocterm_key_t* key){
                 // If the widget that the drag operation is performed on is not already focused,
                 // discard the operation
 
-                if(current_page->focused_widget == current_mouse_widget->owner){
+                if(current_page->focused_widget->owner == current_mouse_widget->owner){
 
                     nocterm_dimension_size_t vertical_magnitude = 0;
                     nocterm_dimension_size_t horizontal_magnitude = 0;
@@ -271,7 +282,7 @@ int nocterm_mouse_controller(nocterm_key_t* key){
         }else{
             // Operation discarded
             mouse_progress_state = 0;
-            return NOCTERM_FAILURE;
+            return NOCTERM_SUCCESS;
         }
         
     }

@@ -1,6 +1,6 @@
 #include <nocterm/widgets/entry.h>
 
-nocterm_entry_t* nocterm_entry_new(nocterm_dimension_size_t row, nocterm_dimension_size_t col, nocterm_dimension_size_t width, nocterm_attribute_t attribute){
+nocterm_entry_t* nocterm_entry_new(nocterm_dimension_size_t row, nocterm_dimension_size_t col, nocterm_dimension_size_t width){
 
     nocterm_entry_t* new_entry = (nocterm_entry_t*)malloc(sizeof(nocterm_entry_t));
 
@@ -10,7 +10,7 @@ nocterm_entry_t* nocterm_entry_new(nocterm_dimension_size_t row, nocterm_dimensi
     
     memset(new_entry, 0x0, sizeof(nocterm_entry_t));
 
-    if(nocterm_entry_constructor(new_entry, row, col, width, attribute) == NOCTERM_FAILURE){
+    if(nocterm_entry_constructor(new_entry, row, col, width) == NOCTERM_FAILURE){
         free(new_entry);
         return NULL;
     }
@@ -18,7 +18,7 @@ nocterm_entry_t* nocterm_entry_new(nocterm_dimension_size_t row, nocterm_dimensi
     return new_entry;
 }
 
-int nocterm_entry_constructor(nocterm_entry_t* entry, nocterm_dimension_size_t row, nocterm_dimension_size_t col, nocterm_dimension_size_t width, nocterm_attribute_t attribute){
+int nocterm_entry_constructor(nocterm_entry_t* entry, nocterm_dimension_size_t row, nocterm_dimension_size_t col, nocterm_dimension_size_t width){
 
     if(entry == NULL){
         errno = EINVAL;
@@ -30,28 +30,29 @@ int nocterm_entry_constructor(nocterm_entry_t* entry, nocterm_dimension_size_t r
         return NOCTERM_FAILURE;
     }
 
-    entry->normal_attribute = attribute;
+    entry->normal_attribute = NOCTERM_ATTRIBUTE_EMPTY;
     entry->buffer_position = 0;
     entry->cursor_position = 0;
     entry->current_length = 0;
     
     entry->cursor_attribute = entry->normal_attribute;
+    entry->cursor_attribute.inverse = true;
 
-    entry->cursor_attribute.color.ansi.bg = entry->normal_attribute.color.ansi.fg;
-    entry->cursor_attribute.color.ansi.fg = entry->normal_attribute.color.ansi.bg;
-    entry->cursor_attribute.color.ansi.codes.fg = entry->normal_attribute.color.ansi.codes.bg;
-    entry->cursor_attribute.color.ansi.codes.bg = entry->normal_attribute.color.ansi.codes.fg;
+    // entry->cursor_attribute.color.ansi.bg = entry->normal_attribute.color.ansi.fg;
+    // entry->cursor_attribute.color.ansi.fg = entry->normal_attribute.color.ansi.bg;
+    // entry->cursor_attribute.color.ansi.codes.fg = entry->normal_attribute.color.ansi.codes.bg;
+    // entry->cursor_attribute.color.ansi.codes.bg = entry->normal_attribute.color.ansi.codes.fg;
 
-    entry->cursor_attribute.color.c256.bg = entry->normal_attribute.color.c256.fg;
-    entry->cursor_attribute.color.c256.fg = entry->normal_attribute.color.c256.bg;  
-    entry->cursor_attribute.color.c256.codes.fg = entry->normal_attribute.color.c256.codes.bg;
-    entry->cursor_attribute.color.c256.codes.bg = entry->normal_attribute.color.c256.codes.fg;
+    // entry->cursor_attribute.color.c256.bg = entry->normal_attribute.color.c256.fg;
+    // entry->cursor_attribute.color.c256.fg = entry->normal_attribute.color.c256.bg;  
+    // entry->cursor_attribute.color.c256.codes.fg = entry->normal_attribute.color.c256.codes.bg;
+    // entry->cursor_attribute.color.c256.codes.bg = entry->normal_attribute.color.c256.codes.fg;
 
 
-    entry->cursor_attribute.color.rgb.bg = entry->normal_attribute.color.rgb.fg;
-    entry->cursor_attribute.color.rgb.fg = entry->normal_attribute.color.rgb.bg;
-    entry->cursor_attribute.color.rgb.codes.fg = entry->normal_attribute.color.rgb.codes.bg;
-    entry->cursor_attribute.color.rgb.codes.bg = entry->normal_attribute.color.rgb.codes.fg;
+    // entry->cursor_attribute.color.rgb.bg = entry->normal_attribute.color.rgb.fg;
+    // entry->cursor_attribute.color.rgb.fg = entry->normal_attribute.color.rgb.bg;
+    // entry->cursor_attribute.color.rgb.codes.fg = entry->normal_attribute.color.rgb.codes.bg;
+    // entry->cursor_attribute.color.rgb.codes.bg = entry->normal_attribute.color.rgb.codes.fg;
 
     if(nocterm_widget_add_key_handler(NOCTERM_WIDGET(entry), nocterm_entry_key_handler) == NOCTERM_FAILURE){
         return NOCTERM_FAILURE;
@@ -112,7 +113,6 @@ int nocterm_entry_cursor_move_left(nocterm_entry_t* entry){
     // If cursor position is greater than 0, then it is guaranteed that we can move left
     // And also buffer position is guaranteed to be greater than zero, so...
     if(entry->cursor_position > 0){
-        
         nocterm_widget_update(NOCTERM_WIDGET(entry), 0, entry->buffer_position, NOCTERM_WIDGET(entry)->buffer[entry->buffer_position].character, entry->normal_attribute);
         nocterm_widget_update(NOCTERM_WIDGET(entry), 0, entry->buffer_position - 1, NOCTERM_WIDGET(entry)->buffer[entry->buffer_position - 1].character, entry->cursor_attribute);
         entry->buffer_position--;
@@ -146,14 +146,14 @@ int nocterm_entry_cursor_move_right(nocterm_entry_t* entry){
         nocterm_widget_update(NOCTERM_WIDGET(entry), 0, entry->buffer_position, NOCTERM_WIDGET(entry)->buffer[entry->buffer_position].character, entry->normal_attribute);
 
         // Let's check if we are pointing to the last input character, if so, we need to add a space character at the end
-        if(entry->buffer_position == entry->current_length-1){
+        if(entry->buffer_position + 1 == entry->current_length){
             nocterm_widget_update(NOCTERM_WIDGET(entry), 0, entry->buffer_position+1, NOCTERM_ENTRY_CURSOR_CHAR, entry->cursor_attribute);        
         }else{
             // Otherwise, just make the current character the cursor attribute
             nocterm_widget_update(NOCTERM_WIDGET(entry), 0, entry->buffer_position+1, NOCTERM_WIDGET(entry)->buffer[entry->buffer_position+1].character, entry->cursor_attribute);        
         }
-        
         entry->buffer_position++;
+
 
         // Now we need to check whether we should move the viewport to right, if the cursor was previously at the very end, then we had to modify viewport
         if(entry->cursor_position == NOCTERM_WIDGET(entry)->viewport.width-1){
@@ -170,6 +170,7 @@ int nocterm_entry_cursor_move_right(nocterm_entry_t* entry){
 }
 
 int nocterm_entry_cursor_insert(nocterm_entry_t* entry, nocterm_char_t input){
+    
     if(entry == NULL){
         errno = EINVAL;
         return NOCTERM_FAILURE;
@@ -186,7 +187,8 @@ int nocterm_entry_cursor_insert(nocterm_entry_t* entry, nocterm_char_t input){
                 nocterm_widget_update(NOCTERM_WIDGET(entry), 0, entry->buffer_position + i, NOCTERM_WIDGET(entry)->buffer[entry->buffer_position + i - 1].character, entry->normal_attribute);
             }
         }
-        
+        // 0 1 2 3 4 5
+        // a b c d e 
         nocterm_widget_update(NOCTERM_WIDGET(entry), 0, entry->buffer_position, input, entry->normal_attribute);
         entry->current_length++;
 
@@ -202,6 +204,7 @@ int nocterm_entry_cursor_erase_right(nocterm_entry_t* entry){
         errno = EINVAL;
         return NOCTERM_FAILURE;
     }
+
 
     // We are empty
     if(entry->current_length == 0){
@@ -235,10 +238,12 @@ int nocterm_entry_cursor_erase_right(nocterm_entry_t* entry){
 }
 
 int nocterm_entry_cursor_erase_left(nocterm_entry_t* entry){
+    
     if(entry == NULL){
         errno = EINVAL;
         return NOCTERM_FAILURE;
     }
+
 
     // We are empty
     if(entry->current_length == 0){
@@ -290,6 +295,107 @@ int nocterm_entry_cursor_erase_left(nocterm_entry_t* entry){
     return NOCTERM_SUCCESS;
 }
 
+int nocterm_entry_set_attribute(nocterm_entry_t* entry, nocterm_attribute_t attribute){
+
+    if(entry == NULL){
+        errno = EINVAL;
+        return NOCTERM_FAILURE;
+    }
+    
+    pthread_mutex_lock(&NOCTERM_WIDGET(entry)->lock);
+
+    entry->normal_attribute = attribute;
+    entry->cursor_attribute = attribute;
+    entry->cursor_attribute.inverse = true;
+
+    for(nocterm_dimension_size_t i = 0; i < entry->current_length; i++){
+        nocterm_widget_update(NOCTERM_WIDGET(entry), 0,i, NOCTERM_WIDGET(entry)->buffer[i].character, entry->normal_attribute);    
+    }
+
+    if(nocterm_widget_is_focused(NOCTERM_WIDGET(entry))){        
+        nocterm_widget_update(NOCTERM_WIDGET(entry), 0, entry->buffer_position,  NOCTERM_WIDGET(entry)->buffer[entry->buffer_position].character, entry->cursor_attribute);    
+    }
+
+    pthread_mutex_unlock(&NOCTERM_WIDGET(entry)->lock);
+
+    return NOCTERM_SUCCESS;
+}
+
+int nocterm_entry_get_text(nocterm_entry_t* entry, char* buffer, uint64_t buffer_size, uint64_t* entry_length){
+
+    if(entry == NULL){
+        errno = EINVAL;
+        return NOCTERM_FAILURE;
+    }
+
+    pthread_mutex_lock(&NOCTERM_WIDGET(entry)->lock);
+
+    if(entry->current_length == 0){
+        *entry_length = 0;
+        pthread_mutex_unlock(&NOCTERM_WIDGET(entry)->lock);
+        return NOCTERM_SUCCESS;
+    }
+
+    nocterm_char_t entry_string[NOCTERM_ENTRY_BUFFER_MAX_SIZE] = {0};
+    for(uint64_t i = 0; i < entry->current_length; i++){
+        entry_string[i] = NOCTERM_WIDGET(entry)->buffer[i].character;
+    }
+
+    uint64_t length = nocterm_char_string_to_stream(buffer, buffer_size, entry_string, NOCTERM_ENTRY_BUFFER_MAX_SIZE);
+    if(length == 0){
+        pthread_mutex_unlock(&NOCTERM_WIDGET(entry)->lock);
+        return NOCTERM_FAILURE;
+    }
+    if(entry_length){
+        *entry_length = length;
+    }
+
+    pthread_mutex_unlock(&NOCTERM_WIDGET(entry)->lock);
+
+    return NOCTERM_SUCCESS;
+}
+
+int nocterm_entry_set_text(nocterm_entry_t* entry, char* buffer, uint64_t buffer_size){
+
+    if(entry == NULL){
+        errno = EINVAL;
+        return NOCTERM_FAILURE;
+    }
+
+    nocterm_char_t new_entry_text[NOCTERM_ENTRY_BUFFER_MAX_SIZE] = {0};
+
+    uint64_t new_entry_text_length = nocterm_char_string_from_stream(new_entry_text, NOCTERM_ENTRY_BUFFER_MAX_SIZE, buffer, buffer_size);
+
+    if(new_entry_text_length == 0){
+        return NOCTERM_FAILURE;
+    }
+
+    pthread_mutex_lock(&NOCTERM_WIDGET(entry)->lock);
+
+    nocterm_widget_clear(NOCTERM_WIDGET(entry));
+
+    for(uint64_t i = 0; i < new_entry_text_length; i++){
+        nocterm_widget_update(NOCTERM_WIDGET(entry), 0, i, new_entry_text[i], entry->normal_attribute);
+    }
+
+    nocterm_widget_update(NOCTERM_WIDGET(entry), 0, new_entry_text_length, NOCTERM_ENTRY_CURSOR_CHAR, entry->normal_attribute);
+
+    entry->buffer_position = new_entry_text_length;
+    entry->current_length = new_entry_text_length;
+
+    if(new_entry_text_length <= NOCTERM_WIDGET(entry)->viewport.width - 1){
+        entry->cursor_position = new_entry_text_length;
+        nocterm_widget_viewport(NOCTERM_WIDGET(entry), (nocterm_dimension_t){0, 0, NOCTERM_WIDGET(entry)->viewport.height, NOCTERM_WIDGET(entry)->viewport.width});
+    }else{
+        entry->cursor_position = NOCTERM_WIDGET(entry)->viewport.width - 1;
+        nocterm_widget_viewport(NOCTERM_WIDGET(entry), (nocterm_dimension_t){0, new_entry_text_length - NOCTERM_WIDGET(entry)->viewport.width + 1, NOCTERM_WIDGET(entry)->viewport.height , NOCTERM_WIDGET(entry)->viewport.width});
+    }
+    
+    pthread_mutex_unlock(&NOCTERM_WIDGET(entry)->lock);
+
+    return NOCTERM_SUCCESS;
+}
+
 NOCTERM_WIDGET_KEY_HANDLER(nocterm_entry_key_handler){
 
     switch(nocterm_key_translate(key)){
@@ -334,70 +440,4 @@ NOCTERM_WIDGET_FOCUS_HANDLER(nocterm_entry_focus_handler){
             nocterm_widget_update(self, 0, NOCTERM_ENTRY(self)->buffer_position, self->buffer[NOCTERM_ENTRY(self)->buffer_position].character, NOCTERM_ENTRY(self)->normal_attribute);
         }break;
     }
-}
-
-int nocterm_entry_get_text(nocterm_entry_t* entry, char* buffer, uint64_t buffer_size, uint64_t* entry_length){
-
-    if(entry == NULL){
-        errno = EINVAL;
-        return NOCTERM_FAILURE;
-    }
-
-    if(entry->current_length == 0){
-        *entry_length = 0;
-        return NOCTERM_SUCCESS;
-    }
-
-    nocterm_char_t entry_string[NOCTERM_ENTRY_BUFFER_MAX_SIZE] = {0};
-    for(uint64_t i = 0; i < entry->current_length; i++){
-        entry_string[i] = NOCTERM_WIDGET(entry)->buffer[i].character;
-    }
-
-    uint64_t length = nocterm_char_string_to_stream(buffer, buffer_size, entry_string, NOCTERM_ENTRY_BUFFER_MAX_SIZE);
-    if(length == 0){
-        return NOCTERM_FAILURE;
-    }
-    if(entry_length){
-        *entry_length = length;
-    }
-    return NOCTERM_SUCCESS;
-}
-
-int nocterm_entry_set_text(nocterm_entry_t* entry, char* buffer, uint64_t buffer_size){
-
-    if(entry == NULL){
-        errno = EINVAL;
-        return NOCTERM_FAILURE;
-    }
-
-    nocterm_char_t new_entry_text[NOCTERM_ENTRY_BUFFER_MAX_SIZE] = {0};
-
-    uint64_t new_entry_text_length = nocterm_char_string_from_stream(new_entry_text, NOCTERM_ENTRY_BUFFER_MAX_SIZE, buffer, buffer_size);
-
-    if(new_entry_text_length == 0){
-        return NOCTERM_FAILURE;
-    }
-
-    nocterm_widget_clear(NOCTERM_WIDGET(entry));
-
-
-    for(uint64_t i = 0; i < new_entry_text_length; i++){
-        nocterm_widget_update(NOCTERM_WIDGET(entry), 0, i, new_entry_text[i], entry->normal_attribute);
-    }
-
-    nocterm_widget_update(NOCTERM_WIDGET(entry), 0, new_entry_text_length, NOCTERM_ENTRY_CURSOR_CHAR, entry->normal_attribute);
-
-    entry->buffer_position = new_entry_text_length;
-    entry->current_length = new_entry_text_length;
-
-    if(new_entry_text_length <= NOCTERM_WIDGET(entry)->viewport.width - 1){
-        entry->cursor_position = new_entry_text_length;
-        nocterm_widget_viewport(NOCTERM_WIDGET(entry), (nocterm_dimension_t){0, 0, NOCTERM_WIDGET(entry)->viewport.height, NOCTERM_WIDGET(entry)->viewport.width});
-    }else{
-        entry->cursor_position = NOCTERM_WIDGET(entry)->viewport.width - 1;
-        nocterm_widget_viewport(NOCTERM_WIDGET(entry), (nocterm_dimension_t){0, new_entry_text_length - NOCTERM_WIDGET(entry)->viewport.width + 1, NOCTERM_WIDGET(entry)->viewport.height , NOCTERM_WIDGET(entry)->viewport.width});
-
-    }
-    
-    return NOCTERM_SUCCESS;
 }

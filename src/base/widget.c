@@ -1,5 +1,7 @@
 #include <nocterm/base/widget.h>
 
+nocterm_widget_t* nocterm_widget_focused = NULL;
+
 nocterm_widget_t* nocterm_widget_new(nocterm_dimension_t bounds, nocterm_widget_focusable_t focusable, nocterm_widget_type_t type){
 
     nocterm_widget_t* new_widget = (nocterm_widget_t*)malloc(sizeof(nocterm_widget_t));
@@ -24,6 +26,10 @@ int nocterm_widget_constructor(nocterm_widget_t* widget, nocterm_dimension_t bou
 
     if(widget == NULL){
         errno = EINVAL;
+        return NOCTERM_FAILURE;
+    }
+
+    if(pthread_mutex_init(&(widget->lock), NULL) != 0){
         return NOCTERM_FAILURE;
     }
 
@@ -81,6 +87,38 @@ int nocterm_widget_constructor(nocterm_widget_t* widget, nocterm_dimension_t bou
     return NOCTERM_SUCCESS;
 }
 
+int nocterm_widget_destructor(nocterm_widget_t* widget){
+    // Do not call this function directly, instead call nocterm_widget_delete
+
+    if(widget == NULL){
+        return NOCTERM_SUCCESS;
+    }
+
+    if(pthread_mutex_destroy(&(widget->lock)) != 0){
+        return NOCTERM_FAILURE;
+    }
+
+    free(widget->buffer);
+    free(widget->subwidgets);
+
+    return NOCTERM_SUCCESS;
+}
+
+int nocterm_widget_delete(nocterm_widget_t* widget){
+    
+    if(widget == NULL){
+        return NOCTERM_SUCCESS;
+    }
+
+    if(nocterm_widget_destructor(widget) == NOCTERM_FAILURE){
+        return NOCTERM_FAILURE;
+    }
+
+    free(widget);
+
+    return NOCTERM_SUCCESS;
+}
+
 int nocterm_widget_viewport(nocterm_widget_t* widget, nocterm_dimension_t viewport){
 
     if(widget == NULL){
@@ -106,9 +144,10 @@ int nocterm_widget_viewport(nocterm_widget_t* widget, nocterm_dimension_t viewpo
         widget->viewport.row = viewport.row;
     }
 
-    if(viewport.col + widget->viewport.width > widget->bounds.width - 1){ // Exceed index range
+    if(viewport.col + widget->viewport.width >= widget->bounds.width){ // Exceed index range
         widget->viewport.col = widget->bounds.width - widget->viewport.width;
     }else{
+
         widget->viewport.col = viewport.col;
     }    
 
@@ -145,6 +184,10 @@ int nocterm_widget_viewport_right(nocterm_widget_t* widget){
     if(widget == NULL){
         errno = EINVAL;
         return NOCTERM_FAILURE;
+    }
+    
+    if(widget->viewport.col + widget->viewport.width >= widget->bounds.width){
+        return NOCTERM_SUCCESS;
     }
 
     return nocterm_widget_viewport(widget, (nocterm_dimension_t){widget->viewport.row, widget->viewport.col + 1, widget->viewport.height, widget->viewport.width});
@@ -184,6 +227,7 @@ int nocterm_widget_get_position(nocterm_widget_t* widget, nocterm_dimension_size
         *row = parent_row + widget->bounds.row;
         *col = parent_col + widget->bounds.col;
     }
+
     return NOCTERM_SUCCESS;
 }
 
@@ -195,15 +239,24 @@ int nocterm_widget_set_position(nocterm_widget_t* widget, nocterm_dimension_size
         return NOCTERM_FAILURE;
     }
 
-    
+    pthread_mutex_lock(&widget->lock);
+
     if(widget->bounds.row != row || widget->bounds.col != col){
         widget->bounds.row = row;
         widget->bounds.col = col;
+
         widget->align.flags.percent_horizontal = false;
+        widget->align.flags.left = false;
+        widget->align.flags.right = false;
+
         widget->align.flags.percent_vertical = false;
-        nocterm_screen_ownership_reset();
+        widget->align.flags.top = false;
+        widget->align.flags.bottom = false;
+
         nocterm_widget_enforce_root_refresh(widget);        
     }
+
+    pthread_mutex_lock(&widget->lock);
 
     return NOCTERM_SUCCESS;
 }
@@ -216,12 +269,19 @@ int nocterm_widget_set_position_row(nocterm_widget_t* widget, nocterm_dimension_
         return NOCTERM_FAILURE;
     }
 
+    pthread_mutex_lock(&widget->lock);
+
     if(widget->bounds.row != row){
+
         widget->bounds.row = row;
         widget->align.flags.percent_vertical = false;
-        nocterm_screen_ownership_reset();
+        widget->align.flags.top = false;
+        widget->align.flags.bottom = false;
+        
         nocterm_widget_enforce_root_refresh(widget);
     }
+
+    pthread_mutex_unlock(&widget->lock);
 
     return NOCTERM_SUCCESS;
 }
@@ -234,12 +294,20 @@ int nocterm_widget_set_position_col(nocterm_widget_t* widget, nocterm_dimension_
         return NOCTERM_FAILURE;
     }
 
+    pthread_mutex_lock(&widget->lock);
+
     if(widget->bounds.col != col){
         widget->bounds.col = col;
+
         widget->align.flags.percent_horizontal = false;
+        widget->align.flags.left = false;
+        widget->align.flags.right = false;
+
         nocterm_screen_ownership_reset();
         nocterm_widget_enforce_root_refresh(widget);
     }
+
+    pthread_mutex_unlock(&widget->lock);
 
     return NOCTERM_SUCCESS;
 }
@@ -271,15 +339,19 @@ int nocterm_widget_align_left(nocterm_widget_t* widget, nocterm_widget_align_edg
         return NOCTERM_FAILURE;
     }
 
+    pthread_mutex_lock(&widget->lock);
+
     if(widget->parent == NULL){
         // There is no parent, so we have to look for the actual terminal
 
         struct winsize w = {0};
         if(ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) == -1){
+            pthread_mutex_unlock(&widget->lock);
             return NOCTERM_FAILURE;
         }
 
         if(w.ws_col == 0){
+            pthread_mutex_unlock(&widget->lock);
             return NOCTERM_SUCCESS;
         }
 
@@ -309,9 +381,11 @@ int nocterm_widget_align_left(nocterm_widget_t* widget, nocterm_widget_align_edg
 
     widget->align.flags.left = true;
     widget->align.flags.right = false;
-
+    widget->align.flags.percent_horizontal = false;
 
     widget->align.edge_margin = margin;
+
+    pthread_mutex_unlock(&widget->lock);
 
     return NOCTERM_SUCCESS;
 }
@@ -323,15 +397,19 @@ int nocterm_widget_align_right(nocterm_widget_t* widget, nocterm_widget_align_ed
         return NOCTERM_FAILURE;
     }
 
+    pthread_mutex_lock(&widget->lock);
+
     if(widget->parent == NULL){
         // There is no parent, so we have to look for the actual terminal
 
         struct winsize w = {0};
         if(ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) == -1){
+            pthread_mutex_unlock(&widget->lock);
             return NOCTERM_FAILURE;
         }
 
         if(w.ws_col == 0){
+            pthread_mutex_unlock(&widget->lock);
             return NOCTERM_SUCCESS;
         }
 
@@ -361,8 +439,12 @@ int nocterm_widget_align_right(nocterm_widget_t* widget, nocterm_widget_align_ed
 
     widget->align.flags.left = false;
     widget->align.flags.right = true;
+    widget->align.flags.percent_horizontal = false;
+
 
     widget->align.edge_margin = margin;
+
+    pthread_mutex_unlock(&widget->lock);
 
     return NOCTERM_SUCCESS;
 }
@@ -374,15 +456,19 @@ int nocterm_widget_align_top(nocterm_widget_t* widget, nocterm_widget_align_edge
         return NOCTERM_FAILURE;
     }
 
+    pthread_mutex_lock(&widget->lock);
+
     if(widget->parent == NULL){
         // There is no parent, so we have to look for the actual terminal
 
         struct winsize w = {0};
         if(ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) == -1){
+            pthread_mutex_unlock(&widget->lock);
             return NOCTERM_FAILURE;
         }
 
         if(w.ws_row == 0){
+            pthread_mutex_unlock(&widget->lock);
             return NOCTERM_SUCCESS;
         }
 
@@ -412,8 +498,11 @@ int nocterm_widget_align_top(nocterm_widget_t* widget, nocterm_widget_align_edge
 
     widget->align.flags.top = true;
     widget->align.flags.bottom = false;
-
     widget->align.edge_margin = margin;
+    widget->align.flags.percent_vertical = false;
+
+
+    pthread_mutex_unlock(&widget->lock);
 
     return NOCTERM_SUCCESS;
 }
@@ -425,15 +514,19 @@ int nocterm_widget_align_bottom(nocterm_widget_t* widget, nocterm_widget_align_e
         return NOCTERM_FAILURE;
     }
 
+    pthread_mutex_lock(&widget->lock);
+
     if(widget->parent == NULL){
         // There is no parent, so we have to look for the actual terminal
 
         struct winsize w = {0};
         if(ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) == -1){
+            pthread_mutex_unlock(&widget->lock);
             return NOCTERM_FAILURE;
         }
 
         if(w.ws_row == 0){
+            pthread_mutex_unlock(&widget->lock);
             return NOCTERM_SUCCESS;
         }
 
@@ -463,8 +556,10 @@ int nocterm_widget_align_bottom(nocterm_widget_t* widget, nocterm_widget_align_e
 
     widget->align.flags.top = false;
     widget->align.flags.bottom = true;
-
     widget->align.edge_margin = margin;
+    widget->align.flags.percent_vertical = false;
+
+    pthread_mutex_unlock(&widget->lock);
 
     return NOCTERM_SUCCESS;
 }
@@ -476,6 +571,7 @@ int nocterm_widget_align_percent_horizontal(nocterm_widget_t* widget, uint8_t pe
         return NOCTERM_FAILURE;
     }
 
+    pthread_mutex_lock(&widget->lock);
 
     nocterm_dimension_size_t control_width = 0;
 
@@ -515,6 +611,8 @@ int nocterm_widget_align_percent_horizontal(nocterm_widget_t* widget, uint8_t pe
     widget->align.flags.left = false;
     widget->align.flags.right = false;
 
+    pthread_mutex_unlock(&widget->lock);
+
     return NOCTERM_SUCCESS;
 }
 
@@ -524,7 +622,7 @@ int nocterm_widget_align_percent_vertical(nocterm_widget_t* widget, uint8_t perc
         errno = EINVAL;
         return NOCTERM_FAILURE;
     }
-
+    pthread_mutex_lock(&widget->lock);
 
     nocterm_dimension_size_t control_height = 0;
 
@@ -564,6 +662,8 @@ int nocterm_widget_align_percent_vertical(nocterm_widget_t* widget, uint8_t perc
     widget->align.flags.top = false;
     widget->align.flags.bottom = false;
 
+    pthread_mutex_unlock(&widget->lock);
+
     return NOCTERM_SUCCESS;
 }
 
@@ -602,7 +702,11 @@ int nocterm_widget_get_visible(nocterm_widget_t* widget, bool* visible){
         return NOCTERM_FAILURE;
     }
 
+    pthread_mutex_lock(&widget->lock);
+
     *visible = widget->visible;
+
+    pthread_mutex_unlock(&widget->lock);
 
     return NOCTERM_SUCCESS;
 }
@@ -614,29 +718,23 @@ int nocterm_widget_set_visible(nocterm_widget_t* widget, bool visible){
         return NOCTERM_FAILURE;
     }
 
+    pthread_mutex_lock(&widget->lock);
+
+    if(widget->visible == visible){
+        pthread_mutex_unlock(&widget->lock);        
+        return NOCTERM_SUCCESS;
+    }
+
     // Post order visibility setting
     for(uint64_t i = 0; i < widget->subwidgets_size; i++){
         nocterm_widget_set_visible(widget->subwidgets[i], visible);
     }
 
-    if(widget->visible == visible){
-        return NOCTERM_SUCCESS;
-    }
-
-    // There is a change in visibility
-    if(visible){
-        // Show Widget!
-
-        // If a widget becomes visible, then screen ownerships must be re-assigned
-        nocterm_screen_ownership_reset();
-
-    }else{
-        // Hide Widget!        
-        nocterm_widget_lose_screen_ownership(widget);
-    }
-
     nocterm_widget_enforce_root_refresh(widget);
+
     widget->visible = visible;
+
+    pthread_mutex_unlock(&widget->lock);
 
     return NOCTERM_SUCCESS;
 }
@@ -657,6 +755,8 @@ int nocterm_widget_add_subwidget(nocterm_widget_t* widget, nocterm_widget_t* sub
         return NOCTERM_SUCCESS;
     }
 
+    pthread_mutex_lock(&widget->lock);
+    
     nocterm_widget_t** old_subwidgets = widget->subwidgets;
     nocterm_widget_t** new_subwidgets = (nocterm_widget_t**)malloc(sizeof(nocterm_widget_t*)*(widget->subwidgets_size+1));
     
@@ -671,6 +771,9 @@ int nocterm_widget_add_subwidget(nocterm_widget_t* widget, nocterm_widget_t* sub
     widget->subwidgets = new_subwidgets;
 
     free(old_subwidgets);
+
+    pthread_mutex_unlock(&widget->lock);
+
     return NOCTERM_SUCCESS;
 }
 
@@ -681,7 +784,11 @@ int nocterm_widget_add_key_handler(nocterm_widget_t* widget, nocterm_widget_key_
         return NOCTERM_FAILURE;
     }
 
+    pthread_mutex_lock(&widget->lock);
+
     widget->key_handler = key_handler;
+
+    pthread_mutex_unlock(&widget->lock);
 
     return NOCTERM_SUCCESS;
 }
@@ -693,35 +800,11 @@ int nocterm_widget_add_focus_handler(nocterm_widget_t* widget, nocterm_widget_fo
         return NOCTERM_FAILURE;
     }
 
+    pthread_mutex_lock(&widget->lock);
+
     widget->focus_handler = focus_handler;
 
-    return NOCTERM_SUCCESS;
-}
-
-int nocterm_widget_delete(nocterm_widget_t* widget){
-    
-    if(widget == NULL){
-        return NOCTERM_SUCCESS;
-    }
-
-    if(nocterm_widget_destructor(widget) == NOCTERM_FAILURE){
-        return NOCTERM_FAILURE;
-    }
-
-    free(widget);
-
-    return NOCTERM_SUCCESS;
-}
-
-int nocterm_widget_destructor(nocterm_widget_t* widget){
-    // Do not call this function directly, instead call nocterm_widget_delete
-
-    if(widget == NULL){
-        return NOCTERM_SUCCESS;
-    }
-
-    free(widget->buffer);
-    free(widget->subwidgets);
+    pthread_mutex_unlock(&widget->lock);
 
     return NOCTERM_SUCCESS;
 }
@@ -742,11 +825,6 @@ int nocterm_widget_update(nocterm_widget_t* widget, nocterm_dimension_size_t row
         return NOCTERM_FAILURE;
     }
 
-    // if (row >= widget->bounds.height || col >= widget->bounds.width) {
-    //     errno = EINVAL;
-    //     return NOCTERM_FAILURE;
-    // }
-
     if((row * widget->bounds.width + col) >= widget->buffer_size){
         errno = EINVAL;
         return NOCTERM_FAILURE;
@@ -764,25 +842,22 @@ int nocterm_widget_update(nocterm_widget_t* widget, nocterm_dimension_size_t row
 }
 
 int nocterm_widget_refresh(nocterm_widget_t* widget){
-    // Pre-order tree refresh (recursive)
+
+    // POST ORDER TREE TRAVERSAL WITH PRE ORDER LOCKING
 
     if(widget == NULL){
         errno = EINVAL;
         return NOCTERM_FAILURE;
     }
 
-    if(widget->visible == false){
+    if(pthread_mutex_trylock(&widget->lock) != 0){
         return NOCTERM_SUCCESS;
     }
 
-    // Refresh loop
-    uint16_t relative_row, relative_col;
-    if(nocterm_widget_get_position(widget, &relative_row, &relative_col) == NOCTERM_FAILURE){
-        return NOCTERM_FAILURE;
+    if(widget->visible == false){
+        pthread_mutex_unlock(&widget->lock);
+        return NOCTERM_SUCCESS;
     }
-    
-
-    // POST ORDER TREE TRAVERSAL
 
     // If widget includes sub widgets, those are going to be freed recursively
     for(uint64_t i = 0; i < widget->subwidgets_size; i++){
@@ -794,6 +869,13 @@ int nocterm_widget_refresh(nocterm_widget_t* widget){
         }
     }
 
+    // Refresh loop
+    uint16_t relative_row, relative_col;
+    if(nocterm_widget_get_position(widget, &relative_row, &relative_col) == NOCTERM_FAILURE){
+        pthread_mutex_unlock(&widget->lock);
+        return NOCTERM_FAILURE;
+    }
+    
     bool at_least_one_refresh_remaining = false;
 
     // If there is no change at all, then there is no need to perform this loop, so exhausting! :D
@@ -826,16 +908,20 @@ int nocterm_widget_refresh(nocterm_widget_t* widget){
 
                         if(widget->buffer[buffer_index].character.bytes_size != 0){
                             if(nocterm_attribute_set(widget->buffer[buffer_index].attribute) == NOCTERM_FAILURE){
+                                pthread_mutex_unlock(&widget->lock);
                                 return NOCTERM_FAILURE;
                             }                        
                             if(nocterm_io_put_char_at(relative_row + row, relative_col + col, widget->buffer[buffer_index].character) == NOCTERM_FAILURE){
+                                pthread_mutex_unlock(&widget->lock);
                                 return NOCTERM_FAILURE;
                             }  
                             if(nocterm_attribute_clear() == NOCTERM_FAILURE){
+                                pthread_mutex_unlock(&widget->lock);
                                 return NOCTERM_FAILURE;
                             }    
                         }else{
                             if(nocterm_io_erase_char_at(relative_row + row, relative_col + col) == NOCTERM_FAILURE){
+                                pthread_mutex_unlock(&widget->lock);
                                 return NOCTERM_FAILURE;
                             }
                         }
@@ -852,7 +938,7 @@ int nocterm_widget_refresh(nocterm_widget_t* widget){
 
     }
 
-    if(at_least_one_refresh_remaining == true){
+    if(at_least_one_refresh_remaining){
         widget->soft_refresh = true;
     }else{
         widget->soft_refresh = false;
@@ -860,7 +946,10 @@ int nocterm_widget_refresh(nocterm_widget_t* widget){
 
     widget->hard_refresh = false;
 
+    pthread_mutex_unlock(&widget->lock);
+
     return NOCTERM_SUCCESS;
+
 }
 
 int nocterm_widget_enforce_root_refresh(nocterm_widget_t* widget){
@@ -969,29 +1058,10 @@ int nocterm_widget_resize(nocterm_widget_t* widget, nocterm_dimension_size_t hei
     return NOCTERM_SUCCESS;
 }
 
-int nocterm_widget_lose_screen_ownership(nocterm_widget_t* widget){
-    
-    if(widget == NULL){
-        errno = EINVAL;
-        return NOCTERM_FAILURE;
+bool nocterm_widget_is_focused(nocterm_widget_t* widget){
+    if(widget == NULL || nocterm_widget_focused == NULL || widget != nocterm_widget_focused){
+        return false;
+    }else{
+        return true;
     }
-    
-    uint16_t relative_row, relative_col;
-    if(nocterm_widget_get_position(widget, &relative_row, &relative_col) == NOCTERM_FAILURE){
-        return NOCTERM_FAILURE;
-    }
-    
-    for(nocterm_dimension_size_t row = 0; row < widget->viewport.height; row++ ){
-        for(nocterm_dimension_size_t col = 0; col < widget->viewport.width; col++){
-
-            nocterm_screen_ownership_t* current_ownership = &(nocterm_screen_ownership[(relative_row + row) * nocterm_screen_width + (relative_col + col)]);
-
-            if(current_ownership->owner == (void*)widget){
-                current_ownership->owner = NULL;
-            }
-        }
-    }    
-    return NOCTERM_SUCCESS;
 }
-
-

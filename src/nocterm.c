@@ -109,10 +109,16 @@ int nocterm_loop(void){
                     if(top_page->root_widget->focusable){
 
                         top_page->focused_widget = top_page->root_widget;
+                        
+                        // Set the focused widget
+                        nocterm_widget_focused = top_page->focused_widget;
+
                         if(top_page->focused_widget->focus_handler){
 
                             top_page->focused_widget->focus_handler(top_page->focused_widget,NOCTERM_WIDGET_FOCUS_ENTER);
                         }
+                    }else{
+                        nocterm_widget_focused = NULL;
                     }
 
                     // Everytime the page changes, alignments are updated,
@@ -134,7 +140,7 @@ int nocterm_loop(void){
 
         // CAPTURE KEY PHASE
 
-        struct timespec loop_sleep = {0, 1000000}; // 1 ms
+        struct timespec loop_sleep = {0, 10000000}; // 10 ms
         struct timeval io_wait_interval = { .tv_sec = 0, .tv_usec = 0 };
 
         bool available = false;
@@ -153,12 +159,15 @@ int nocterm_loop(void){
             if(key_event == NOCTERM_KEY_EVENT_TAB){
                 // Change focus to the next item in the tree
                 nocterm_page_change_focus(current_page, NOCTERM_PAGE_FOCUS_NEXT);
-
+                nocterm_widget_focused = current_page->focused_widget;
+            
             }else if(key_event == NOCTERM_KEY_EVENT_SHIFT_TAB){
                 // Change focus to the previous item in the tree
                 nocterm_page_change_focus(current_page, NOCTERM_PAGE_FOCUS_PREV);
-
+                nocterm_widget_focused = current_page->focused_widget;
+            
             }else if(key_event == NOCTERM_KEY_EVENT_ESCAPE){
+
                 // Call the key_handler for the focused widget
                 if(nocterm_page_stack_size > 1){
                     nocterm_page_stack_pop();
@@ -170,6 +179,7 @@ int nocterm_loop(void){
                 }
             }else if(key_event == NOCTERM_KEY_EVENT_MOUSE){
                 nocterm_mouse_controller(&key);
+                nocterm_widget_focused = current_page->focused_widget;
             }else{
                 if(current_page && current_page->focused_widget && current_page->focused_widget->key_handler){
                     current_page->focused_widget->key_handler(current_page->focused_widget, &key);
@@ -212,6 +222,7 @@ int nocterm_loop(void){
         // REFRESH PHASE
         if(current_page->root_widget->hard_refresh){
             nocterm_io_clear();
+            nocterm_screen_ownership_reset();
         }
 
         // Screen refreshes after each individual update has been made

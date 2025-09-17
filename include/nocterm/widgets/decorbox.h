@@ -108,7 +108,7 @@ int nocterm_decorbox_delete(nocterm_decorbox_t* decorbox);
  * @param focused 
  * @return int 
  */
-int nocterm_decorbox_border(nocterm_decorbox_t* decorbox, nocterm_decorbox_border_shape_t border_shape, nocterm_attribute_t normal, nocterm_attribute_t focused);
+int nocterm_decorbox_set_border(nocterm_decorbox_t* decorbox, nocterm_decorbox_border_shape_t border_shape, nocterm_attribute_t normal, nocterm_attribute_t focused);
 
 /**
  * @brief Retrieves a predefined border shape for decorbox.
@@ -128,10 +128,11 @@ nocterm_decorbox_border_shape_t nocterm_decorbox_border_shape(nocterm_decorbox_b
  * @param left_offset 
  * @return int 
  */
-int nocterm_decorbox_label(nocterm_decorbox_t* decorbox, const char* label, uint64_t label_size, nocterm_attribute_t attribute, uint64_t left_offset);
+int nocterm_decorbox_set_label(nocterm_decorbox_t* decorbox, const char* label, uint64_t label_size, nocterm_attribute_t attribute, uint64_t left_offset);
 
 NOCTERM_INTERNAL
 int nocterm_decorbox_border_draw(nocterm_decorbox_t* decorbox, nocterm_decorbox_border_shape_t border_shape, nocterm_attribute_t attribute);
+
 
 NOCTERM_INTERNAL
 NOCTERM_WIDGET_KEY_HANDLER(nocterm_decorbox_key_handler);

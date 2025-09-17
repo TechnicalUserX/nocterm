@@ -84,7 +84,6 @@ int nocterm_listview_destructor(nocterm_listview_t* listview){
     return NOCTERM_SUCCESS;
 }
 
-
 int nocterm_listview_delete(nocterm_listview_t* listview){
 
     if(listview == NULL){
@@ -108,12 +107,16 @@ int nocterm_listview_push_back(nocterm_listview_t* listview, nocterm_listview_it
         return NOCTERM_FAILURE;
     }
 
+    pthread_mutex_lock(&NOCTERM_WIDGET(listview)->lock);
+
     if(listview->item_array->size == listview->widget.bounds.height){
         errno = ENOMEM;
+        pthread_mutex_unlock(&NOCTERM_WIDGET(listview)->lock);
         return NOCTERM_FAILURE;
     }
 
     if(nocterm_listview_item_array_push_back(listview->item_array, item) == NOCTERM_FAILURE){
+        pthread_mutex_unlock(&NOCTERM_WIDGET(listview)->lock);
         return NOCTERM_FAILURE;
     }
 
@@ -134,6 +137,8 @@ int nocterm_listview_push_back(nocterm_listview_t* listview, nocterm_listview_it
 
     }
 
+    pthread_mutex_unlock(&NOCTERM_WIDGET(listview)->lock);
+
     return NOCTERM_SUCCESS;
 }
 
@@ -144,12 +149,19 @@ int nocterm_listview_push_front(nocterm_listview_t* listview, nocterm_listview_i
         return NOCTERM_FAILURE;
     }
 
+    pthread_mutex_lock(&NOCTERM_WIDGET(listview)->lock);
+
     if(listview->item_array->size == listview->widget.bounds.height){
         errno = ENOMEM;
+        pthread_mutex_unlock(&NOCTERM_WIDGET(listview)->lock);
         return NOCTERM_FAILURE;
     }
 
-    nocterm_listview_item_array_push_front(listview->item_array, item);
+    if(nocterm_listview_item_array_push_front(listview->item_array, item) == NOCTERM_FAILURE){
+        pthread_mutex_unlock(&NOCTERM_WIDGET(listview)->lock);
+        return NOCTERM_FAILURE;
+    }
+
 
     // Widget Update
     nocterm_widget_clear(NOCTERM_WIDGET(listview));
@@ -168,6 +180,8 @@ int nocterm_listview_push_front(nocterm_listview_t* listview, nocterm_listview_i
 
     NOCTERM_WIDGET(listview)->hard_refresh = true;
 
+    pthread_mutex_unlock(&NOCTERM_WIDGET(listview)->lock);
+
     return NOCTERM_SUCCESS;
 }
 
@@ -178,8 +192,16 @@ int nocterm_listview_pop_back(nocterm_listview_t* listview, nocterm_listview_ite
         return NOCTERM_FAILURE;
     }
 
+    pthread_mutex_lock(&NOCTERM_WIDGET(listview)->lock);
+
     if(listview->item_array->size == 0){
+        pthread_mutex_unlock(&NOCTERM_WIDGET(listview)->lock);
         return NOCTERM_SUCCESS;
+    }
+
+    if(nocterm_listview_item_array_pop_back(listview->item_array, item) == NOCTERM_FAILURE){
+        pthread_mutex_unlock(&NOCTERM_WIDGET(listview)->lock);
+        return NOCTERM_FAILURE;
     }
 
     // Widget Update
@@ -197,11 +219,9 @@ int nocterm_listview_pop_back(nocterm_listview_t* listview, nocterm_listview_ite
         }
     }
 
-    if(nocterm_listview_item_array_pop_back(listview->item_array, item) == NOCTERM_FAILURE){
-        return NOCTERM_FAILURE;
-    }
-
     NOCTERM_WIDGET(listview)->hard_refresh = true;
+
+    pthread_mutex_unlock(&NOCTERM_WIDGET(listview)->lock);
 
     return NOCTERM_SUCCESS;
 }
@@ -213,7 +233,10 @@ int nocterm_listview_pop_front(nocterm_listview_t* listview, nocterm_listview_it
         return NOCTERM_FAILURE;
     }
 
+    pthread_mutex_lock(&NOCTERM_WIDGET(listview)->lock);
+
     if(listview->item_array->size == 0){
+        pthread_mutex_unlock(&NOCTERM_WIDGET(listview)->lock);
         return NOCTERM_SUCCESS;
     }
 
@@ -221,11 +244,13 @@ int nocterm_listview_pop_front(nocterm_listview_t* listview, nocterm_listview_it
         nocterm_listview_item_array_pop_back(listview->item_array, item);
         nocterm_widget_clear(NOCTERM_WIDGET(listview));
         NOCTERM_WIDGET(listview)->hard_refresh = true;
+        pthread_mutex_unlock(&NOCTERM_WIDGET(listview)->lock);
         return NOCTERM_SUCCESS;
     }
 
 
     if(nocterm_listview_item_array_pop_front(listview->item_array, item) == NOCTERM_FAILURE){
+        pthread_mutex_unlock(&NOCTERM_WIDGET(listview)->lock);
         return NOCTERM_FAILURE;
     }
 
@@ -246,6 +271,8 @@ int nocterm_listview_pop_front(nocterm_listview_t* listview, nocterm_listview_it
     }
 
     NOCTERM_WIDGET(listview)->hard_refresh = true;
+
+    pthread_mutex_unlock(&NOCTERM_WIDGET(listview)->lock);
 
     return NOCTERM_SUCCESS;
 }
@@ -279,12 +306,17 @@ int nocterm_listview_item_constructor(nocterm_listview_item_t* item, const char*
 }
 
 int nocterm_listview_set_autoscroll(nocterm_listview_t* listview, bool autoscroll){
+    
     if(listview == NULL){
         errno = EINVAL;
         return NOCTERM_FAILURE;
     }
 
+    pthread_mutex_lock(&NOCTERM_WIDGET(listview)->lock);
+
     listview->autoscroll = autoscroll;
+
+    pthread_mutex_unlock(&NOCTERM_WIDGET(listview)->lock);
 
     return NOCTERM_SUCCESS;
 }
@@ -296,7 +328,10 @@ int nocterm_listview_clear(nocterm_listview_t* listview){
         return NOCTERM_FAILURE;
     }
 
+    pthread_mutex_lock(&NOCTERM_WIDGET(listview)->lock);
+
     if(nocterm_listview_item_array_clear(listview->item_array) == NOCTERM_FAILURE){
+        pthread_mutex_unlock(&NOCTERM_WIDGET(listview)->lock);
         return NOCTERM_FAILURE;
     }
 
@@ -304,6 +339,8 @@ int nocterm_listview_clear(nocterm_listview_t* listview){
 
     NOCTERM_WIDGET(listview)->hard_refresh = true;
     
+    pthread_mutex_unlock(&NOCTERM_WIDGET(listview)->lock);
+
     return NOCTERM_SUCCESS;
 }
 
@@ -314,7 +351,11 @@ int nocterm_listview_move_up(nocterm_listview_t* listview){
         return NOCTERM_FAILURE;
     }
 
+    pthread_mutex_lock(&NOCTERM_WIDGET(listview)->lock);
+
     nocterm_widget_viewport_up(NOCTERM_WIDGET(listview));          
+
+    pthread_mutex_unlock(&NOCTERM_WIDGET(listview)->lock);
 
     return NOCTERM_SUCCESS;
 }
@@ -326,9 +367,13 @@ int nocterm_listview_move_down(nocterm_listview_t* listview){
         return NOCTERM_FAILURE;
     }
     
+    pthread_mutex_lock(&NOCTERM_WIDGET(listview)->lock);
+
     if(NOCTERM_WIDGET(listview)->viewport.row + NOCTERM_WIDGET(listview)->viewport.height < NOCTERM_LISTVIEW(listview)->item_array->size){
         nocterm_widget_viewport_down(NOCTERM_WIDGET(listview));
     }
+
+    pthread_mutex_unlock(&NOCTERM_WIDGET(listview)->lock);
 
     return NOCTERM_SUCCESS;
 }
@@ -340,7 +385,11 @@ int nocterm_listview_move_top(nocterm_listview_t* listview){
         return NOCTERM_FAILURE;
     }
 
+    pthread_mutex_lock(&NOCTERM_WIDGET(listview)->lock);
+
     nocterm_widget_viewport(NOCTERM_WIDGET(listview),(nocterm_dimension_t){0,0, NOCTERM_WIDGET(listview)->viewport.height, NOCTERM_WIDGET(listview)->viewport.width});
+
+    pthread_mutex_unlock(&NOCTERM_WIDGET(listview)->lock);
 
     return NOCTERM_SUCCESS;
 }
@@ -352,9 +401,13 @@ int nocterm_listview_move_bottom(nocterm_listview_t* listview){
         return NOCTERM_FAILURE;
     }
 
+    pthread_mutex_lock(&NOCTERM_WIDGET(listview)->lock);
+
     if(listview->item_array->size > NOCTERM_WIDGET(listview)->viewport.height){
         nocterm_widget_viewport(NOCTERM_WIDGET(listview), (nocterm_dimension_t){listview->item_array->size -  NOCTERM_WIDGET(listview)->viewport.height, 0, NOCTERM_WIDGET(listview)->viewport.height, NOCTERM_WIDGET(listview)->viewport.width});
     }
+
+    pthread_mutex_unlock(&NOCTERM_WIDGET(listview)->lock);
 
     return NOCTERM_SUCCESS;
 }

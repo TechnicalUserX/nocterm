@@ -15,7 +15,9 @@
 
 #define NOCTERM_LISTVIEW(x) ((nocterm_listview_t*)x)
 
-#define NOCTERM_LISTVIEW_ITEM_CONTENT_MAX_SIZE 64
+#ifndef NOCTERM_LISTVIEW_ITEM_CONTENT_MAX_SIZE
+    #define NOCTERM_LISTVIEW_ITEM_CONTENT_MAX_SIZE 128
+#endif
 
 #ifdef __cplusplus
     extern "C" {

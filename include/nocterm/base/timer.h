@@ -23,7 +23,7 @@ typedef struct nocterm_timer_t{
     nocterm_widget_t* widget;
     uint64_t interval; // ms
     uint64_t last_call; // ms
-    bool active;
+    atomic_bool active;
     void* user_data;
     void (*callback)(nocterm_widget_t* widget, void* user_data);
     struct nocterm_timer_t* next;

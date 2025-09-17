@@ -34,8 +34,11 @@ typedef void (*nocterm_checkbox_oncheck_handler_t)(nocterm_widget_t* self, nocte
 
 typedef struct nocterm_checkbox_t{
     nocterm_widget_t widget;
-    nocterm_attribute_t attribute_normal;
-    nocterm_attribute_t attribute_cursor;
+    nocterm_attribute_t main_attribute;
+    nocterm_attribute_t cursor_attribute;
+    nocterm_char_t check_marker;
+    nocterm_char_t left_side;
+    nocterm_char_t right_side;
     nocterm_checkbox_oncheck_handler_t oncheck_handler;
     bool checked;
     void* user_data;
@@ -46,13 +49,12 @@ typedef struct nocterm_checkbox_t{
  * 
  * @param row 
  * @param col 
- * @param attribute 
  * @param oncheck_handler 
  * @param checked 
  * @param user_data 
  * @return nocterm_checkbox_t* 
  */
-nocterm_checkbox_t* nocterm_checkbox_new(nocterm_dimension_size_t row, nocterm_dimension_size_t col, nocterm_attribute_t attribute, nocterm_checkbox_oncheck_handler_t oncheck_handler, bool checked, void* user_data);
+nocterm_checkbox_t* nocterm_checkbox_new(nocterm_dimension_size_t row, nocterm_dimension_size_t col, nocterm_checkbox_oncheck_handler_t oncheck_handler, bool checked, void* user_data);
 
 /**
  * @brief Constructs a checkbox widget.
@@ -60,13 +62,12 @@ nocterm_checkbox_t* nocterm_checkbox_new(nocterm_dimension_size_t row, nocterm_d
  * @param checkbox 
  * @param row 
  * @param col 
- * @param attribute 
  * @param oncheck_handler 
  * @param checked 
  * @param user_data 
  * @return int 
  */
-int nocterm_checkbox_constructor(nocterm_checkbox_t* checkbox, nocterm_dimension_size_t row, nocterm_dimension_size_t col, nocterm_attribute_t attribute, nocterm_checkbox_oncheck_handler_t oncheck_handler, bool checked, void* user_data);
+int nocterm_checkbox_constructor(nocterm_checkbox_t* checkbox, nocterm_dimension_size_t row, nocterm_dimension_size_t col, nocterm_checkbox_oncheck_handler_t oncheck_handler, bool checked, void* user_data);
 
 /**
  * @brief Destructs a checkbox widget.
@@ -83,6 +84,15 @@ int nocterm_checkbox_destructor(nocterm_checkbox_t* checkbox);
  * @return int 
  */
 int nocterm_checkbox_delete(nocterm_checkbox_t* checkbox);
+
+/**
+ * @brief Sets the attribute of a checkbox widget.
+ * 
+ * @param checkbox 
+ * @param attribute 
+ * @return int 
+ */
+int nocterm_checkbox_set_attribute(nocterm_checkbox_t* checkbox, nocterm_attribute_t attribute);
 
 NOCTERM_INTERNAL
 NOCTERM_WIDGET_KEY_HANDLER(nocterm_checkbox_key_handler);

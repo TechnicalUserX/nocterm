@@ -19,8 +19,8 @@ int main(){
         .color.ansi.codes.fg = 2
     };
 
-    nocterm_entry_t* my_entry = nocterm_entry_new(1, 1, 6, attr);
-    nocterm_button_t* my_button = nocterm_button_new(2,1, "Get text", 9, NOCTERM_ATTRIBUTE_EMPTY, attr, handler, my_entry);
+    nocterm_entry_t* my_entry = nocterm_entry_new(1, 1, 6);
+    nocterm_button_t* my_button = nocterm_button_new(2,1, "Get text", 9, handler, my_entry);
 
     nocterm_widget_add_subwidget(my_widget, NOCTERM_WIDGET(my_entry));
     nocterm_widget_add_subwidget(my_widget, NOCTERM_WIDGET(my_button));

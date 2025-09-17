@@ -17,3 +17,4 @@ This page lists code examples for various usages of the Nocterm library.
 - \subpage examples_centering_widgets
 - \subpage examples_pixelgrid
 - \subpage examples_overlap
+- \subpage examples_levelbar

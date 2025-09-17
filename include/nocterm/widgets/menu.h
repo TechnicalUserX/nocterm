@@ -13,7 +13,9 @@
 #include <nocterm/common/nocterm.h>
 #include <nocterm/base/widget.h>
 
-#define NOCTERM_MENU_ITEM_CONTENT_MAX_SIZE 64
+#ifndef NOCTERM_MENU_ITEM_CONTENT_MAX_SIZE
+    #define NOCTERM_MENU_ITEM_CONTENT_MAX_SIZE 128
+#endif
 
 #define NOCTERM_MENU(x) ((nocterm_menu_t*)x)
 

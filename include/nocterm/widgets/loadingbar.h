@@ -33,10 +33,9 @@ typedef struct nocterm_loadingbar_t{
  * @param row 
  * @param col 
  * @param interval 
- * @param attribute 
  * @return nocterm_loadingbar_t* 
  */
-nocterm_loadingbar_t* nocterm_loadingbar_new(nocterm_dimension_size_t row, nocterm_dimension_size_t col, uint64_t interval, nocterm_attribute_t attribute);
+nocterm_loadingbar_t* nocterm_loadingbar_new(nocterm_dimension_size_t row, nocterm_dimension_size_t col, uint64_t interval);
 
 /**
  * @brief Constructs a loadingbar widget.
@@ -44,10 +43,9 @@ nocterm_loadingbar_t* nocterm_loadingbar_new(nocterm_dimension_size_t row, nocte
  * @param row 
  * @param col 
  * @param interval 
- * @param attribute 
  * @return int 
  */
-int nocterm_loadingbar_constructor(nocterm_loadingbar_t* loadingbar, nocterm_dimension_size_t row, nocterm_dimension_size_t col, uint64_t interval, nocterm_attribute_t attribute);
+int nocterm_loadingbar_constructor(nocterm_loadingbar_t* loadingbar, nocterm_dimension_size_t row, nocterm_dimension_size_t col, uint64_t interval);
 
 /**
  * @brief Destructs a loadingbar widget.
@@ -65,8 +63,15 @@ int nocterm_loadingbar_destructor(nocterm_loadingbar_t* loadingbar);
  */
 int nocterm_loadingbar_delete(nocterm_loadingbar_t* loadingbar);
 
-NOCTERM_INTERNAL
-NOCTERM_TIMER_CALLBACK(nocterm_loadingbar_timer_callback);
+
+/**
+ * @brief Sets attribute of a loadingbar widget.
+ * 
+ * @param loadingbar 
+ * @param attribute 
+ * @return int 
+ */
+int nocterm_loadingbar_set_attribute(nocterm_loadingbar_t* loadingbar, nocterm_attribute_t attribute);
 
 /**
  * @brief Enables loadingbar widget animation.
@@ -83,6 +88,9 @@ int nocterm_loadingbar_enable(nocterm_loadingbar_t* loadingbar);
  * @return int 
  */
 int nocterm_loadingbar_disable(nocterm_loadingbar_t* loadingbar);
+
+NOCTERM_INTERNAL
+NOCTERM_TIMER_CALLBACK(nocterm_loadingbar_timer_callback);
 
 #ifdef __cplusplus
     }

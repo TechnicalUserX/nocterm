@@ -81,6 +81,7 @@ int nocterm_pixelgrid_delete(nocterm_pixelgrid_t *pixelgrid){
 }
 
 int nocterm_pixelgrid_print(nocterm_pixelgrid_t *pixelgrid, uint32_t pixel_row, uint16_t pixel_col, uint8_t red, uint8_t green, uint8_t blue){
+    // Not thread-safe, use wisely
 
     if(pixelgrid == NULL){
         errno = EINVAL;
@@ -137,7 +138,7 @@ int nocterm_pixelgrid_print(nocterm_pixelgrid_t *pixelgrid, uint32_t pixel_row, 
 }
 
 int nocterm_pixelgrid_erase(nocterm_pixelgrid_t *pixelgrid, uint32_t pixel_row, uint16_t pixel_col){
-
+    // Not thread-safe, use wisely
 
     if(pixelgrid == NULL){
         errno = EINVAL;
@@ -204,6 +205,7 @@ int nocterm_pixelgrid_erase(nocterm_pixelgrid_t *pixelgrid, uint32_t pixel_row, 
 }
 
 int nocterm_pixelgrid_clear(nocterm_pixelgrid_t* pixelgrid){
+    // Not thread-safe, use wisely
 
     if(pixelgrid == NULL){
         errno = EINVAL;

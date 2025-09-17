@@ -86,65 +86,14 @@ int nocterm_decorbox_delete(nocterm_decorbox_t* decorbox){
     return NOCTERM_SUCCESS;
 }
 
-int nocterm_decorbox_border_draw(nocterm_decorbox_t* decorbox, nocterm_decorbox_border_shape_t border_shape, nocterm_attribute_t attribute)
-{
+int nocterm_decorbox_set_border(nocterm_decorbox_t* decorbox, nocterm_decorbox_border_shape_t border_shape, nocterm_attribute_t normal, nocterm_attribute_t focused){
 
     if(decorbox == NULL){
         errno = EINVAL;
         return NOCTERM_FAILURE;
     }
 
-
-
-    for(nocterm_dimension_size_t i = 1; i < NOCTERM_WIDGET(decorbox)->bounds.height-1; i++){
-        if(nocterm_widget_update(NOCTERM_WIDGET(decorbox),i,0, border_shape.vertical,attribute) == NOCTERM_FAILURE){
-            return NOCTERM_FAILURE;
-        }
-
-        if(nocterm_widget_update(NOCTERM_WIDGET(decorbox), i, NOCTERM_WIDGET(decorbox)->bounds.width-1, border_shape.vertical, attribute) == NOCTERM_FAILURE){
-            return NOCTERM_FAILURE;
-        }
-
-    }
-
-    for(nocterm_dimension_size_t i = 1; i < NOCTERM_WIDGET(decorbox)->bounds.width-1; i++){
-        if(nocterm_widget_update(NOCTERM_WIDGET(decorbox),0,i, border_shape.horizontal, attribute) == NOCTERM_FAILURE){
-            return NOCTERM_FAILURE;
-        }
-        if(nocterm_widget_update(NOCTERM_WIDGET(decorbox),NOCTERM_WIDGET(decorbox)->bounds.height-1, i, border_shape.horizontal, attribute) == NOCTERM_FAILURE){
-            return NOCTERM_FAILURE;
-        }
-    }
-
-    // Top left
-    if(nocterm_widget_update(NOCTERM_WIDGET(decorbox), 0,0, border_shape.top_left, attribute) == NOCTERM_FAILURE){
-        return NOCTERM_FAILURE;
-    } 
-
-    // Top right
-    if(nocterm_widget_update(NOCTERM_WIDGET(decorbox), 0,NOCTERM_WIDGET(decorbox)->bounds.width-1, border_shape.top_right, attribute) == NOCTERM_FAILURE){
-        return NOCTERM_FAILURE;
-    } 
-
-    // Bottom left
-    if(nocterm_widget_update(NOCTERM_WIDGET(decorbox), NOCTERM_WIDGET(decorbox)->bounds.height-1,0, border_shape.bottom_left, attribute) == NOCTERM_FAILURE){
-        return NOCTERM_FAILURE;
-    } 
-
-    // Bottom right
-    if(nocterm_widget_update(NOCTERM_WIDGET(decorbox), NOCTERM_WIDGET(decorbox)->bounds.height-1, NOCTERM_WIDGET(decorbox)->bounds.width-1, border_shape.bottom_right, attribute) == NOCTERM_FAILURE){
-        return NOCTERM_FAILURE;
-    } 
-
-    return NOCTERM_SUCCESS;
-}
-
-int nocterm_decorbox_border(nocterm_decorbox_t* decorbox, nocterm_decorbox_border_shape_t border_shape, nocterm_attribute_t normal, nocterm_attribute_t focused){
-
-    if(decorbox == NULL){
-        errno = EINVAL;
-        return NOCTERM_FAILURE;
-    }
+    pthread_mutex_lock(&NOCTERM_WIDGET(decorbox)->lock);
 
     decorbox->border.shape = border_shape;
     decorbox->border.enabled = true;
@@ -153,6 +102,40 @@ int nocterm_decorbox_border(nocterm_decorbox_t* decorbox, nocterm_decorbox_borde
 
     nocterm_decorbox_border_draw(decorbox, border_shape, normal);
     
+    pthread_mutex_unlock(&NOCTERM_WIDGET(decorbox)->lock);
+
+    return NOCTERM_SUCCESS;
+}
+
+int nocterm_decorbox_set_label(nocterm_decorbox_t* decorbox, const char* label, uint64_t label_size, nocterm_attribute_t attribute, uint64_t left_offset){
+    if(decorbox == NULL){
+        errno = EINVAL;
+        return NOCTERM_FAILURE;
+    }
+
+    nocterm_char_t label_string[NOCTERM_DECORBOX_LABEL_MAX_SIZE] = {0};
+    uint64_t label_string_length = nocterm_char_string_from_stream(label_string,NOCTERM_DECORBOX_LABEL_MAX_SIZE, label, label_size);
+
+    if(label_string_length == 0){
+        return NOCTERM_FAILURE;
+    }
+
+    pthread_mutex_lock(&NOCTERM_WIDGET(decorbox)->lock);
+
+    for(uint64_t i = 0; i < label_string_length; i++){
+        decorbox->label.content[i].character = label_string[i];
+        decorbox->label.content[i].attribute = attribute;
+    }
+    
+    for(uint64_t i = 0; i < label_string_length; i++){
+        nocterm_widget_update(NOCTERM_WIDGET(decorbox), 0, i + left_offset, decorbox->label.content[i].character, decorbox->label.content[i].attribute);
+    }
+    decorbox->label.left_offset = left_offset;
+    decorbox->label.enabled = true;
+    decorbox->label.content_length = label_string_length;
+    
+    pthread_mutex_unlock(&NOCTERM_WIDGET(decorbox)->lock);
+
     return NOCTERM_SUCCESS;
 }
 
@@ -304,30 +287,53 @@ nocterm_decorbox_border_shape_t nocterm_decorbox_border_shape(nocterm_decorbox_b
     }
 }
 
-int nocterm_decorbox_label(nocterm_decorbox_t* decorbox, const char* label, uint64_t label_size, nocterm_attribute_t attribute, uint64_t left_offset){
+int nocterm_decorbox_border_draw(nocterm_decorbox_t* decorbox, nocterm_decorbox_border_shape_t border_shape, nocterm_attribute_t attribute){
+
     if(decorbox == NULL){
         errno = EINVAL;
         return NOCTERM_FAILURE;
     }
 
-    nocterm_char_t label_string[NOCTERM_DECORBOX_LABEL_MAX_SIZE] = {0};
-    uint64_t label_string_length = nocterm_char_string_from_stream(label_string,NOCTERM_DECORBOX_LABEL_MAX_SIZE, label, label_size);
+    for(nocterm_dimension_size_t i = 1; i < NOCTERM_WIDGET(decorbox)->bounds.height-1; i++){
+        if(nocterm_widget_update(NOCTERM_WIDGET(decorbox),i,0, border_shape.vertical,attribute) == NOCTERM_FAILURE){
+            return NOCTERM_FAILURE;
+        }
 
-    if(label_string_length == 0){
+        if(nocterm_widget_update(NOCTERM_WIDGET(decorbox), i, NOCTERM_WIDGET(decorbox)->bounds.width-1, border_shape.vertical, attribute) == NOCTERM_FAILURE){
+            return NOCTERM_FAILURE;
+        }
+
+    }
+
+    for(nocterm_dimension_size_t i = 1; i < NOCTERM_WIDGET(decorbox)->bounds.width-1; i++){
+        if(nocterm_widget_update(NOCTERM_WIDGET(decorbox),0,i, border_shape.horizontal, attribute) == NOCTERM_FAILURE){
+            return NOCTERM_FAILURE;
+        }
+        if(nocterm_widget_update(NOCTERM_WIDGET(decorbox),NOCTERM_WIDGET(decorbox)->bounds.height-1, i, border_shape.horizontal, attribute) == NOCTERM_FAILURE){
+            return NOCTERM_FAILURE;
+        }
+    }
+
+    // Top left
+    if(nocterm_widget_update(NOCTERM_WIDGET(decorbox), 0,0, border_shape.top_left, attribute) == NOCTERM_FAILURE){
         return NOCTERM_FAILURE;
-    }
-    for(uint64_t i = 0; i < label_string_length; i++){
-        decorbox->label.content[i].character = label_string[i];
-        decorbox->label.content[i].attribute = attribute;
-    }
-    
-    for(uint64_t i = 0; i < label_string_length; i++){
-        nocterm_widget_update(NOCTERM_WIDGET(decorbox), 0, i + left_offset, decorbox->label.content[i].character, decorbox->label.content[i].attribute);
-    }
-    decorbox->label.left_offset = left_offset;
-    decorbox->label.enabled = true;
-    decorbox->label.content_length = label_string_length;
-    
+    } 
+
+    // Top right
+    if(nocterm_widget_update(NOCTERM_WIDGET(decorbox), 0,NOCTERM_WIDGET(decorbox)->bounds.width-1, border_shape.top_right, attribute) == NOCTERM_FAILURE){
+        return NOCTERM_FAILURE;
+    } 
+
+    // Bottom left
+    if(nocterm_widget_update(NOCTERM_WIDGET(decorbox), NOCTERM_WIDGET(decorbox)->bounds.height-1,0, border_shape.bottom_left, attribute) == NOCTERM_FAILURE){
+        return NOCTERM_FAILURE;
+    } 
+
+    // Bottom right
+    if(nocterm_widget_update(NOCTERM_WIDGET(decorbox), NOCTERM_WIDGET(decorbox)->bounds.height-1, NOCTERM_WIDGET(decorbox)->bounds.width-1, border_shape.bottom_right, attribute) == NOCTERM_FAILURE){
+        return NOCTERM_FAILURE;
+    } 
+
     return NOCTERM_SUCCESS;
 }
 

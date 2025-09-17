@@ -54,7 +54,7 @@ int nocterm_page_stack_push(nocterm_page_t* page){
         nocterm_page_stack[nocterm_page_stack_size] = page;
         nocterm_page_stack_size++;
 
-        // We may not now whether we need to start some timers
+        // We may not know whether we need to start some timers
 
         page->root_widget->hard_refresh = true; // Draw everyting on the push time
 

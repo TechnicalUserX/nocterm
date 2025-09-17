@@ -24,7 +24,7 @@ int main(){
         .color.ansi.codes.fg = 7
     };
 
-    nocterm_checkbox_t* my_checkbox = nocterm_checkbox_new(1,1, attr, handler, false, NULL);
+    nocterm_checkbox_t* my_checkbox = nocterm_checkbox_new(1,1, handler, false, NULL);
 
     nocterm_widget_add_subwidget(my_widget, NOCTERM_WIDGET(my_checkbox));
 
