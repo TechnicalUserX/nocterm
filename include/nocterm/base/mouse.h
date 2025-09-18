@@ -21,8 +21,22 @@
     extern "C" {
 #endif
 
-NOCTERM_INTERNAL
-extern bool nocterm_mouse_support_flag;
+/*
+ * Mouse Byte Bit Patern 
+ * 
+ *  7   6   5   4   3   2   1   0
+ *  
+ *  1-0: LMB, MMB, RMB, release indicator
+ *    2: Shift modifier
+ *    3: Alt modifier
+ * 
+ *    4: Ctrl modifier
+ *    5: Wheel indicator
+ *    6: Motion modifier
+ *    7: ?
+ * 
+ */
+
 
 typedef enum nocterm_mouse_button_t{
     NOCTERM_MOUSE_BUTTON_LMB,
@@ -31,6 +45,7 @@ typedef enum nocterm_mouse_button_t{
     NOCTERM_MOUSE_BUTTON_RELEASE,
     NOCTERM_MOUSE_BUTTON_SCROLL_UP,
     NOCTERM_MOUSE_BUTTON_SCROLL_DOWN,
+    NOCTERM_MOUSE_BUTTON_MOVE,
     NOCTERM_MOUSE_BUTTON_UNKNOWN
 }nocterm_mouse_button_t;
 
@@ -47,21 +62,25 @@ typedef struct nocterm_mouse_event_t{
     nocterm_dimension_size_t col;
 }nocterm_mouse_event_t;
 
+typedef enum nocterm_mouse_support_t{
+    NOCTERM_MOUSE_SUPPORT_NONE,
+    NOCTERM_MOUSE_SUPPORT_SIMPLE,
+    NOCTERM_MOUSE_SUPPORT_ADVANCED
+}nocterm_mouse_support_t;
+
 extern nocterm_dimension_size_t nocterm_mouse_row, nocterm_mouse_col;
 
-void nocterm_mouse_support(bool enable);
+void nocterm_mouse_support(nocterm_mouse_support_t support);
 
-NOCTERM_INTERNAL
-int nocterm_mouse_enable(void);
+NOCTERM_INTERNAL extern nocterm_mouse_support_t nocterm_mouse_support_flag;
 
-NOCTERM_INTERNAL
-int nocterm_mouse_disable(void);
+NOCTERM_INTERNAL int nocterm_mouse_enable(void);
 
-NOCTERM_INTERNAL
-nocterm_mouse_event_t nocterm_mouse_event(uint8_t mouse_byte, uint8_t col_byte, uint8_t row_byte);
+NOCTERM_INTERNAL int nocterm_mouse_disable(void);
 
-NOCTERM_INTERNAL
-int nocterm_mouse_controller(nocterm_key_t* key);
+NOCTERM_INTERNAL nocterm_mouse_event_t nocterm_mouse_event(uint8_t mouse_byte, uint8_t col_byte, uint8_t row_byte);
+
+NOCTERM_INTERNAL int nocterm_mouse_controller(nocterm_key_t* key);
 
 #ifdef __cplusplus
     }

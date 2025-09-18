@@ -22,7 +22,7 @@ int nocterm_init(void){
         return NOCTERM_FAILURE;
     }
 
-    if(nocterm_mouse_support_flag){
+    if(nocterm_mouse_support_flag != NOCTERM_MOUSE_SUPPORT_NONE){
         if(nocterm_mouse_enable() == NOCTERM_FAILURE){
             return NOCTERM_FAILURE;
         }

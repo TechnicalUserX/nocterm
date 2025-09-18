@@ -77,27 +77,6 @@ int nocterm_entry_delete(nocterm_entry_t* entry);
  */
 int nocterm_entry_set_attribute(nocterm_entry_t* entry, nocterm_attribute_t attribute);
 
-NOCTERM_INTERNAL
-int nocterm_entry_cursor_move_left(nocterm_entry_t* entry);
-
-NOCTERM_INTERNAL
-int nocterm_entry_cursor_move_right(nocterm_entry_t* entry);
-
-NOCTERM_INTERNAL
-int nocterm_entry_cursor_insert(nocterm_entry_t* entry, nocterm_char_t character);
-
-NOCTERM_INTERNAL
-int nocterm_entry_cursor_erase_right(nocterm_entry_t* entry); // Delete Button
-
-NOCTERM_INTERNAL
-int nocterm_entry_cursor_erase_left(nocterm_entry_t* entry); // Backspace Button
-
-NOCTERM_INTERNAL
-NOCTERM_WIDGET_KEY_HANDLER(nocterm_entry_key_handler);
-
-NOCTERM_INTERNAL
-NOCTERM_WIDGET_FOCUS_HANDLER(nocterm_entry_focus_handler);
-
 /**
  * @brief Retrieves text from an entry widget.
  * 
@@ -118,6 +97,20 @@ int nocterm_entry_get_text(nocterm_entry_t* entry, char* buffer, uint64_t buffer
  * @return int 
  */
 int nocterm_entry_set_text(nocterm_entry_t* entry, char* buffer, uint64_t buffer_size);
+
+NOCTERM_INTERNAL int nocterm_entry_cursor_move_left(nocterm_entry_t* entry);
+
+NOCTERM_INTERNAL int nocterm_entry_cursor_move_right(nocterm_entry_t* entry);
+
+NOCTERM_INTERNAL int nocterm_entry_cursor_insert(nocterm_entry_t* entry, nocterm_char_t character);
+
+NOCTERM_INTERNAL int nocterm_entry_cursor_erase_right(nocterm_entry_t* entry); // Delete Button
+
+NOCTERM_INTERNAL int nocterm_entry_cursor_erase_left(nocterm_entry_t* entry); // Backspace Button
+
+NOCTERM_INTERNAL NOCTERM_WIDGET_KEY_HANDLER(nocterm_entry_key_handler);
+
+NOCTERM_INTERNAL NOCTERM_WIDGET_FOCUS_HANDLER(nocterm_entry_focus_handler);
 
 #ifdef __cplusplus
     }

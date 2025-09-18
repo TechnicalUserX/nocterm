@@ -1,19 +1,35 @@
 #include <nocterm/base/mouse.h>
 
-bool nocterm_mouse_support_flag = false;
+nocterm_mouse_support_t nocterm_mouse_support_flag = NOCTERM_MOUSE_SUPPORT_NONE;
 
 nocterm_dimension_size_t nocterm_mouse_row = 0, nocterm_mouse_col = 0;
 
-void nocterm_mouse_support(bool enable){
-    nocterm_mouse_support_flag = enable;
+void nocterm_mouse_support(nocterm_mouse_support_t support){
+    nocterm_mouse_support_flag = support;
 }
 
 int nocterm_mouse_enable(void){
-    return nocterm_io_write("\033[?1000h",9);
+    switch(nocterm_mouse_support_flag){
+        case NOCTERM_MOUSE_SUPPORT_ADVANCED:
+            return nocterm_io_write("\033[?1000h\033[?1003h",17);
+        case NOCTERM_MOUSE_SUPPORT_SIMPLE:
+            return nocterm_io_write("\033[?1000h",9);
+        case NOCTERM_MOUSE_SUPPORT_NONE:
+            return NOCTERM_SUCCESS;
+    }
+    return NOCTERM_FAILURE;
 }
 
 int nocterm_mouse_disable(void){
-    return nocterm_io_write("\033[?1000l",9);
+    switch(nocterm_mouse_support_flag){
+        case NOCTERM_MOUSE_SUPPORT_ADVANCED:
+            return nocterm_io_write("\033[?1000l\033[?1003l",17);
+        case NOCTERM_MOUSE_SUPPORT_SIMPLE:
+            return nocterm_io_write("\033[?1000l",9);
+        case NOCTERM_MOUSE_SUPPORT_NONE:
+            return NOCTERM_SUCCESS;
+    }
+    return NOCTERM_FAILURE;
 }
 
 nocterm_mouse_event_t nocterm_mouse_event(uint8_t mouse_byte, uint8_t col_byte, uint8_t row_byte){
@@ -31,6 +47,7 @@ nocterm_mouse_event_t nocterm_mouse_event(uint8_t mouse_byte, uint8_t col_byte, 
 
     // Is this a scroll event?
     bool is_scroll = ((mouse_byte & 0x40) == 0x40) ? true : false;
+    bool is_hover = ((mouse_byte & 0x20) == 0x20) ? true : false;
 
     if(is_scroll){
         bool is_scroll_down = ((mouse_byte & 0x01) == 0x01) ? true : false;
@@ -39,6 +56,8 @@ nocterm_mouse_event_t nocterm_mouse_event(uint8_t mouse_byte, uint8_t col_byte, 
         }else{
             new_mouse_event.button = NOCTERM_MOUSE_BUTTON_SCROLL_UP;
         }
+    }else if(is_hover){
+        new_mouse_event.button = NOCTERM_MOUSE_BUTTON_MOVE;
     }else{
         uint8_t button = mouse_byte & 0x03;
 
@@ -105,9 +124,14 @@ int nocterm_mouse_controller(nocterm_key_t* key){
 
     nocterm_key_t crafted_key = {0};
 
-    // Single shot event
-    if(current_mouse_event.button == NOCTERM_MOUSE_BUTTON_SCROLL_DOWN || current_mouse_event.button == NOCTERM_MOUSE_BUTTON_SCROLL_UP){
+    // Single shot events
+
+    if((current_mouse_event.button == NOCTERM_MOUSE_BUTTON_SCROLL_DOWN || current_mouse_event.button == NOCTERM_MOUSE_BUTTON_SCROLL_UP) && mouse_progress_state == 0){
         
+        if(current_page->focused_widget != current_mouse_widget->owner){
+            return NOCTERM_SUCCESS;
+        }
+
         if(current_mouse_event.button == NOCTERM_MOUSE_BUTTON_SCROLL_DOWN){
             memcpy(crafted_key.buffer, "\e\x5B\x42", 3);
             crafted_key.buffer_length = 3;
@@ -118,7 +142,15 @@ int nocterm_mouse_controller(nocterm_key_t* key){
             crafted_key.type = NOCTERM_KEY_TYPE_ESCSEQ;
         }
 
-        mouse_progress_state = 0;
+        if(current_mouse_widget->owner->key_handler){
+            current_mouse_widget->owner->key_handler(current_mouse_widget->owner, &crafted_key);
+        }
+
+        current_page->focused_widget = current_mouse_widget->owner;
+
+        return NOCTERM_SUCCESS;
+    
+    }else if(current_mouse_event.button == NOCTERM_MOUSE_BUTTON_MOVE && mouse_progress_state == 0){
 
         if(current_page->focused_widget != current_mouse_widget->owner){
             if(current_page->focused_widget && current_page->focused_widget->focus_handler){
@@ -130,40 +162,35 @@ int nocterm_mouse_controller(nocterm_key_t* key){
             }
         }
 
-        if(current_mouse_widget->owner->key_handler){
-            current_mouse_widget->owner->key_handler(current_mouse_widget->owner, &crafted_key);
+        if(current_mouse_widget->owner){
+            current_page->focused_widget = current_mouse_widget->owner;
         }
-
-        current_page->focused_widget = current_mouse_widget->owner;
-
         return NOCTERM_SUCCESS;
     }
 
 
     // Multi shot event
     if(mouse_progress_state == 0){
-        if(current_mouse_event.button == NOCTERM_MOUSE_BUTTON_RELEASE){
-            previous_mouse_widget = NULL;
-            previous_mouse_event = (nocterm_mouse_event_t){0};            
-            return NOCTERM_FAILURE;
-        }
 
-        previous_mouse_widget = current_mouse_widget;
-        previous_mouse_event = current_mouse_event;
-        mouse_progress_state++;
+        switch(current_mouse_event.button){
+            case NOCTERM_MOUSE_BUTTON_LMB:
+            case NOCTERM_MOUSE_BUTTON_RMB:
+            case NOCTERM_MOUSE_BUTTON_MMB:{
+                previous_mouse_widget = current_mouse_widget;
+                previous_mouse_event = current_mouse_event;
+                mouse_progress_state = 1;
+            }break;
+
+            default:
+        }
 
     }else{
-        if(current_mouse_event.button != NOCTERM_MOUSE_BUTTON_RELEASE){
-            previous_mouse_widget = current_mouse_widget;
-            previous_mouse_event = current_mouse_event;
-            return NOCTERM_SUCCESS;
-        }
 
         if(previous_mouse_widget->owner == current_mouse_widget->owner){
             // We cliked on the same thing
 
             // Let's see whether there is a motion
-            if(previous_mouse_event.row == current_mouse_event.row && previous_mouse_event.col == current_mouse_event.col){
+            if(previous_mouse_event.row == current_mouse_event.row && previous_mouse_event.col == current_mouse_event.col && current_mouse_event.button == NOCTERM_MOUSE_BUTTON_RELEASE && previous_mouse_event.button != NOCTERM_MOUSE_BUTTON_MOVE){
                 // Simple click
 
                 // FOCUS_ENTER & FOCUS_LEAVE
@@ -211,41 +238,34 @@ int nocterm_mouse_controller(nocterm_key_t* key){
                     current_page->focused_widget = NULL;
                 }
 
-            }else{
+                mouse_progress_state = 0;
+                previous_mouse_event = (nocterm_mouse_event_t){0};
+                previous_mouse_widget = NULL;
+            }else if(current_mouse_event.button == NOCTERM_MOUSE_BUTTON_MOVE){
                 // There is motion
-                // We have to check the direction and magnitude of the 2 dimensional motion
+                // We have to check the direction of the 2 dimensional motion
 
                 // If the widget that the drag operation is performed on is not already focused,
                 // discard the operation
 
                 if(current_page->focused_widget->owner == current_mouse_widget->owner){
 
-                    nocterm_dimension_size_t vertical_magnitude = 0;
-                    nocterm_dimension_size_t horizontal_magnitude = 0;
-
                     if(previous_mouse_event.row != current_mouse_event.row){
                         // There is vertical movement
                         if(current_mouse_event.row < previous_mouse_event.row){
                             // Downwards motion
-                            vertical_magnitude =  previous_mouse_event.row - current_mouse_event.row;
                             memcpy(crafted_key.buffer, "\e\x5B\x42", 3);
                             crafted_key.buffer_length = 3;
                             crafted_key.type = NOCTERM_KEY_TYPE_ESCSEQ;                              
                         }else{
                             // Upwards motion
-                            vertical_magnitude = current_mouse_event.row - previous_mouse_event.row;
                             memcpy(crafted_key.buffer, "\e\x5B\x41", 3);
                             crafted_key.buffer_length = 3;
                             crafted_key.type = NOCTERM_KEY_TYPE_ESCSEQ;  
                         }
                         
-                        
-                        nocterm_dimension_size_t squared_vertical_magnitude = (nocterm_dimension_size_t)sqrt(vertical_magnitude);
-
                         if(current_mouse_widget->owner->key_handler){
-                            for(nocterm_dimension_size_t i = 0; i < squared_vertical_magnitude; i++){
-                                current_mouse_widget->owner->key_handler(current_mouse_widget->owner, &crafted_key);
-                            }
+                            current_mouse_widget->owner->key_handler(current_mouse_widget->owner, &crafted_key);
                         }
                     }
 
@@ -253,40 +273,40 @@ int nocterm_mouse_controller(nocterm_key_t* key){
                         // There is horizontal movement
                         if(current_mouse_event.col < previous_mouse_event.col){
                             // Rightwards motion
-                            horizontal_magnitude =  previous_mouse_event.col - current_mouse_event.col;
                             memcpy(crafted_key.buffer, "\e\x5B\x43", 3);
                             crafted_key.buffer_length = 3;
                             crafted_key.type = NOCTERM_KEY_TYPE_ESCSEQ;                              
                         }else{
                             // Leftwards motion
-                            horizontal_magnitude = current_mouse_event.col - previous_mouse_event.col;
                             memcpy(crafted_key.buffer, "\e\x5B\x44", 3);
                             crafted_key.buffer_length = 3;
                             crafted_key.type = NOCTERM_KEY_TYPE_ESCSEQ;  
                         }
 
-                        nocterm_dimension_size_t squared_horizontal_magnitude = (nocterm_dimension_size_t)sqrt(horizontal_magnitude);
                         if(current_mouse_widget->owner->key_handler){
-                            for(nocterm_dimension_size_t i = 0; i < squared_horizontal_magnitude; i++){
-                                current_mouse_widget->owner->key_handler(current_mouse_widget->owner, &crafted_key);
-                            }
+                            current_mouse_widget->owner->key_handler(current_mouse_widget->owner, &crafted_key);
                         }
                     }
 
                 }
-                // Discard operation
-            }
 
-            mouse_progress_state = 0;
+                previous_mouse_event = current_mouse_event;
+
+                // Discard operation
+            }else if(current_mouse_event.button == NOCTERM_MOUSE_BUTTON_RELEASE){
+                mouse_progress_state = 0; 
+                previous_mouse_event = (nocterm_mouse_event_t){0};
+                previous_mouse_widget = NULL;                  
+            }
 
         }else{
             // Operation discarded
             mouse_progress_state = 0;
-            return NOCTERM_SUCCESS;
+            previous_mouse_event = (nocterm_mouse_event_t){0};
+            previous_mouse_widget = NULL;            
         }
         
     }
-
 
     return NOCTERM_SUCCESS;
 }
