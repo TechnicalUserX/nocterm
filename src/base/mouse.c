@@ -174,8 +174,7 @@ int nocterm_mouse_controller(nocterm_key_t* key){
 
         switch(current_mouse_event.button){
             case NOCTERM_MOUSE_BUTTON_LMB:
-            case NOCTERM_MOUSE_BUTTON_RMB:
-            case NOCTERM_MOUSE_BUTTON_MMB:{
+            case NOCTERM_MOUSE_BUTTON_RMB:{
                 previous_mouse_widget = current_mouse_widget;
                 previous_mouse_event = current_mouse_event;
                 mouse_progress_state = 1;
@@ -218,17 +217,6 @@ int nocterm_mouse_controller(nocterm_key_t* key){
                         }
 
                     }
-
-                }else if(previous_mouse_event.button == NOCTERM_MOUSE_BUTTON_MMB){
-                    
-                    if(current_mouse_widget->owner->key_handler){
-
-                        memcpy(crafted_key.buffer, "\n", 1);
-                        crafted_key.buffer_length = 1;
-                        crafted_key.type = NOCTERM_KEY_TYPE_CONTROL;   
-                        
-                        current_mouse_widget->owner->key_handler(current_mouse_widget->owner, &crafted_key);
-                    } 
 
                 }
 

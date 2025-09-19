@@ -1,6 +1,6 @@
 #include <nocterm/widgets/menu.h>
 
-nocterm_menu_t* nocterm_menu_new(nocterm_dimension_size_t row, nocterm_dimension_size_t col, nocterm_attribute_t selection, nocterm_dimension_size_t items_displayed, uint64_t items_total, nocterm_dimension_size_t item_width, nocterm_menu_onselect_handler_t onselect_handler, void* user_data){
+nocterm_menu_t* nocterm_menu_new(nocterm_dimension_size_t items_displayed, uint64_t items_total, nocterm_dimension_size_t item_width, nocterm_menu_onselect_handler_t onselect_handler, void* user_data){
     nocterm_menu_t* new_menu = (nocterm_menu_t*)malloc(sizeof(nocterm_menu_t));
 
     if(new_menu == NULL){
@@ -8,7 +8,7 @@ nocterm_menu_t* nocterm_menu_new(nocterm_dimension_size_t row, nocterm_dimension
     }
     memset(new_menu, 0x0, sizeof(nocterm_menu_t));
 
-    if(nocterm_menu_constructor(new_menu,row, col, selection, items_displayed, items_total, item_width, onselect_handler, user_data) == NOCTERM_FAILURE){
+    if(nocterm_menu_constructor(new_menu, items_displayed, items_total, item_width, onselect_handler, user_data) == NOCTERM_FAILURE){
         free(new_menu);
         return NULL;
     }
@@ -16,14 +16,14 @@ nocterm_menu_t* nocterm_menu_new(nocterm_dimension_size_t row, nocterm_dimension
     return new_menu;
 }
 
-int nocterm_menu_constructor(nocterm_menu_t* menu, nocterm_dimension_size_t row, nocterm_dimension_size_t col, nocterm_attribute_t selection, nocterm_dimension_size_t items_displayed, uint64_t items_total, nocterm_dimension_size_t item_width, nocterm_menu_onselect_handler_t onselect_handler, void* user_data){
+int nocterm_menu_constructor(nocterm_menu_t* menu, nocterm_dimension_size_t items_displayed, uint64_t items_total, nocterm_dimension_size_t item_width, nocterm_menu_onselect_handler_t onselect_handler, void* user_data){
 
     if(menu == NULL){
         errno = EINVAL;
         return NOCTERM_FAILURE;
     }
 
-    if(nocterm_widget_constructor(NOCTERM_WIDGET(menu), (nocterm_dimension_t){row, col, items_total, item_width}, true, false) == NOCTERM_FAILURE){
+    if(nocterm_widget_constructor(NOCTERM_WIDGET(menu), items_total, item_width, true, false) == NOCTERM_FAILURE){
         return NOCTERM_FAILURE;
     }
 
@@ -36,7 +36,8 @@ int nocterm_menu_constructor(nocterm_menu_t* menu, nocterm_dimension_size_t row,
 
     menu->current_item = 0;
     menu->selection_position = 0;
-    menu->attribute_selection = selection;
+    menu->selection_attribute = NOCTERM_ATTRIBUTE_EMPTY;
+    menu->selection_attribute.inverse = true;
     menu->onselect_handler = onselect_handler;
     menu->user_data = user_data;
 
@@ -195,6 +196,28 @@ int nocterm_menu_get_selection(nocterm_menu_t* menu, uint64_t* selection){
     return NOCTERM_SUCCESS;
 }
 
+int nocterm_menu_set_selection_attribute(nocterm_menu_t* menu, nocterm_attribute_t attribute){
+
+    if(menu == NULL){
+        errno = EINVAL;
+        return NOCTERM_FAILURE;
+    }
+
+    pthread_mutex_lock(&NOCTERM_WIDGET(menu)->lock);
+
+    menu->selection_attribute = attribute;
+
+    if(nocterm_widget_is_focused(NOCTERM_WIDGET(menu))){
+        for(uint64_t i = 0; i < menu->item_array->items[menu->current_item].content_length && i < NOCTERM_WIDGET(menu)->bounds.width; i++){
+            nocterm_widget_update(NOCTERM_WIDGET(menu), menu->current_item, i, menu->item_array->items[menu->current_item].content[i].character , attribute);
+        }     
+    }
+
+    pthread_mutex_unlock(&NOCTERM_WIDGET(menu)->lock);
+
+    return NOCTERM_SUCCESS;
+}
+
 int nocterm_menu_selection_move_up(nocterm_menu_t* menu){
 
     if(menu == NULL){
@@ -219,7 +242,7 @@ int nocterm_menu_selection_move_up(nocterm_menu_t* menu){
             nocterm_widget_update(NOCTERM_WIDGET(menu), menu->current_item, i, menu->item_array->items[menu->current_item].content[i].character , menu->item_array->items[menu->current_item].content[i].attribute);
         }
         for(uint64_t i = 0; i < menu->item_array->items[menu->current_item-1].content_length && i < NOCTERM_WIDGET(menu)->bounds.width; i++){
-            nocterm_widget_update(NOCTERM_WIDGET(menu), menu->current_item-1, i, menu->item_array->items[menu->current_item-1].content[i].character , menu->attribute_selection);
+            nocterm_widget_update(NOCTERM_WIDGET(menu), menu->current_item-1, i, menu->item_array->items[menu->current_item-1].content[i].character , menu->selection_attribute);
         }
 
         menu->selection_position--;
@@ -232,7 +255,7 @@ int nocterm_menu_selection_move_up(nocterm_menu_t* menu){
                 nocterm_widget_update(NOCTERM_WIDGET(menu), menu->current_item, i, menu->item_array->items[menu->current_item].content[i].character , menu->item_array->items[menu->current_item].content[i].attribute);
             }
             for(uint64_t i = 0; i < menu->item_array->items[menu->current_item-1].content_length && i < NOCTERM_WIDGET(menu)->bounds.width; i++){
-                nocterm_widget_update(NOCTERM_WIDGET(menu), menu->current_item-1, i, menu->item_array->items[menu->current_item-1].content[i].character , menu->attribute_selection);
+                nocterm_widget_update(NOCTERM_WIDGET(menu), menu->current_item-1, i, menu->item_array->items[menu->current_item-1].content[i].character , menu->selection_attribute);
             }
             menu->current_item--;
             nocterm_widget_viewport_up(NOCTERM_WIDGET(menu));
@@ -262,7 +285,7 @@ int nocterm_menu_selection_move_down(nocterm_menu_t* menu){
             nocterm_widget_update(NOCTERM_WIDGET(menu), menu->current_item, i, menu->item_array->items[menu->current_item].content[i].character , menu->item_array->items[menu->current_item].content[i].attribute);
         }
         for(uint64_t i = 0; i < menu->item_array->items[menu->current_item+1].content_length && i < NOCTERM_WIDGET(menu)->bounds.width; i++){
-            nocterm_widget_update(NOCTERM_WIDGET(menu), menu->current_item+1, i, menu->item_array->items[menu->current_item+1].content[i].character , menu->attribute_selection);
+            nocterm_widget_update(NOCTERM_WIDGET(menu), menu->current_item+1, i, menu->item_array->items[menu->current_item+1].content[i].character , menu->selection_attribute);
         }
 
         if(menu->selection_position == NOCTERM_WIDGET(menu)->viewport.height - 1){
@@ -292,7 +315,7 @@ int nocterm_menu_selection_move_top(nocterm_menu_t* menu){
         nocterm_widget_update(NOCTERM_WIDGET(menu), menu->current_item, i, menu->item_array->items[menu->current_item].content[i].character , menu->item_array->items[menu->current_item].content[i].attribute);
     }
     for(uint64_t i = 0; i < menu->item_array->items[0].content_length && i < NOCTERM_WIDGET(menu)->bounds.width; i++){
-        nocterm_widget_update(NOCTERM_WIDGET(menu), 0, i, menu->item_array->items[0].content[i].character , menu->attribute_selection);
+        nocterm_widget_update(NOCTERM_WIDGET(menu), 0, i, menu->item_array->items[0].content[i].character , menu->selection_attribute);
     }
     
     menu->current_item = 0;
@@ -318,14 +341,14 @@ int nocterm_menu_selection_move_bottom(nocterm_menu_t* menu){
         nocterm_widget_update(NOCTERM_WIDGET(menu), menu->current_item, i, menu->item_array->items[menu->current_item].content[i].character , menu->item_array->items[menu->current_item].content[i].attribute);
     }
     for(uint64_t i = 0; i < menu->item_array->items[menu->item_array->size-1].content_length && i < NOCTERM_WIDGET(menu)->bounds.width; i++){
-        nocterm_widget_update(NOCTERM_WIDGET(menu), menu->item_array->size-1, i, menu->item_array->items[menu->item_array->size-1].content[i].character , menu->attribute_selection);
+        nocterm_widget_update(NOCTERM_WIDGET(menu), menu->item_array->size-1, i, menu->item_array->items[menu->item_array->size-1].content[i].character , menu->selection_attribute);
     }
 
     if(menu->item_array->size > NOCTERM_WIDGET(menu)->viewport.height){
         // There are items more than the viewport height
         // So the last item is OK but we need to find the viewport
 
-        nocterm_widget_viewport(NOCTERM_WIDGET(menu), (nocterm_dimension_t){menu->item_array->size -  NOCTERM_WIDGET(menu)->viewport.height, 0, NOCTERM_WIDGET(menu)->viewport.height, NOCTERM_WIDGET(menu)->viewport.width});
+        nocterm_widget_viewport(NOCTERM_WIDGET(menu), (nocterm_dimension_t){menu->item_array->size - NOCTERM_WIDGET(menu)->viewport.height, 0, NOCTERM_WIDGET(menu)->viewport.height, NOCTERM_WIDGET(menu)->viewport.width});
         menu->selection_position = NOCTERM_WIDGET(menu)->viewport.height-1;
         menu->current_item = menu->item_array->size-1;
     }else{
@@ -384,7 +407,7 @@ NOCTERM_WIDGET_FOCUS_HANDLER(nocterm_menu_focus_handler){
 
         case NOCTERM_WIDGET_FOCUS_ENTER:{
                 for(uint64_t i = 0; i < NOCTERM_MENU(self)->item_array->items[NOCTERM_MENU(self)->current_item].content_length && i < self->bounds.width; i++){
-                    nocterm_widget_update(self, NOCTERM_MENU(self)->current_item, i, NOCTERM_MENU(self)->item_array->items[NOCTERM_MENU(self)->current_item].content[i].character , NOCTERM_MENU(self)->attribute_selection);
+                    nocterm_widget_update(self, NOCTERM_MENU(self)->current_item, i, NOCTERM_MENU(self)->item_array->items[NOCTERM_MENU(self)->current_item].content[i].character , NOCTERM_MENU(self)->selection_attribute);
                 }
         }break;
 

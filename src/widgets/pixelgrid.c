@@ -1,6 +1,6 @@
 #include <nocterm/widgets/pixelgrid.h>
 
-nocterm_pixelgrid_t *nocterm_pixelgrid_new(nocterm_dimension_size_t row, nocterm_dimension_size_t col, uint32_t pixel_height, uint16_t pixel_width){
+nocterm_pixelgrid_t *nocterm_pixelgrid_new(uint32_t pixel_height, uint16_t pixel_width){
 
     nocterm_pixelgrid_t *new_pixelgrid = (nocterm_pixelgrid_t *)malloc(sizeof(nocterm_pixelgrid_t));
 
@@ -10,7 +10,7 @@ nocterm_pixelgrid_t *nocterm_pixelgrid_new(nocterm_dimension_size_t row, nocterm
 
     memset(new_pixelgrid, 0x0, sizeof(nocterm_pixelgrid_t));
 
-    if(nocterm_pixelgrid_constructor(new_pixelgrid, row, col, pixel_height, pixel_width) == NOCTERM_FAILURE){
+    if(nocterm_pixelgrid_constructor(new_pixelgrid, pixel_height, pixel_width) == NOCTERM_FAILURE){
         free(new_pixelgrid);
         return NULL;
     }
@@ -18,7 +18,7 @@ nocterm_pixelgrid_t *nocterm_pixelgrid_new(nocterm_dimension_size_t row, nocterm
     return new_pixelgrid;
 }
 
-int nocterm_pixelgrid_constructor(nocterm_pixelgrid_t *pixelgrid, nocterm_dimension_size_t row, nocterm_dimension_size_t col, uint32_t pixel_height, uint16_t pixel_width){
+int nocterm_pixelgrid_constructor(nocterm_pixelgrid_t *pixelgrid, uint32_t pixel_height, uint16_t pixel_width){
 
     if(pixelgrid == NULL){
         errno = EINVAL;
@@ -41,7 +41,7 @@ int nocterm_pixelgrid_constructor(nocterm_pixelgrid_t *pixelgrid, nocterm_dimens
     pixelgrid->cell_height = cell_height;
     pixelgrid->cell_width = cell_width;
 
-    if(nocterm_widget_constructor(NOCTERM_WIDGET(pixelgrid), (nocterm_dimension_t){row, col, cell_height, cell_width}, NOCTERM_WIDGET_FOCUSABLE_NO, NOCTERM_WIDGET_TYPE_REAL) == NOCTERM_FAILURE){
+    if(nocterm_widget_constructor(NOCTERM_WIDGET(pixelgrid), cell_height, cell_width, NOCTERM_WIDGET_FOCUSABLE_NO, NOCTERM_WIDGET_TYPE_REAL) == NOCTERM_FAILURE){
         return NOCTERM_FAILURE;
     }
 

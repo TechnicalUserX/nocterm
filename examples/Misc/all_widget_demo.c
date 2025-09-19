@@ -36,35 +36,6 @@ NOCTERM_CHECKBOX_ONCHECK_HANDLER(make_menu_visible_handler){
     
 }
 
-void* runner(void* arg){
-    while(1){
-
-        static int state = 0;
-
-        switch(state){
-            case 0:{
-                nocterm_widget_align_top(NOCTERM_WIDGET(arg),0);
-            }break;
-
-            case 1:{
-                nocterm_widget_align_right(NOCTERM_WIDGET(arg),0);
-            }break;
-
-            case 2:{
-                nocterm_widget_align_bottom(NOCTERM_WIDGET(arg),0);
-            }break;
-
-
-            case 3:{
-                nocterm_widget_align_left(NOCTERM_WIDGET(arg),0);
-            }break;
-        }
-
-        
-        state = (state + 1) % 4;
-        sleep(1);
-    }
-}
 
 NOCTERM_MENU_ONSELECT_HANDLER(menu_select_handler){
 
@@ -121,20 +92,38 @@ NOCTERM_TIMER_CALLBACK(levelbar_timer_callback){
     }
 }
 
+NOCTERM_TIMER_CALLBACK(menu_colorful_selection){
+    static int color = 0;
+
+    nocterm_attribute_t attr = {
+        .color.ansi.fg = true,
+        .color.ansi.codes.fg = color
+    };
+
+    nocterm_menu_set_selection_attribute(NOCTERM_MENU(widget), attr);
+
+    color = color == 7 ? 0 : color + 1;
+}
+
 int main(){
+
+    setlocale(LC_ALL, "en_US.UTF-8");
 
     nocterm_decorbox_border_shape_t generic_widget_border_shape = nocterm_decorbox_border_shape(NOCTERM_DECORBOX_BORDER_SHAPE_TYPE_UNICODE_ROUND);
 
-    nocterm_widget_t* main_widget = nocterm_widget_new((nocterm_dimension_t){0,0, 13, 61}, NOCTERM_WIDGET_FOCUSABLE_NO, NOCTERM_WIDGET_TYPE_VIRTUAL);
-    nocterm_decorbox_t* main_widget_decorbox = nocterm_decorbox_new(1,1, main_widget);
+    nocterm_widget_t* main_widget = nocterm_widget_new(13, 61, NOCTERM_WIDGET_FOCUSABLE_NO, NOCTERM_WIDGET_TYPE_VIRTUAL);
+    nocterm_decorbox_t* main_widget_decorbox = nocterm_decorbox_new(main_widget);
+    nocterm_widget_set_position(NOCTERM_WIDGET(main_widget_decorbox), 1, 1);
     nocterm_decorbox_set_border(main_widget_decorbox, generic_widget_border_shape, generic_widget_attribute_normal, generic_widget_attribute_focused);
 
-    nocterm_textview_t* textview = nocterm_textview_new((nocterm_dimension_t){0,0, 8, 20}, NOCTERM_ATTRIBUTE_EMPTY);
-    nocterm_decorbox_t* textview_decorbox = nocterm_decorbox_new(0, 38, NOCTERM_WIDGET(textview));
+
+    nocterm_textview_t* textview = nocterm_textview_new(8, 20);
+    nocterm_decorbox_t* textview_decorbox = nocterm_decorbox_new(NOCTERM_WIDGET(textview));
+    nocterm_widget_set_position(NOCTERM_WIDGET(textview_decorbox), 0, 38);
     nocterm_decorbox_set_border(textview_decorbox, generic_widget_border_shape, generic_widget_attribute_normal, generic_widget_attribute_focused); 
 
     // Menu
-    nocterm_menu_t* menu = nocterm_menu_new(1,5, generic_widget_attribute_focused, 3, 10, 16, menu_select_handler, textview);
+    nocterm_menu_t* menu = nocterm_menu_new(3, 10, 16, menu_select_handler, textview);
     nocterm_menu_item_t menu_items[5] = {0};
     nocterm_menu_item_constructor(&menu_items[0], "Item 1", 7, NOCTERM_ATTRIBUTE_EMPTY);
     nocterm_menu_item_constructor(&menu_items[1], "Item 2", 7, NOCTERM_ATTRIBUTE_EMPTY);
@@ -142,25 +131,29 @@ int main(){
     nocterm_menu_item_constructor(&menu_items[3], "Item 4", 7, NOCTERM_ATTRIBUTE_EMPTY);
     nocterm_menu_item_constructor(&menu_items[4], "Item 5", 7, NOCTERM_ATTRIBUTE_EMPTY);
     nocterm_menu_add_item_multiple(menu, menu_items, 5);
-    nocterm_decorbox_t* menu_decorbox = nocterm_decorbox_new(5,1, NOCTERM_WIDGET(menu));
+    nocterm_decorbox_t* menu_decorbox = nocterm_decorbox_new(NOCTERM_WIDGET(menu));
+    nocterm_widget_set_position(NOCTERM_WIDGET(menu_decorbox), 5,1);
     nocterm_decorbox_set_border(menu_decorbox, generic_widget_border_shape, generic_widget_attribute_normal, generic_widget_attribute_focused);
 
-    pthread_t t;
-    // pthread_create(&t, NULL, runner, main_widget_decorbox);
+    nocterm_timer_t* menu_selection_timer = nocterm_timer_create(NOCTERM_WIDGET(menu), 500, menu_colorful_selection, NULL);
+    nocterm_timer_start(menu_selection_timer);
 
     // Checkbox that enables menu
-    nocterm_checkbox_t* make_menu_visible = nocterm_checkbox_new(1,1, make_menu_visible_handler, false, menu_decorbox);
+    nocterm_checkbox_t* make_menu_visible = nocterm_checkbox_new(make_menu_visible_handler, false, menu_decorbox);
+    nocterm_widget_set_position(NOCTERM_WIDGET(make_menu_visible), 1, 1);
 
+    nocterm_entry_t* entry = nocterm_entry_new(16);
 
-    nocterm_entry_t* entry = nocterm_entry_new(0, 0, 16);
-    nocterm_decorbox_t* entry_decorbox = nocterm_decorbox_new(2, 1, NOCTERM_WIDGET(entry));
+    nocterm_decorbox_t* entry_decorbox = nocterm_decorbox_new(NOCTERM_WIDGET(entry));
+    nocterm_widget_set_position(NOCTERM_WIDGET(entry_decorbox), 2,1);
     nocterm_decorbox_set_border(entry_decorbox, generic_widget_border_shape, generic_widget_attribute_normal, generic_widget_attribute_focused); 
     
-    nocterm_label_t* enable_menu_label = nocterm_label_new(1,5, "Show/Hide Menu", 15);
+    nocterm_label_t* enable_menu_label = nocterm_label_new("Show/Hide Menu", 15);
+    nocterm_widget_set_position(NOCTERM_WIDGET(enable_menu_label), 1, 5);
 
-
-    nocterm_listview_t* item_list = nocterm_listview_new(0, 0, 3, 20, 16);
-    nocterm_decorbox_t* item_list_decorbox = nocterm_decorbox_new(5,20, NOCTERM_WIDGET(item_list));
+    nocterm_listview_t* item_list = nocterm_listview_new(3, 20, 16);
+    nocterm_decorbox_t* item_list_decorbox = nocterm_decorbox_new(NOCTERM_WIDGET(item_list));
+    nocterm_widget_set_position(NOCTERM_WIDGET(item_list_decorbox), 5, 20);
     nocterm_decorbox_set_border(item_list_decorbox, generic_widget_border_shape, generic_widget_attribute_normal, generic_widget_attribute_focused); 
 
 
@@ -168,13 +161,15 @@ int main(){
     add_item_handler_arg->entry = entry;
     add_item_handler_arg->listview = item_list;
 
-    nocterm_button_t* add_items_to_list = nocterm_button_new(0, 0, "Add Item", 9, add_item_handler, add_item_handler_arg);
-    nocterm_decorbox_t* add_items_to_list_decorbox = nocterm_decorbox_new(2, 20, NOCTERM_WIDGET(add_items_to_list));
+    nocterm_button_t* add_items_to_list = nocterm_button_new("Add Item", 9, add_item_handler, add_item_handler_arg);
+    nocterm_decorbox_t* add_items_to_list_decorbox = nocterm_decorbox_new(NOCTERM_WIDGET(add_items_to_list));
+    nocterm_widget_set_position(NOCTERM_WIDGET(add_items_to_list_decorbox), 2, 20);
     nocterm_decorbox_set_border(add_items_to_list_decorbox, generic_widget_border_shape, generic_widget_attribute_normal, generic_widget_attribute_focused); 
 
 
-    nocterm_pixelgrid_t* pixelgrid = nocterm_pixelgrid_new(0, 0, 6, 6);
-    nocterm_decorbox_t* pixelgrid_decorbox = nocterm_decorbox_new(0, 30, NOCTERM_WIDGET(pixelgrid));
+    nocterm_pixelgrid_t* pixelgrid = nocterm_pixelgrid_new(6, 6);
+    nocterm_decorbox_t* pixelgrid_decorbox = nocterm_decorbox_new(NOCTERM_WIDGET(pixelgrid));
+    nocterm_widget_set_position(NOCTERM_WIDGET(pixelgrid_decorbox), 0, 30);
     nocterm_decorbox_set_border(pixelgrid_decorbox, generic_widget_border_shape, generic_widget_attribute_normal, generic_widget_attribute_focused); 
 
     for(uint16_t i = 0; i < 10; i++){
@@ -183,10 +178,13 @@ int main(){
         }
     }
 
-    nocterm_loadingbar_t* loadingbar = nocterm_loadingbar_new(1,24,200);
+    nocterm_loadingbar_t* loadingbar = nocterm_loadingbar_new(200);
+    nocterm_widget_set_position(NOCTERM_WIDGET(loadingbar), 1, 24);
 
-    nocterm_levelbar_t* levelbar = nocterm_levelbar_new(0,0,57,0,100,NOCTERM_LEVELBAR_TYPE_HORIZONTAL, false);
-    nocterm_decorbox_t* levelbar_decorbox = nocterm_decorbox_new(10,1,NOCTERM_WIDGET(levelbar));
+    nocterm_levelbar_t* levelbar = nocterm_levelbar_new(57,0,100,NOCTERM_LEVELBAR_TYPE_HORIZONTAL, false);
+    nocterm_decorbox_t* levelbar_decorbox = nocterm_decorbox_new(NOCTERM_WIDGET(levelbar));
+    nocterm_widget_set_position(NOCTERM_WIDGET(levelbar_decorbox), 10, 1);
+
     nocterm_decorbox_set_border(levelbar_decorbox, generic_widget_border_shape, generic_widget_attribute_normal, generic_widget_attribute_focused); 
 
     nocterm_timer_t* levelbar_timer = nocterm_timer_create(NOCTERM_WIDGET(levelbar), 20, levelbar_timer_callback, NULL);

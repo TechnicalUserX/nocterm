@@ -2,7 +2,7 @@
 
 nocterm_widget_t* nocterm_widget_focused = NULL;
 
-nocterm_widget_t* nocterm_widget_new(nocterm_dimension_t bounds, nocterm_widget_focusable_t focusable, nocterm_widget_type_t type){
+nocterm_widget_t* nocterm_widget_new(nocterm_dimension_size_t height, nocterm_dimension_size_t width, nocterm_widget_focusable_t focusable, nocterm_widget_type_t type){
 
     nocterm_widget_t* new_widget = (nocterm_widget_t*)malloc(sizeof(nocterm_widget_t));
 
@@ -13,7 +13,7 @@ nocterm_widget_t* nocterm_widget_new(nocterm_dimension_t bounds, nocterm_widget_
     
     memset(new_widget, 0x0, sizeof(nocterm_widget_t));
 
-    if(nocterm_widget_constructor(new_widget, bounds, focusable, type) == NOCTERM_FAILURE){
+    if(nocterm_widget_constructor(new_widget, height, width, focusable, type) == NOCTERM_FAILURE){
         free(new_widget);
         return NULL;
     }
@@ -21,7 +21,7 @@ nocterm_widget_t* nocterm_widget_new(nocterm_dimension_t bounds, nocterm_widget_
     return new_widget;
 }
 
-int nocterm_widget_constructor(nocterm_widget_t* widget, nocterm_dimension_t bounds, nocterm_widget_focusable_t focusable, nocterm_widget_type_t type){
+int nocterm_widget_constructor(nocterm_widget_t* widget, nocterm_dimension_size_t height, nocterm_dimension_size_t width, nocterm_widget_focusable_t focusable, nocterm_widget_type_t type){
     // Do not call this function directly, instead call nocterm_widget_new
 
     if(widget == NULL){
@@ -35,17 +35,17 @@ int nocterm_widget_constructor(nocterm_widget_t* widget, nocterm_dimension_t bou
 
     widget->owner = widget;
 
-    widget->bounds.row = bounds.row;
-    widget->bounds.col = bounds.col;
+    widget->bounds.row = 0;
+    widget->bounds.col = 0;
     widget->viewport.row = 0;
     widget->viewport.col = 0;
 
-    if(bounds.width*bounds.height > 0){
+    if(width*height > 0){
         // It has an area in the terminal space
-        widget->bounds.width = bounds.width;
-        widget->bounds.height = bounds.height;
-        widget->viewport.width = bounds.width;
-        widget->viewport.height = bounds.height;
+        widget->bounds.width = width;
+        widget->bounds.height = height;
+        widget->viewport.width = width;
+        widget->viewport.height = height;
     }else{
         // It has no area at all
         widget->bounds.width = 0;
@@ -71,7 +71,7 @@ int nocterm_widget_constructor(nocterm_widget_t* widget, nocterm_dimension_t bou
         widget->is_virtual = false;
     }
 
-    widget->buffer_size = bounds.width*bounds.height;
+    widget->buffer_size = width*height;
 
     if(widget->buffer_size != 0 && widget->is_virtual == false){
         widget->buffer = (nocterm_widget_cell_t*)malloc(sizeof(nocterm_widget_cell_t)*widget->buffer_size);
@@ -256,7 +256,7 @@ int nocterm_widget_set_position(nocterm_widget_t* widget, nocterm_dimension_size
         nocterm_widget_enforce_root_refresh(widget);        
     }
 
-    pthread_mutex_lock(&widget->lock);
+    pthread_mutex_unlock(&widget->lock);
 
     return NOCTERM_SUCCESS;
 }
@@ -1059,9 +1059,13 @@ int nocterm_widget_resize(nocterm_widget_t* widget, nocterm_dimension_size_t hei
 }
 
 bool nocterm_widget_is_focused(nocterm_widget_t* widget){
-    if(widget == NULL || nocterm_widget_focused == NULL || widget != nocterm_widget_focused){
+    if(widget == NULL || nocterm_widget_focused == NULL){
         return false;
     }else{
-        return true;
+        if(widget->owner == nocterm_widget_focused){
+            return true;
+        }else{
+            return false;
+        }
     }
 }

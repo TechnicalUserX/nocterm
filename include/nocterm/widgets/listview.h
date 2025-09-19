@@ -59,7 +59,7 @@ typedef struct nocterm_listview_t{
  * @param item_width 
  * @return nocterm_listview_t* 
  */
-nocterm_listview_t* nocterm_listview_new(nocterm_dimension_size_t row, nocterm_dimension_size_t col, nocterm_dimension_size_t items_displayed, uint64_t items_total, nocterm_dimension_size_t item_width);
+nocterm_listview_t* nocterm_listview_new(nocterm_dimension_size_t items_displayed, uint64_t items_total, nocterm_dimension_size_t item_width);
 
 /**
  * @brief Constructs a listview widget.
@@ -72,7 +72,7 @@ nocterm_listview_t* nocterm_listview_new(nocterm_dimension_size_t row, nocterm_d
  * @param item_width 
  * @return int 
  */
-int nocterm_listview_constructor(nocterm_listview_t* listview, nocterm_dimension_size_t row, nocterm_dimension_size_t col, nocterm_dimension_size_t items_displayed, uint64_t items_total, nocterm_dimension_size_t item_width);
+int nocterm_listview_constructor(nocterm_listview_t* listview, nocterm_dimension_size_t items_displayed, uint64_t items_total, nocterm_dimension_size_t item_width);
 
 /**
  * @brief Destructs a listview widget.

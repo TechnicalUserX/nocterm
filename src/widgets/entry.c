@@ -1,6 +1,6 @@
 #include <nocterm/widgets/entry.h>
 
-nocterm_entry_t* nocterm_entry_new(nocterm_dimension_size_t row, nocterm_dimension_size_t col, nocterm_dimension_size_t width){
+nocterm_entry_t* nocterm_entry_new(nocterm_dimension_size_t width){
 
     nocterm_entry_t* new_entry = (nocterm_entry_t*)malloc(sizeof(nocterm_entry_t));
 
@@ -10,7 +10,7 @@ nocterm_entry_t* nocterm_entry_new(nocterm_dimension_size_t row, nocterm_dimensi
     
     memset(new_entry, 0x0, sizeof(nocterm_entry_t));
 
-    if(nocterm_entry_constructor(new_entry, row, col, width) == NOCTERM_FAILURE){
+    if(nocterm_entry_constructor(new_entry, width) == NOCTERM_FAILURE){
         free(new_entry);
         return NULL;
     }
@@ -18,7 +18,7 @@ nocterm_entry_t* nocterm_entry_new(nocterm_dimension_size_t row, nocterm_dimensi
     return new_entry;
 }
 
-int nocterm_entry_constructor(nocterm_entry_t* entry, nocterm_dimension_size_t row, nocterm_dimension_size_t col, nocterm_dimension_size_t width){
+int nocterm_entry_constructor(nocterm_entry_t* entry, nocterm_dimension_size_t width){
 
     if(entry == NULL){
         errno = EINVAL;
@@ -26,7 +26,7 @@ int nocterm_entry_constructor(nocterm_entry_t* entry, nocterm_dimension_size_t r
     }
 
     // Extra space for cursor
-    if(nocterm_widget_constructor(NOCTERM_WIDGET(entry),(nocterm_dimension_t){row, col, 1, NOCTERM_ENTRY_BUFFER_MAX_SIZE + 1}, true, false) == NOCTERM_FAILURE){
+    if(nocterm_widget_constructor(NOCTERM_WIDGET(entry), 1, NOCTERM_ENTRY_BUFFER_MAX_SIZE + 1, true, false) == NOCTERM_FAILURE){
         return NOCTERM_FAILURE;
     }
 

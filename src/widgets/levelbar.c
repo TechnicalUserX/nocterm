@@ -1,6 +1,6 @@
 #include <nocterm/widgets/levelbar.h>
 
-nocterm_levelbar_t* nocterm_levelbar_new(nocterm_dimension_size_t row, nocterm_dimension_size_t col, uint64_t length, uint64_t min_value, uint64_t max_value, nocterm_levelbar_type_t type, bool flip){
+nocterm_levelbar_t* nocterm_levelbar_new(uint64_t length, uint64_t min_value, uint64_t max_value, nocterm_levelbar_type_t type, bool flip){
 
     if(length == 0){
         return NULL;
@@ -14,7 +14,7 @@ nocterm_levelbar_t* nocterm_levelbar_new(nocterm_dimension_size_t row, nocterm_d
 
     memset(new_levelbar, 0x0, sizeof(nocterm_levelbar_t));
 
-    if(nocterm_levelbar_constructor(new_levelbar, row, col, length, min_value, max_value, type, flip) == NOCTERM_FAILURE){
+    if(nocterm_levelbar_constructor(new_levelbar, length, min_value, max_value, type, flip) == NOCTERM_FAILURE){
         free(new_levelbar);
         return NULL;
     }
@@ -22,7 +22,7 @@ nocterm_levelbar_t* nocterm_levelbar_new(nocterm_dimension_size_t row, nocterm_d
     return new_levelbar;    
 }
 
-int nocterm_levelbar_constructor(nocterm_levelbar_t* levelbar, nocterm_dimension_size_t row, nocterm_dimension_size_t col, uint64_t length, uint64_t min_value, uint64_t max_value, nocterm_levelbar_type_t type, bool flip){
+int nocterm_levelbar_constructor(nocterm_levelbar_t* levelbar, uint64_t length, uint64_t min_value, uint64_t max_value, nocterm_levelbar_type_t type, bool flip){
 
     if(levelbar == NULL){
         errno = EINVAL;
@@ -36,7 +36,7 @@ int nocterm_levelbar_constructor(nocterm_levelbar_t* levelbar, nocterm_dimension
     nocterm_dimension_size_t height = (type == NOCTERM_LEVELBAR_TYPE_HORIZONTAL) ? 1 : length;
     nocterm_dimension_size_t width = (type == NOCTERM_LEVELBAR_TYPE_VERTICAL) ? 1 : length;
 
-    if(nocterm_widget_constructor(NOCTERM_WIDGET(levelbar),(nocterm_dimension_t){row, col, height, width}, NOCTERM_WIDGET_FOCUSABLE_NO, NOCTERM_WIDGET_TYPE_REAL) == NOCTERM_FAILURE){
+    if(nocterm_widget_constructor(NOCTERM_WIDGET(levelbar), height, width, NOCTERM_WIDGET_FOCUSABLE_NO, NOCTERM_WIDGET_TYPE_REAL) == NOCTERM_FAILURE){
         return NOCTERM_FAILURE;
     }
 

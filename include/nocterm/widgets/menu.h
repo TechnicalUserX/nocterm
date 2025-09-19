@@ -47,7 +47,7 @@ typedef void (*nocterm_menu_onselect_handler_t)(nocterm_widget_t* self, uint16_t
 
 typedef struct nocterm_menu_t{
     nocterm_widget_t widget;
-    nocterm_attribute_t attribute_selection;
+    nocterm_attribute_t selection_attribute;
     uint16_t current_item; // Index
     uint16_t selection_position; // Fixed inside the range < viewport.height
     nocterm_menu_item_array_t* item_array;
@@ -67,7 +67,7 @@ typedef struct nocterm_menu_t{
  * @param onselect_handler 
  * @return nocterm_menu_t* 
  */
-nocterm_menu_t* nocterm_menu_new(nocterm_dimension_size_t row, nocterm_dimension_size_t col, nocterm_attribute_t selection, nocterm_dimension_size_t items_displayed, uint64_t items_total, nocterm_dimension_size_t item_width, nocterm_menu_onselect_handler_t onselect_handler, void* user_data);
+nocterm_menu_t* nocterm_menu_new(nocterm_dimension_size_t items_displayed, uint64_t items_total, nocterm_dimension_size_t item_width, nocterm_menu_onselect_handler_t onselect_handler, void* user_data);
 
 
 /**
@@ -84,7 +84,7 @@ nocterm_menu_t* nocterm_menu_new(nocterm_dimension_size_t row, nocterm_dimension
  * @param user_data 
  * @return int 
  */
-int nocterm_menu_constructor(nocterm_menu_t* menu, nocterm_dimension_size_t row, nocterm_dimension_size_t col, nocterm_attribute_t selection, nocterm_dimension_size_t items_displayed, uint64_t items_total, nocterm_dimension_size_t item_width, nocterm_menu_onselect_handler_t onselect_handler, void* user_data);
+int nocterm_menu_constructor(nocterm_menu_t* menu, nocterm_dimension_size_t items_displayed, uint64_t items_total, nocterm_dimension_size_t item_width, nocterm_menu_onselect_handler_t onselect_handler, void* user_data);
 
 /**
  * @brief Destructs a menu widget.
@@ -149,6 +149,15 @@ int nocterm_menu_clear(nocterm_menu_t* menu);
  * @return int 
  */
 int nocterm_menu_get_selection(nocterm_menu_t* menu, uint64_t* selection);
+
+/**
+ * @brief Sets selection attribute of a menu widget.
+ * 
+ * @param menu 
+ * @param attribute 
+ * @return int 
+ */
+int nocterm_menu_set_selection_attribute(nocterm_menu_t* menu, nocterm_attribute_t attribute);
 
 NOCTERM_INTERNAL
 int nocterm_menu_selection_move_up(nocterm_menu_t* menu);

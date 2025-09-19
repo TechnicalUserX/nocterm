@@ -27,7 +27,7 @@ NOCTERM_WIDGET_KEY_HANDLER(nocterm_listview_key_handler){
     }
 }
 
-nocterm_listview_t* nocterm_listview_new(nocterm_dimension_size_t row, nocterm_dimension_size_t col, nocterm_dimension_size_t items_displayed, uint64_t items_total, nocterm_dimension_size_t item_width){
+nocterm_listview_t* nocterm_listview_new(nocterm_dimension_size_t items_displayed, uint64_t items_total, nocterm_dimension_size_t item_width){
 
     nocterm_listview_t* new_listview = (nocterm_listview_t*)malloc(sizeof(nocterm_listview_t));
 
@@ -37,7 +37,7 @@ nocterm_listview_t* nocterm_listview_new(nocterm_dimension_size_t row, nocterm_d
 
     memset(new_listview, 0x0, sizeof(nocterm_listview_t));
 
-    if(nocterm_listview_constructor(new_listview, row, col, items_displayed, items_total, item_width) == NOCTERM_FAILURE){
+    if(nocterm_listview_constructor(new_listview, items_displayed, items_total, item_width) == NOCTERM_FAILURE){
         free(new_listview);
         return NULL;
     }
@@ -45,14 +45,14 @@ nocterm_listview_t* nocterm_listview_new(nocterm_dimension_size_t row, nocterm_d
     return new_listview;
 }
 
-int nocterm_listview_constructor(nocterm_listview_t* listview, nocterm_dimension_size_t row, nocterm_dimension_size_t col, nocterm_dimension_size_t items_displayed, uint64_t items_total, nocterm_dimension_size_t item_width){
+int nocterm_listview_constructor(nocterm_listview_t* listview, nocterm_dimension_size_t items_displayed, uint64_t items_total, nocterm_dimension_size_t item_width){
 
     if(listview == NULL){
         errno = EINVAL;
         return NOCTERM_FAILURE;
     }
 
-    if(nocterm_widget_constructor(NOCTERM_WIDGET(listview),(nocterm_dimension_t){row, col, items_total, item_width}, true, false) == NOCTERM_FAILURE){
+    if(nocterm_widget_constructor(NOCTERM_WIDGET(listview), items_total, item_width, true, false) == NOCTERM_FAILURE){
         return NOCTERM_FAILURE;
     }
 

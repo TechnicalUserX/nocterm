@@ -40,7 +40,7 @@ typedef struct nocterm_entry_t{
  * @param width 
  * @return nocterm_entry_t* 
  */
-nocterm_entry_t* nocterm_entry_new(nocterm_dimension_size_t row, nocterm_dimension_size_t col, nocterm_dimension_size_t width);
+nocterm_entry_t* nocterm_entry_new(nocterm_dimension_size_t width);
 
 /**
  * @brief Constructs an entry widget.
@@ -50,7 +50,7 @@ nocterm_entry_t* nocterm_entry_new(nocterm_dimension_size_t row, nocterm_dimensi
  * @param width 
  * @return int 
  */
-int nocterm_entry_constructor(nocterm_entry_t* entry, nocterm_dimension_size_t row, nocterm_dimension_size_t col, nocterm_dimension_size_t width);
+int nocterm_entry_constructor(nocterm_entry_t* entry, nocterm_dimension_size_t width);
 
 /**
  * @brief Destructs an entry widget.

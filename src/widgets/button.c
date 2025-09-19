@@ -1,6 +1,6 @@
 #include <nocterm/widgets/button.h>
 
-nocterm_button_t* nocterm_button_new(nocterm_dimension_size_t row, nocterm_dimension_size_t col, const char* text, uint64_t text_size, nocterm_button_onpress_handler_t onpress_handler, void* user_data){
+nocterm_button_t* nocterm_button_new(const char* text, uint64_t text_size, nocterm_button_onpress_handler_t onpress_handler, void* user_data){
 
     if(text == NULL || text_size == 0){
         return NULL;
@@ -14,7 +14,7 @@ nocterm_button_t* nocterm_button_new(nocterm_dimension_size_t row, nocterm_dimen
 
     memset(new_button, 0x0, sizeof(nocterm_button_t));
 
-    if(nocterm_button_constructor(new_button, row, col, text, text_size, onpress_handler, user_data) == NOCTERM_FAILURE){
+    if(nocterm_button_constructor(new_button, text, text_size, onpress_handler, user_data) == NOCTERM_FAILURE){
         free(new_button);
         return NULL;
     }
@@ -22,7 +22,7 @@ nocterm_button_t* nocterm_button_new(nocterm_dimension_size_t row, nocterm_dimen
     return new_button;
 }
 
-int nocterm_button_constructor(nocterm_button_t* button, nocterm_dimension_size_t row, nocterm_dimension_size_t col, const char* text, uint64_t text_size, nocterm_button_onpress_handler_t onpress_handler, void* user_data){
+int nocterm_button_constructor(nocterm_button_t* button, const char* text, uint64_t text_size, nocterm_button_onpress_handler_t onpress_handler, void* user_data){
 
     if(button == NULL){
         errno = EINVAL;
@@ -37,7 +37,7 @@ int nocterm_button_constructor(nocterm_button_t* button, nocterm_dimension_size_
         return NOCTERM_FAILURE;
     }
     
-    if(nocterm_widget_constructor(NOCTERM_WIDGET(button), (nocterm_dimension_t){row, col, 1, button_string_length}, true, false) == NOCTERM_FAILURE){
+    if(nocterm_widget_constructor(NOCTERM_WIDGET(button), 1, button_string_length, true, false) == NOCTERM_FAILURE){
         return NOCTERM_FAILURE;
     }
 

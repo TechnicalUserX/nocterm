@@ -1,6 +1,6 @@
 #include <nocterm/widgets/textview.h>
 
-nocterm_textview_t* nocterm_textview_new(nocterm_dimension_t bounds, nocterm_attribute_t attribute){
+nocterm_textview_t* nocterm_textview_new(nocterm_dimension_size_t height, nocterm_dimension_size_t width){
 
     nocterm_textview_t* new_textview = (nocterm_textview_t*)malloc(sizeof(nocterm_textview_t));
 
@@ -10,7 +10,7 @@ nocterm_textview_t* nocterm_textview_new(nocterm_dimension_t bounds, nocterm_att
 
     memset(new_textview, 0x0, sizeof(nocterm_textview_t));
 
-    if(nocterm_textview_constructor(new_textview, bounds, attribute) == NOCTERM_FAILURE){
+    if(nocterm_textview_constructor(new_textview, height, width) == NOCTERM_FAILURE){
         free(new_textview);
         return NULL;
     }
@@ -18,18 +18,18 @@ nocterm_textview_t* nocterm_textview_new(nocterm_dimension_t bounds, nocterm_att
     return new_textview;
 }
 
-int nocterm_textview_constructor(nocterm_textview_t* textview, nocterm_dimension_t bounds, nocterm_attribute_t attribute){
+int nocterm_textview_constructor(nocterm_textview_t* textview, nocterm_dimension_size_t height, nocterm_dimension_size_t width){
 
     if(textview == NULL){
         errno = EINVAL;
         return NOCTERM_FAILURE;
     }
     
-    if(nocterm_widget_constructor(NOCTERM_WIDGET(textview), bounds, false, false) == NOCTERM_FAILURE){
+    if(nocterm_widget_constructor(NOCTERM_WIDGET(textview), height, width, false, false) == NOCTERM_FAILURE){
         return NOCTERM_FAILURE;
     }
 
-    textview->attribute = attribute;
+    textview->attribute = NOCTERM_ATTRIBUTE_EMPTY;
 
     return NOCTERM_SUCCESS;
 }

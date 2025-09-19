@@ -1,6 +1,6 @@
 #include <nocterm/widgets/loadingbar.h>
 
-nocterm_loadingbar_t* nocterm_loadingbar_new(nocterm_dimension_size_t row, nocterm_dimension_size_t col, uint64_t interval){
+nocterm_loadingbar_t* nocterm_loadingbar_new(uint64_t interval){
 
     nocterm_loadingbar_t* new_loadingbar = (nocterm_loadingbar_t*)malloc(sizeof(nocterm_loadingbar_t));
 
@@ -10,7 +10,7 @@ nocterm_loadingbar_t* nocterm_loadingbar_new(nocterm_dimension_size_t row, nocte
 
     memset(new_loadingbar, 0x0, sizeof(nocterm_loadingbar_t));
 
-    if(nocterm_loadingbar_constructor(new_loadingbar, row, col, interval) == NOCTERM_FAILURE){
+    if(nocterm_loadingbar_constructor(new_loadingbar, interval) == NOCTERM_FAILURE){
         free(new_loadingbar);
         return NULL;
     }
@@ -18,14 +18,14 @@ nocterm_loadingbar_t* nocterm_loadingbar_new(nocterm_dimension_size_t row, nocte
     return new_loadingbar;
 }
 
-int nocterm_loadingbar_constructor(nocterm_loadingbar_t* loadingbar, nocterm_dimension_size_t row, nocterm_dimension_size_t col, uint64_t interval){
+int nocterm_loadingbar_constructor(nocterm_loadingbar_t* loadingbar, uint64_t interval){
     
     if(loadingbar == NULL){
         errno = EINVAL;
         return NOCTERM_FAILURE;
     }
 
-    if(nocterm_widget_constructor(NOCTERM_WIDGET(loadingbar),(nocterm_dimension_t){row,col,1,1}, false, false) == NOCTERM_FAILURE){
+    if(nocterm_widget_constructor(NOCTERM_WIDGET(loadingbar), 1, 1, false, false) == NOCTERM_FAILURE){
         return NOCTERM_FAILURE;
     }
 

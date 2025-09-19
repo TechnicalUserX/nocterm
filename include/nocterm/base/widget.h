@@ -127,23 +127,25 @@ extern nocterm_widget_t* nocterm_widget_focused;
 /**
  * @brief Creates a new widget.
  * 
- * @param bounds 
+ * @param height 
+ * @param width 
  * @param focusable 
  * @param type 
  * @return nocterm_widget_t* 
  */
-nocterm_widget_t* nocterm_widget_new(nocterm_dimension_t bounds, nocterm_widget_focusable_t focusable, nocterm_widget_type_t type);
+nocterm_widget_t* nocterm_widget_new(nocterm_dimension_size_t height, nocterm_dimension_size_t width, nocterm_widget_focusable_t focusable, nocterm_widget_type_t type);
 
 /**
  * @brief Constructs a widget on the allocated memory.
  * 
  * @param widget 
- * @param bounds 
+ * @param height 
+ * @param width 
  * @param focusable 
  * @param type 
  * @return int 
  */
-int nocterm_widget_constructor(nocterm_widget_t* widget, nocterm_dimension_t bounds, nocterm_widget_focusable_t focusable, nocterm_widget_type_t type);
+int nocterm_widget_constructor(nocterm_widget_t* widget, nocterm_dimension_size_t  height, nocterm_dimension_size_t width, nocterm_widget_focusable_t focusable, nocterm_widget_type_t type);
 
 /**
  * @brief Changes viewport of a widget.

@@ -1,6 +1,6 @@
 #include <nocterm/widgets/decorbox.h>
 
-nocterm_decorbox_t* nocterm_decorbox_new(nocterm_dimension_size_t row, nocterm_dimension_size_t col, nocterm_widget_t* contained_widget){
+nocterm_decorbox_t* nocterm_decorbox_new(nocterm_widget_t* contained_widget){
 
     if(contained_widget == NULL){
         errno = EINVAL;
@@ -16,7 +16,7 @@ nocterm_decorbox_t* nocterm_decorbox_new(nocterm_dimension_size_t row, nocterm_d
 
     memset(new_decorbox, 0x0, sizeof(nocterm_decorbox_t));
 
-    if(nocterm_decorbox_constructor(new_decorbox,row, col, contained_widget) == NOCTERM_FAILURE){
+    if(nocterm_decorbox_constructor(new_decorbox, contained_widget) == NOCTERM_FAILURE){
         free(new_decorbox);
         return NULL;
     }
@@ -24,7 +24,7 @@ nocterm_decorbox_t* nocterm_decorbox_new(nocterm_dimension_size_t row, nocterm_d
     return new_decorbox;
 }
 
-int nocterm_decorbox_constructor(nocterm_decorbox_t* decorbox, nocterm_dimension_size_t row, nocterm_dimension_size_t col, nocterm_widget_t* contained_widget){
+int nocterm_decorbox_constructor(nocterm_decorbox_t* decorbox, nocterm_widget_t* contained_widget){
 
     if(decorbox == NULL){
         errno = EINVAL;
@@ -34,7 +34,7 @@ int nocterm_decorbox_constructor(nocterm_decorbox_t* decorbox, nocterm_dimension
     nocterm_dimension_size_t decorbox_height = contained_widget->viewport.height + 2;
     nocterm_dimension_size_t decorbox_width = contained_widget->viewport.width + 2;
 
-    if(nocterm_widget_constructor(NOCTERM_WIDGET(decorbox), (nocterm_dimension_t){row, col, decorbox_height, decorbox_width}, NOCTERM_WIDGET_FOCUSABLE_YES, NOCTERM_WIDGET_TYPE_REAL) == NOCTERM_FAILURE){
+    if(nocterm_widget_constructor(NOCTERM_WIDGET(decorbox), decorbox_height, decorbox_width, NOCTERM_WIDGET_FOCUSABLE_YES, NOCTERM_WIDGET_TYPE_REAL) == NOCTERM_FAILURE){
         return NOCTERM_FAILURE;
     }
 

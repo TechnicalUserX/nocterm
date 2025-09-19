@@ -49,7 +49,7 @@ typedef struct nocterm_levelbar_t{
  * @param flip 
  * @return nocterm_levelbar_t* 
  */
-nocterm_levelbar_t* nocterm_levelbar_new(nocterm_dimension_size_t row, nocterm_dimension_size_t col, uint64_t length, uint64_t min_value, uint64_t max_value, nocterm_levelbar_type_t type, bool flip);
+nocterm_levelbar_t* nocterm_levelbar_new(uint64_t length, uint64_t min_value, uint64_t max_value, nocterm_levelbar_type_t type, bool flip);
 
 /**
  * @brief Constructs a levelbar widget.
@@ -64,7 +64,7 @@ nocterm_levelbar_t* nocterm_levelbar_new(nocterm_dimension_size_t row, nocterm_d
  * @param flip 
  * @return int 
  */
-int nocterm_levelbar_constructor(nocterm_levelbar_t* levelbar, nocterm_dimension_size_t row, nocterm_dimension_size_t col, uint64_t length, uint64_t min_value, uint64_t max_value, nocterm_levelbar_type_t type, bool flip);
+int nocterm_levelbar_constructor(nocterm_levelbar_t* levelbar, uint64_t length, uint64_t min_value, uint64_t max_value, nocterm_levelbar_type_t type, bool flip);
 
 /**
  * @brief Destructs a levelbar widget.

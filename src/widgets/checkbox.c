@@ -1,6 +1,6 @@
 #include <nocterm/widgets/checkbox.h>
 
-nocterm_checkbox_t* nocterm_checkbox_new(nocterm_dimension_size_t row, nocterm_dimension_size_t col, nocterm_checkbox_oncheck_handler_t oncheck_handler, bool checked, void* user_data){
+nocterm_checkbox_t* nocterm_checkbox_new(nocterm_checkbox_oncheck_handler_t oncheck_handler, bool checked, void* user_data){
 
     nocterm_checkbox_t* new_checkbox = (nocterm_checkbox_t*)malloc(sizeof(nocterm_checkbox_t));
 
@@ -10,7 +10,7 @@ nocterm_checkbox_t* nocterm_checkbox_new(nocterm_dimension_size_t row, nocterm_d
 
     memset(new_checkbox, 0x0, sizeof(nocterm_checkbox_t));
 
-    if(nocterm_checkbox_constructor(new_checkbox, row, col, oncheck_handler, checked, user_data) == NOCTERM_FAILURE){
+    if(nocterm_checkbox_constructor(new_checkbox, oncheck_handler, checked, user_data) == NOCTERM_FAILURE){
         free(new_checkbox);
         return NULL;
     }
@@ -18,14 +18,14 @@ nocterm_checkbox_t* nocterm_checkbox_new(nocterm_dimension_size_t row, nocterm_d
     return new_checkbox;
 }
 
-int nocterm_checkbox_constructor(nocterm_checkbox_t* checkbox, nocterm_dimension_size_t row, nocterm_dimension_size_t col, nocterm_checkbox_oncheck_handler_t oncheck_handler, bool checked, void* user_data){
+int nocterm_checkbox_constructor(nocterm_checkbox_t* checkbox, nocterm_checkbox_oncheck_handler_t oncheck_handler, bool checked, void* user_data){
 
     if(checkbox == NULL){
         errno = EINVAL;
         return NOCTERM_FAILURE;
     }
 
-    if(nocterm_widget_constructor(NOCTERM_WIDGET(checkbox), (nocterm_dimension_t){row, col, 1, 3}, true, false) == NOCTERM_FAILURE){
+    if(nocterm_widget_constructor(NOCTERM_WIDGET(checkbox), 1, 3, NOCTERM_WIDGET_FOCUSABLE_YES, NOCTERM_WIDGET_TYPE_REAL) == NOCTERM_FAILURE){
         return NOCTERM_FAILURE;
     }
 

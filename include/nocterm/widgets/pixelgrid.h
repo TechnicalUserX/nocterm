@@ -44,7 +44,7 @@ typedef struct nocterm_pixelgrid_t{
  * @param pixel_width 
  * @return nocterm_pixelgrid_t* 
  */
-nocterm_pixelgrid_t* nocterm_pixelgrid_new(nocterm_dimension_size_t row, nocterm_dimension_size_t col, uint32_t pixel_height, uint16_t pixel_width);
+nocterm_pixelgrid_t* nocterm_pixelgrid_new(uint32_t pixel_height, uint16_t pixel_width);
 
 /**
  * @brief Constructs a pixelgrid widget.
@@ -56,7 +56,7 @@ nocterm_pixelgrid_t* nocterm_pixelgrid_new(nocterm_dimension_size_t row, nocterm
  * @param pixel_width 
  * @return int 
  */
-int nocterm_pixelgrid_constructor(nocterm_pixelgrid_t* pixelgrid, nocterm_dimension_size_t row, nocterm_dimension_size_t col, uint32_t pixel_height, uint16_t pixel_width);
+int nocterm_pixelgrid_constructor(nocterm_pixelgrid_t* pixelgrid, uint32_t pixel_height, uint16_t pixel_width);
 
 /**
  * @brief Destructs a pixelgrid widget.
