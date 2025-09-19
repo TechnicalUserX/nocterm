@@ -46,28 +46,24 @@ int nocterm_checkbox_constructor(nocterm_checkbox_t* checkbox, nocterm_dimension
         .is_utf8 = false
     };    
 
+    nocterm_char_t check_character = {
+        .bytes = {'x'},
+        .bytes_size = 1,
+        .is_utf8 = false
+    }; 
+
     checkbox->main_attribute = NOCTERM_ATTRIBUTE_EMPTY;
     checkbox->cursor_attribute = checkbox->main_attribute;
     checkbox->cursor_attribute.inverse = true;
+    checkbox->check_marker = check_character;
 
     nocterm_widget_update(NOCTERM_WIDGET(checkbox), 0, 0, left_side, checkbox->main_attribute);
     nocterm_widget_update(NOCTERM_WIDGET(checkbox), 0, 2, right_side, checkbox->main_attribute);
 
     if(checked){
-        nocterm_char_t check_character = {
-            .bytes = {'x'},
-            .bytes_size = 1,
-            .is_utf8 = false
-        }; 
-        nocterm_widget_update(NOCTERM_WIDGET(checkbox), 0, 1, check_character, checkbox->main_attribute);
+        nocterm_widget_update(NOCTERM_WIDGET(checkbox), 0, 1, checkbox->check_marker, checkbox->main_attribute);
     }else{
-        nocterm_char_t space_character = {
-            .bytes = {' '},
-            .bytes_size = 1,
-            .is_utf8 = false
-        };
-        nocterm_widget_update(NOCTERM_WIDGET(checkbox), 0, 1, space_character, checkbox->main_attribute);
-
+        nocterm_widget_update(NOCTERM_WIDGET(checkbox), 0, 1, NOCTERM_CHAR_SPACE, checkbox->main_attribute);
     }
 
     nocterm_widget_add_key_handler(NOCTERM_WIDGET(checkbox), nocterm_checkbox_key_handler);
@@ -127,30 +123,65 @@ int nocterm_checkbox_set_attribute(nocterm_checkbox_t* checkbox, nocterm_attribu
     return NOCTERM_SUCCESS;
 }
 
+int nocterm_checkbox_set_marker(nocterm_checkbox_t* checkbox, nocterm_char_t marker){
+    if(checkbox == NULL){
+        errno = EINVAL;
+        return NOCTERM_FAILURE;
+    }
+
+    pthread_mutex_lock(&NOCTERM_WIDGET(checkbox)->lock);
+
+    checkbox->check_marker = marker;
+
+    if(nocterm_widget_is_focused(NOCTERM_WIDGET(checkbox))){
+        if(checkbox->checked){
+            nocterm_widget_update(NOCTERM_WIDGET(checkbox), 0,1, marker, checkbox->cursor_attribute);
+        }
+    }else{
+        if(checkbox->checked){
+            nocterm_widget_update(NOCTERM_WIDGET(checkbox), 0,1, marker, checkbox->main_attribute);
+        }
+    }
+
+    pthread_mutex_unlock(&NOCTERM_WIDGET(checkbox)->lock);
+
+    return NOCTERM_SUCCESS;
+}
+
+int nocterm_checkbox_set_sides(nocterm_checkbox_t* checkbox, nocterm_char_t left, nocterm_char_t right){
+    if(checkbox == NULL){
+        errno = EINVAL;
+        return NOCTERM_FAILURE;
+    }
+
+    pthread_mutex_lock(&NOCTERM_WIDGET(checkbox)->lock);
+
+    checkbox->left_side = left;
+    checkbox->right_side = right;
+
+    nocterm_widget_update(NOCTERM_WIDGET(checkbox), 0, 0, left, checkbox->main_attribute);
+    nocterm_widget_update(NOCTERM_WIDGET(checkbox), 0, 2, right, checkbox->main_attribute);
+
+    pthread_mutex_unlock(&NOCTERM_WIDGET(checkbox)->lock);
+
+    return NOCTERM_SUCCESS;
+}
+
 NOCTERM_WIDGET_KEY_HANDLER(nocterm_checkbox_key_handler){
 
     switch(nocterm_key_translate(key)){
 
         case NOCTERM_KEY_EVENT_ENTER:{
-            nocterm_char_t check_character = {
-                .bytes = {'x'},
-                .bytes_size = 1,
-                .is_utf8 = false
-            };     
-            nocterm_char_t space_character = {
-                .bytes = {' '},
-                .bytes_size = 1,
-                .is_utf8 = false
-            };             
+           
             if(NOCTERM_CHECKBOX(self)->checked){
-                nocterm_widget_update(self, 0,1, space_character, NOCTERM_CHECKBOX(self)->cursor_attribute);
+                nocterm_widget_update(self, 0,1, NOCTERM_CHAR_SPACE, NOCTERM_CHECKBOX(self)->cursor_attribute);
                 NOCTERM_CHECKBOX(self)->checked = false;
                 if(NOCTERM_CHECKBOX(self)->oncheck_handler){
                     NOCTERM_CHECKBOX(self)->oncheck_handler(self, NOCTERM_CHECKBOX_ACTION_UNCHECK, NOCTERM_CHECKBOX(self)->user_data);
                 }
             }else{
                 NOCTERM_CHECKBOX(self)->checked = true;
-                nocterm_widget_update(self, 0,1, check_character, NOCTERM_CHECKBOX(self)->cursor_attribute);
+                nocterm_widget_update(self, 0,1, NOCTERM_CHECKBOX(self)->check_marker, NOCTERM_CHECKBOX(self)->cursor_attribute);
                 if(NOCTERM_CHECKBOX(self)->oncheck_handler){
                     NOCTERM_CHECKBOX(self)->oncheck_handler(self, NOCTERM_CHECKBOX_ACTION_CHECK, NOCTERM_CHECKBOX(self)->user_data);
                 }
@@ -163,25 +194,16 @@ NOCTERM_WIDGET_KEY_HANDLER(nocterm_checkbox_key_handler){
 
             if(key->buffer_length == 1 && (tolower((int)key->buffer[0]) == 'x' || key->buffer[0] == ' ')){
                 // This is a valid key press for checking or unchecking
-                nocterm_char_t check_character = {
-                    .bytes = {'x'},
-                    .bytes_size = 1,
-                    .is_utf8 = false
-                };     
-                nocterm_char_t space_character = {
-                    .bytes = {' '},
-                    .bytes_size = 1,
-                    .is_utf8 = false
-                };                 
+               
                 if(NOCTERM_CHECKBOX(self)->checked){
-                    nocterm_widget_update(self, 0,1, space_character, NOCTERM_CHECKBOX(self)->cursor_attribute);
+                    nocterm_widget_update(self, 0,1, NOCTERM_CHAR_SPACE, NOCTERM_CHECKBOX(self)->cursor_attribute);
                     NOCTERM_CHECKBOX(self)->checked = false;
                     if(NOCTERM_CHECKBOX(self)->oncheck_handler){
                         NOCTERM_CHECKBOX(self)->oncheck_handler(self, NOCTERM_CHECKBOX_ACTION_UNCHECK, NOCTERM_CHECKBOX(self)->user_data);
                     }
                 }else{
                     NOCTERM_CHECKBOX(self)->checked = true;
-                    nocterm_widget_update(self, 0,1, check_character, NOCTERM_CHECKBOX(self)->cursor_attribute);
+                    nocterm_widget_update(self, 0,1, NOCTERM_CHECKBOX(self)->check_marker, NOCTERM_CHECKBOX(self)->cursor_attribute);
                     if(NOCTERM_CHECKBOX(self)->oncheck_handler){
                         NOCTERM_CHECKBOX(self)->oncheck_handler(self, NOCTERM_CHECKBOX_ACTION_CHECK, NOCTERM_CHECKBOX(self)->user_data);
                     }

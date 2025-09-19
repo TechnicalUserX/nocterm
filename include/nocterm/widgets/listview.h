@@ -127,6 +127,26 @@ int nocterm_listview_pop_back(nocterm_listview_t* listview, nocterm_listview_ite
 int nocterm_listview_pop_front(nocterm_listview_t* listview, nocterm_listview_item_t* item);
 
 /**
+ * @brief Inserts an item at an index to a listview widget.
+ * 
+ * @param listview 
+ * @param item 
+ * @param index 
+ * @return int 
+ */
+int nocterm_listview_insert(nocterm_listview_t* listview, nocterm_listview_item_t item, uint64_t index);
+
+/**
+ * @brief Removes an item at index from a listview widget.
+ * 
+ * @param listview 
+ * @param item 
+ * @param index 
+ * @return int 
+ */
+int nocterm_listview_remove(nocterm_listview_t* listview, nocterm_listview_item_t* item, uint64_t index);
+
+/**
  * @brief Constructs a listview item.
  * 
  * @param item 

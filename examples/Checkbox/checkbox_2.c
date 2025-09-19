@@ -1,0 +1,65 @@
+#include <nocterm/nocterm.h>
+
+NOCTERM_CHECKBOX_ONCHECK_HANDLER(handler){
+
+    switch(action){
+        case NOCTERM_CHECKBOX_ACTION_CHECK:
+                nocterm_io_print_at(5,0,"%-10s", "Checked");
+            break;
+
+            case NOCTERM_CHECKBOX_ACTION_UNCHECK:
+            nocterm_io_print_at(5,0,"%-10s", "Unchecked");
+            break;
+    }
+
+}
+
+int main(){
+
+    setlocale(LC_ALL, "en_US.UTF-8");
+
+    nocterm_widget_t* my_widget = nocterm_widget_new((nocterm_dimension_t){0,0,10,10}, NOCTERM_WIDGET_FOCUSABLE_YES, NOCTERM_WIDGET_TYPE_REAL);
+    nocterm_page_t* main_page = nocterm_page_new("Main page", sizeof("Main page"), my_widget);
+ 
+    nocterm_attribute_t attr = {
+        .color.ansi.fg = true,
+        .color.ansi.codes.fg = 7
+    };
+
+    nocterm_checkbox_t* my_checkbox = nocterm_checkbox_new(1,1, handler, false, NULL);
+
+    nocterm_widget_add_subwidget(my_widget, NOCTERM_WIDGET(my_checkbox));
+
+    nocterm_char_t marker = {0};
+    marker.is_utf8 = true;
+    marker.bytes_size = 3;
+    memcpy(marker.bytes, "✔", 3);
+
+    nocterm_checkbox_set_marker(my_checkbox, marker);
+
+    nocterm_char_t left = {
+        .bytes = {'('},
+        .bytes_size = 1,
+        .is_utf8 = false
+    };
+
+    nocterm_char_t right = {
+        .bytes = {')'},
+        .bytes_size = 1,
+        .is_utf8 = false
+    };
+
+    nocterm_checkbox_set_sides(my_checkbox, left, right);
+
+    nocterm_page_stack_push(main_page); 
+ 
+    nocterm_init();
+    nocterm_loop(); 
+    nocterm_end();
+     
+    nocterm_widget_delete(my_widget);
+    nocterm_page_delete(main_page); 
+    nocterm_checkbox_delete(my_checkbox);
+ 
+    return 0;
+}

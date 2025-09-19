@@ -94,6 +94,25 @@ int nocterm_checkbox_delete(nocterm_checkbox_t* checkbox);
  */
 int nocterm_checkbox_set_attribute(nocterm_checkbox_t* checkbox, nocterm_attribute_t attribute);
 
+/**
+ * @brief Sets the marker character of a checkbox widget.
+ * 
+ * @param checkbox 
+ * @param marker 
+ * @return int 
+ */
+int nocterm_checkbox_set_marker(nocterm_checkbox_t* checkbox, nocterm_char_t marker);
+
+/**
+ * @brief Sets left and right side characters of a checkbox widget.
+ * 
+ * @param checkbox 
+ * @param left 
+ * @param right 
+ * @return int 
+ */
+int nocterm_checkbox_set_sides(nocterm_checkbox_t* checkbox, nocterm_char_t left, nocterm_char_t right);
+
 NOCTERM_INTERNAL
 NOCTERM_WIDGET_KEY_HANDLER(nocterm_checkbox_key_handler);
 
