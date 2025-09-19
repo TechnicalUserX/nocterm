@@ -1,4 +1,5 @@
 #include <nocterm/nocterm.h>
+#include <term.h>
 
 struct add_item_handler_arg_t{
     void* entry;
@@ -22,6 +23,7 @@ nocterm_attribute_t generic_widget_attribute_focused_2 = {
 
 
 NOCTERM_CHECKBOX_ONCHECK_HANDLER(make_menu_visible_handler){
+
     static bool state = true;
     if(state){
         state = false;
@@ -32,6 +34,36 @@ NOCTERM_CHECKBOX_ONCHECK_HANDLER(make_menu_visible_handler){
 
     }
     
+}
+
+void* runner(void* arg){
+    while(1){
+
+        static int state = 0;
+
+        switch(state){
+            case 0:{
+                nocterm_widget_align_top(NOCTERM_WIDGET(arg),0);
+            }break;
+
+            case 1:{
+                nocterm_widget_align_right(NOCTERM_WIDGET(arg),0);
+            }break;
+
+            case 2:{
+                nocterm_widget_align_bottom(NOCTERM_WIDGET(arg),0);
+            }break;
+
+
+            case 3:{
+                nocterm_widget_align_left(NOCTERM_WIDGET(arg),0);
+            }break;
+        }
+
+        
+        state = (state + 1) % 4;
+        sleep(1);
+    }
 }
 
 NOCTERM_MENU_ONSELECT_HANDLER(menu_select_handler){
@@ -75,23 +107,31 @@ NOCTERM_BUTTON_ONPRESS_HANDLER(add_item_handler){
         nocterm_listview_push_back(listview, new_item);
     }
 
+}
 
+NOCTERM_TIMER_CALLBACK(levelbar_timer_callback){
+
+    static uint64_t level = 0;
+
+    nocterm_levelbar_set_value(NOCTERM_LEVELBAR(widget),level);
+
+    level++;
+    if(level == 101){
+        level = 0;
+    }
 }
 
 int main(){
 
     nocterm_decorbox_border_shape_t generic_widget_border_shape = nocterm_decorbox_border_shape(NOCTERM_DECORBOX_BORDER_SHAPE_TYPE_UNICODE_ROUND);
 
-
-    nocterm_widget_t* main_widget = nocterm_widget_new((nocterm_dimension_t){0,0, 10, 60}, NOCTERM_WIDGET_FOCUSABLE_NO, NOCTERM_WIDGET_TYPE_VIRTUAL);
+    nocterm_widget_t* main_widget = nocterm_widget_new((nocterm_dimension_t){0,0, 13, 61}, NOCTERM_WIDGET_FOCUSABLE_NO, NOCTERM_WIDGET_TYPE_VIRTUAL);
     nocterm_decorbox_t* main_widget_decorbox = nocterm_decorbox_new(1,1, main_widget);
-    nocterm_decorbox_set_border(main_widget_decorbox, generic_widget_border_shape, generic_widget_attribute_normal, generic_widget_attribute_focused); 
-
+    nocterm_decorbox_set_border(main_widget_decorbox, generic_widget_border_shape, generic_widget_attribute_normal, generic_widget_attribute_focused);
 
     nocterm_textview_t* textview = nocterm_textview_new((nocterm_dimension_t){0,0, 8, 20}, NOCTERM_ATTRIBUTE_EMPTY);
     nocterm_decorbox_t* textview_decorbox = nocterm_decorbox_new(0, 38, NOCTERM_WIDGET(textview));
     nocterm_decorbox_set_border(textview_decorbox, generic_widget_border_shape, generic_widget_attribute_normal, generic_widget_attribute_focused); 
-
 
     // Menu
     nocterm_menu_t* menu = nocterm_menu_new(1,5, generic_widget_attribute_focused, 3, 10, 16, menu_select_handler, textview);
@@ -105,6 +145,8 @@ int main(){
     nocterm_decorbox_t* menu_decorbox = nocterm_decorbox_new(5,1, NOCTERM_WIDGET(menu));
     nocterm_decorbox_set_border(menu_decorbox, generic_widget_border_shape, generic_widget_attribute_normal, generic_widget_attribute_focused);
 
+    pthread_t t;
+    // pthread_create(&t, NULL, runner, main_widget_decorbox);
 
     // Checkbox that enables menu
     nocterm_checkbox_t* make_menu_visible = nocterm_checkbox_new(1,1, make_menu_visible_handler, false, menu_decorbox);
@@ -143,6 +185,14 @@ int main(){
 
     nocterm_loadingbar_t* loadingbar = nocterm_loadingbar_new(1,24,200);
 
+    nocterm_levelbar_t* levelbar = nocterm_levelbar_new(0,0,57,0,100,NOCTERM_LEVELBAR_TYPE_HORIZONTAL, false);
+    nocterm_decorbox_t* levelbar_decorbox = nocterm_decorbox_new(10,1,NOCTERM_WIDGET(levelbar));
+    nocterm_decorbox_set_border(levelbar_decorbox, generic_widget_border_shape, generic_widget_attribute_normal, generic_widget_attribute_focused); 
+
+    nocterm_timer_t* levelbar_timer = nocterm_timer_create(NOCTERM_WIDGET(levelbar), 20, levelbar_timer_callback, NULL);
+    
+    nocterm_timer_start(levelbar_timer);
+
     nocterm_widget_add_subwidget(main_widget, NOCTERM_WIDGET(enable_menu_label));
     nocterm_widget_add_subwidget(main_widget, NOCTERM_WIDGET(make_menu_visible));
     nocterm_widget_add_subwidget(main_widget, NOCTERM_WIDGET(entry_decorbox));
@@ -152,17 +202,19 @@ int main(){
     nocterm_widget_add_subwidget(main_widget, NOCTERM_WIDGET(textview_decorbox));
     nocterm_widget_add_subwidget(main_widget, NOCTERM_WIDGET(pixelgrid_decorbox));
     nocterm_widget_add_subwidget(main_widget, NOCTERM_WIDGET(loadingbar));
+    nocterm_widget_add_subwidget(main_widget, NOCTERM_WIDGET(levelbar_decorbox));
 
     nocterm_loadingbar_enable(loadingbar);
 
     nocterm_widget_align_center_horizontal(NOCTERM_WIDGET(main_widget_decorbox));
+    nocterm_widget_align_center_vertical(NOCTERM_WIDGET(main_widget_decorbox));
 
     nocterm_page_t* main_page = nocterm_page_new("Main Page", 10, NOCTERM_WIDGET(main_widget_decorbox));
     nocterm_page_stack_push(main_page);
 
     // Enable mouse support
     // Use on supporting temrinals
-    // nocterm_mouse_support(true);
+    nocterm_mouse_support(NOCTERM_MOUSE_SUPPORT_ADVANCED);
 
     // Main Loop
     nocterm_init();
@@ -196,6 +248,10 @@ int main(){
     // Delete Listview
     nocterm_listview_delete(item_list);
     nocterm_decorbox_delete(item_list_decorbox);
+
+    // Delete Levelbar
+    nocterm_levelbar_delete(levelbar);
+    nocterm_decorbox_delete(levelbar_decorbox);
 
     // Delete Checkbox
     nocterm_checkbox_delete(make_menu_visible);

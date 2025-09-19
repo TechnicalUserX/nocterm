@@ -97,37 +97,38 @@ int nocterm_levelbar_set_value(nocterm_levelbar_t* levelbar, uint64_t value){
 
     pthread_mutex_lock(&NOCTERM_WIDGET(levelbar)->lock);
 
-    nocterm_dimension_size_t mapped_magnitude = (levelbar->length * (value - levelbar->min_value) ) / (levelbar->max_value - levelbar->min_value);
+    nocterm_dimension_size_t mapped_magnitude_new = (levelbar->length * (value - levelbar->min_value) ) / (levelbar->max_value - levelbar->min_value);
+    nocterm_dimension_size_t mapped_magnitude_old = (levelbar->length * (levelbar->current_value - levelbar->min_value) ) / (levelbar->max_value - levelbar->min_value);
 
     // For efficiency we can update individual cells, clearing the whole widget is an inefficient process
 
     if(levelbar->flip){
 
-        if(mapped_magnitude > levelbar->current_value){
+        if(mapped_magnitude_new > mapped_magnitude_old){
 
-            for(nocterm_dimension_size_t i = levelbar->current_value; i < mapped_magnitude; i++){
+            for(nocterm_dimension_size_t i = mapped_magnitude_old; i < mapped_magnitude_new; i++){
                 nocterm_widget_update(NOCTERM_WIDGET(levelbar), 0, (levelbar->length - 1) - i, levelbar->character, levelbar->attribute);
             }
 
-        }else if (mapped_magnitude < levelbar->current_value){
-            for(nocterm_dimension_size_t i = 0; i < levelbar->current_value - mapped_magnitude; i++){
-                nocterm_widget_update(NOCTERM_WIDGET(levelbar), 0, (levelbar->length - 1) - (levelbar->current_value - i - 1), NOCTERM_CHAR_EMPTY, NOCTERM_ATTRIBUTE_EMPTY);
+        }else if (mapped_magnitude_new < mapped_magnitude_old){
+            for(nocterm_dimension_size_t i = 0; i < mapped_magnitude_old - mapped_magnitude_new; i++){
+                nocterm_widget_update(NOCTERM_WIDGET(levelbar), 0, (levelbar->length - 1) - (mapped_magnitude_old - i - 1), NOCTERM_CHAR_EMPTY, NOCTERM_ATTRIBUTE_EMPTY);
             }
         }
         // Else, no update is required
 
     }else{
 
-        if(mapped_magnitude > levelbar->current_value){
+        if(mapped_magnitude_new > mapped_magnitude_old){
 
-            for(nocterm_dimension_size_t i = levelbar->current_value; i < mapped_magnitude; i++){
+            for(nocterm_dimension_size_t i = mapped_magnitude_old; i < mapped_magnitude_new; i++){
                 nocterm_widget_update(NOCTERM_WIDGET(levelbar), 0, i, levelbar->character, levelbar->attribute);
             }
 
-        }else if (mapped_magnitude < levelbar->current_value){
+        }else if (mapped_magnitude_new < mapped_magnitude_old){
 
-            for(nocterm_dimension_size_t i = 0; i < levelbar->current_value - mapped_magnitude; i++){
-                nocterm_widget_update(NOCTERM_WIDGET(levelbar), 0, levelbar->current_value - 1 - i, NOCTERM_CHAR_EMPTY, NOCTERM_ATTRIBUTE_EMPTY);
+            for(nocterm_dimension_size_t i = 0; i < mapped_magnitude_old - mapped_magnitude_new; i++){
+                nocterm_widget_update(NOCTERM_WIDGET(levelbar), 0, mapped_magnitude_old - 1 - i, NOCTERM_CHAR_EMPTY, NOCTERM_ATTRIBUTE_EMPTY);
             }
 
         }
@@ -138,7 +139,6 @@ int nocterm_levelbar_set_value(nocterm_levelbar_t* levelbar, uint64_t value){
     levelbar->current_value = value;
 
     pthread_mutex_unlock(&NOCTERM_WIDGET(levelbar)->lock);
-
 
     return NOCTERM_SUCCESS;
 }

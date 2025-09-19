@@ -37,10 +37,16 @@ typedef struct nocterm_listview_item_array_t{
     uint64_t capacity;
 }nocterm_listview_item_array_t;
 
+typedef enum nocterm_listview_autoscroll_t{
+    NOCTERM_LISTVIEW_AUTOSCROLL_NONE,
+    NOCTERM_LISTVIEW_AUTOSCROLL_DOWN,
+    NOCTERM_LISTVIEW_AUTOSCROLL_UP
+}nocterm_listview_autoscroll_t;
+
 typedef struct nocterm_listview_t{
     nocterm_widget_t widget;
     nocterm_listview_item_array_t* item_array;
-    bool autoscroll; // Autoscrolls on push direction
+    nocterm_listview_autoscroll_t autoscroll; // Autoscrolls on push direction
 }nocterm_listview_t; 
 
 /**
@@ -138,7 +144,7 @@ int nocterm_listview_item_constructor(nocterm_listview_item_t* item, const char*
  * @param autoscroll 
  * @return int 
  */
-int nocterm_listview_set_autoscroll(nocterm_listview_t* listview, bool autoscroll);
+int nocterm_listview_set_autoscroll(nocterm_listview_t* listview, nocterm_listview_autoscroll_t autoscroll);
 
 /**
  * @brief Clears all items on a listview widget.

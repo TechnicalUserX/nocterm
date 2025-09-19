@@ -129,12 +129,18 @@ int nocterm_listview_push_back(nocterm_listview_t* listview, nocterm_listview_it
         }
 
     }
-    if(listview->autoscroll){
-        // Autoscroll downwards
-        if(listview->item_array->size > NOCTERM_WIDGET(listview)->viewport.height){
-            nocterm_widget_viewport(NOCTERM_WIDGET(listview), (nocterm_dimension_t){listview->item_array->size - NOCTERM_WIDGET(listview)->viewport.height, 0, NOCTERM_WIDGET(listview)->viewport.height, NOCTERM_WIDGET(listview)->viewport.width});
-        }
 
+    // Autoscroll
+    if(listview->item_array->size > NOCTERM_WIDGET(listview)->viewport.height){
+        switch(listview->autoscroll){
+            case NOCTERM_LISTVIEW_AUTOSCROLL_UP:
+                nocterm_widget_viewport(NOCTERM_WIDGET(listview), (nocterm_dimension_t){0, 0, NOCTERM_WIDGET(listview)->viewport.height, NOCTERM_WIDGET(listview)->viewport.width});
+                break;
+            case NOCTERM_LISTVIEW_AUTOSCROLL_DOWN:
+                nocterm_widget_viewport(NOCTERM_WIDGET(listview), (nocterm_dimension_t){listview->item_array->size - NOCTERM_WIDGET(listview)->viewport.height, 0, NOCTERM_WIDGET(listview)->viewport.height, NOCTERM_WIDGET(listview)->viewport.width});
+                break;
+            case NOCTERM_LISTVIEW_AUTOSCROLL_NONE:
+        }
     }
 
     pthread_mutex_unlock(&NOCTERM_WIDGET(listview)->lock);
@@ -171,10 +177,16 @@ int nocterm_listview_push_front(nocterm_listview_t* listview, nocterm_listview_i
         }
     }
     
-    if(listview->autoscroll){
-        // Autoscroll downwards
-        if(listview->item_array->size > NOCTERM_WIDGET(listview)->viewport.height){
-            nocterm_widget_viewport(NOCTERM_WIDGET(listview), (nocterm_dimension_t){0, 0, NOCTERM_WIDGET(listview)->viewport.height, NOCTERM_WIDGET(listview)->viewport.width});
+    // Autoscroll
+    if(listview->item_array->size > NOCTERM_WIDGET(listview)->viewport.height){
+        switch(listview->autoscroll){
+            case NOCTERM_LISTVIEW_AUTOSCROLL_UP:
+                nocterm_widget_viewport(NOCTERM_WIDGET(listview), (nocterm_dimension_t){0, 0, NOCTERM_WIDGET(listview)->viewport.height, NOCTERM_WIDGET(listview)->viewport.width});
+                break;
+            case NOCTERM_LISTVIEW_AUTOSCROLL_DOWN:
+                nocterm_widget_viewport(NOCTERM_WIDGET(listview), (nocterm_dimension_t){listview->item_array->size - NOCTERM_WIDGET(listview)->viewport.height, 0, NOCTERM_WIDGET(listview)->viewport.height, NOCTERM_WIDGET(listview)->viewport.width});
+                break;
+            case NOCTERM_LISTVIEW_AUTOSCROLL_NONE:
         }
     }
 
@@ -277,6 +289,91 @@ int nocterm_listview_pop_front(nocterm_listview_t* listview, nocterm_listview_it
     return NOCTERM_SUCCESS;
 }
 
+int nocterm_listview_insert(nocterm_listview_t* listview, nocterm_listview_item_t item, uint64_t index){
+
+    if(listview == NULL){
+        errno = EINVAL;
+        return NOCTERM_FAILURE;
+    }
+
+    pthread_mutex_lock(&NOCTERM_WIDGET(listview)->lock);
+
+    if(listview->item_array->size == listview->widget.bounds.height){
+        errno = ENOMEM;
+        pthread_mutex_unlock(&NOCTERM_WIDGET(listview)->lock);
+        return NOCTERM_FAILURE;
+    }
+
+    if(nocterm_listview_item_array_insert(listview->item_array, item, index) == NOCTERM_FAILURE){
+        pthread_mutex_unlock(&NOCTERM_WIDGET(listview)->lock);
+        return NOCTERM_FAILURE;
+    }
+
+
+    // Widget Update
+    nocterm_widget_clear(NOCTERM_WIDGET(listview));
+    for(uint64_t i = 0; i < listview->item_array->size; i++){
+        for(uint64_t j = 0; j < listview->item_array->items[i].content_length && j < listview->widget.bounds.width ; j++){
+            nocterm_widget_update(NOCTERM_WIDGET(listview), i, j, listview->item_array->items[i].content[j].character, listview->item_array->items[i].content[j].attribute);
+        }
+    }
+    
+    // Autoscroll
+    if(listview->item_array->size > NOCTERM_WIDGET(listview)->viewport.height){
+        switch(listview->autoscroll){
+            case NOCTERM_LISTVIEW_AUTOSCROLL_UP:
+                nocterm_widget_viewport(NOCTERM_WIDGET(listview), (nocterm_dimension_t){0, 0, NOCTERM_WIDGET(listview)->viewport.height, NOCTERM_WIDGET(listview)->viewport.width});
+                break;
+            case NOCTERM_LISTVIEW_AUTOSCROLL_DOWN:
+                nocterm_widget_viewport(NOCTERM_WIDGET(listview), (nocterm_dimension_t){listview->item_array->size - NOCTERM_WIDGET(listview)->viewport.height, 0, NOCTERM_WIDGET(listview)->viewport.height, NOCTERM_WIDGET(listview)->viewport.width});
+                break;
+            case NOCTERM_LISTVIEW_AUTOSCROLL_NONE:
+        }
+    }
+
+    NOCTERM_WIDGET(listview)->hard_refresh = true;
+
+    pthread_mutex_unlock(&NOCTERM_WIDGET(listview)->lock);
+
+    return NOCTERM_SUCCESS;
+}
+
+int nocterm_listview_remove(nocterm_listview_t* listview, nocterm_listview_item_t* item, uint64_t index){
+
+    if(listview == NULL){
+        errno = EINVAL;
+        return NOCTERM_FAILURE;
+    }
+
+    pthread_mutex_lock(&NOCTERM_WIDGET(listview)->lock);
+
+    if(listview->item_array->size == listview->widget.bounds.height){
+        errno = ENOMEM;
+        pthread_mutex_unlock(&NOCTERM_WIDGET(listview)->lock);
+        return NOCTERM_FAILURE;
+    }
+
+    if(nocterm_listview_item_array_remove(listview->item_array, item, index) == NOCTERM_FAILURE){
+        pthread_mutex_unlock(&NOCTERM_WIDGET(listview)->lock);
+        return NOCTERM_FAILURE;
+    }
+
+
+    // Widget Update
+    nocterm_widget_clear(NOCTERM_WIDGET(listview));
+    for(uint64_t i = 0; i < listview->item_array->size; i++){
+        for(uint64_t j = 0; j < listview->item_array->items[i].content_length && j < listview->widget.bounds.width ; j++){
+            nocterm_widget_update(NOCTERM_WIDGET(listview), i, j, listview->item_array->items[i].content[j].character, listview->item_array->items[i].content[j].attribute);
+        }
+    }
+    
+    NOCTERM_WIDGET(listview)->hard_refresh = true;
+
+    pthread_mutex_unlock(&NOCTERM_WIDGET(listview)->lock);
+
+    return NOCTERM_SUCCESS;
+}
+
 int nocterm_listview_item_constructor(nocterm_listview_item_t* item, const char* text, uint64_t text_size, nocterm_attribute_t attribute){
 
     if(item == NULL){
@@ -305,7 +402,7 @@ int nocterm_listview_item_constructor(nocterm_listview_item_t* item, const char*
     return NOCTERM_SUCCESS;
 }
 
-int nocterm_listview_set_autoscroll(nocterm_listview_t* listview, bool autoscroll){
+int nocterm_listview_set_autoscroll(nocterm_listview_t* listview, nocterm_listview_autoscroll_t autoscroll){
     
     if(listview == NULL){
         errno = EINVAL;

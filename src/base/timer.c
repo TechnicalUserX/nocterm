@@ -15,6 +15,7 @@ nocterm_timer_t* nocterm_timer_create(nocterm_widget_t* widget, uint64_t interva
 
     memset(t, 0x0, sizeof(nocterm_timer_t));
 
+    // So the widget is optional but still used
     t->widget = widget;
 
     t->callback = callback;

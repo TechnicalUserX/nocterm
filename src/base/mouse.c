@@ -152,8 +152,8 @@ int nocterm_mouse_controller(nocterm_key_t* key){
     
     }else if(current_mouse_event.button == NOCTERM_MOUSE_BUTTON_MOVE && mouse_progress_state == 0){
 
-        if(current_page->focused_widget != current_mouse_widget->owner){
-            if(current_page->focused_widget && current_page->focused_widget->focus_handler){
+        if(current_page->focused_widget->owner != current_mouse_widget->owner){
+            if(current_page->focused_widget->owner && current_page->focused_widget->owner->focus_handler){
                 current_page->focused_widget->focus_handler(current_page->focused_widget, NOCTERM_WIDGET_FOCUS_LEAVE);
             }
     
