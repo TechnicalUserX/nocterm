@@ -15,7 +15,6 @@
 
 #define NOCTERM_ATTRIBUTE_EMPTY (nocterm_attribute_t){0}
 
-
 #define NOCTERM_ATTRIBUTE_BUFFER_SIZE 512
 
 #define NOCTERM_ATTRIBUTE_BOLD           "\033[1m"

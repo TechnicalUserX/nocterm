@@ -11,7 +11,7 @@ NOCTERM_BUTTON_ONPRESS_HANDLER(handler){
 
 int main(){
 
-    nocterm_widget_t* my_widget = nocterm_widget_new((nocterm_dimension_t){0,0,10,10}, NOCTERM_WIDGET_FOCUSABLE_YES, NOCTERM_WIDGET_TYPE_REAL);
+    nocterm_widget_t* my_widget = nocterm_widget_new(10,10 , NOCTERM_WIDGET_FOCUSABLE_YES, NOCTERM_WIDGET_TYPE_REAL);
     nocterm_page_t* main_page = nocterm_page_new("Main page", sizeof("Main page"), my_widget);
  
     nocterm_attribute_t attr = {
@@ -19,8 +19,11 @@ int main(){
         .color.ansi.codes.fg = 2
     };
 
-    nocterm_entry_t* my_entry = nocterm_entry_new(1, 1, 6);
-    nocterm_button_t* my_button = nocterm_button_new(2,1, "Get text", 9, handler, my_entry);
+    nocterm_entry_t* my_entry = nocterm_entry_new(6);
+    nocterm_widget_set_position(NOCTERM_WIDGET(my_entry), 1, 1);
+
+    nocterm_button_t* my_button = nocterm_button_new("Get text", 9, handler, my_entry);
+    nocterm_widget_set_position(NOCTERM_WIDGET(my_button), 2, 1);
 
     nocterm_widget_add_subwidget(my_widget, NOCTERM_WIDGET(my_entry));
     nocterm_widget_add_subwidget(my_widget, NOCTERM_WIDGET(my_button));

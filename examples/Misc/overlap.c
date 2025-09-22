@@ -77,10 +77,11 @@ int main(){
 
     setlocale(LC_ALL, "");
 
-    nocterm_widget_t* my_widget = nocterm_widget_new((nocterm_dimension_t){0,0,10,10}, NOCTERM_WIDGET_FOCUSABLE_YES, NOCTERM_WIDGET_TYPE_VIRTUAL);
+    nocterm_widget_t* my_widget = nocterm_widget_new(10,10, NOCTERM_WIDGET_FOCUSABLE_YES, NOCTERM_WIDGET_TYPE_VIRTUAL);
     nocterm_widget_add_key_handler(my_widget, handler);
     nocterm_page_t* main_page = nocterm_page_new("Main page", sizeof("Main page"), my_widget);
- 
+    
+
     nocterm_attribute_t attr = {
         .color.ansi.fg = true,
         .color.ansi.codes.fg = 6
@@ -92,7 +93,7 @@ int main(){
     };
 
 
-    my_menu = nocterm_menu_new(5,5, attr, 3, 5, 6, NULL, NULL);
+    my_menu = nocterm_menu_new(3, 5, 6, NULL, NULL);
 
     nocterm_menu_item_t items[5] = {0};
     nocterm_menu_item_constructor(&items[0], "1-AAA", 6, NOCTERM_ATTRIBUTE_EMPTY);
@@ -108,16 +109,18 @@ int main(){
     nocterm_menu_add_item(my_menu, items[4]);
 
 
-    my_textview = nocterm_textview_new((nocterm_dimension_t){0,0,4,8}, attr2);
+    my_textview = nocterm_textview_new(4,8);
     nocterm_textview_set_text(my_textview, "This text shall overlap", 24);
 
-    d1 = nocterm_decorbox_new(1,3, NOCTERM_WIDGET(my_menu));
-    d2 = nocterm_decorbox_new(2,9, NOCTERM_WIDGET(my_textview));
+    d1 = nocterm_decorbox_new( NOCTERM_WIDGET(my_menu));
+    nocterm_widget_set_position(NOCTERM_WIDGET(d1), 1, 3);
+    d2 = nocterm_decorbox_new(NOCTERM_WIDGET(my_textview));
+    nocterm_widget_set_position(NOCTERM_WIDGET(d2), 2, 9);
 
     nocterm_decorbox_border_shape_t border_shape = nocterm_decorbox_border_shape(NOCTERM_DECORBOX_BORDER_SHAPE_TYPE_UNICODE_ROUND);
 
-    nocterm_decorbox_border(d1, border_shape, NOCTERM_ATTRIBUTE_EMPTY, attr);
-    nocterm_decorbox_border(d2, border_shape, NOCTERM_ATTRIBUTE_EMPTY, attr2);
+    nocterm_decorbox_set_border(d1, border_shape, NOCTERM_ATTRIBUTE_EMPTY, attr);
+    nocterm_decorbox_set_border(d2, border_shape, NOCTERM_ATTRIBUTE_EMPTY, attr2);
 
     nocterm_widget_add_subwidget(my_widget, NOCTERM_WIDGET(d2));
     nocterm_widget_add_subwidget(my_widget, NOCTERM_WIDGET(d1));

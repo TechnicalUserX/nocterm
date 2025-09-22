@@ -113,12 +113,6 @@ int nocterm_checkbox_set_marker(nocterm_checkbox_t* checkbox, nocterm_char_t mar
  */
 int nocterm_checkbox_set_sides(nocterm_checkbox_t* checkbox, nocterm_char_t left, nocterm_char_t right);
 
-NOCTERM_INTERNAL
-NOCTERM_WIDGET_KEY_HANDLER(nocterm_checkbox_key_handler);
-
-NOCTERM_INTERNAL
-NOCTERM_WIDGET_FOCUS_HANDLER(nocterm_checkbox_focus_handler);
-
 #ifdef __cplusplus
     }
 #endif

@@ -130,12 +130,6 @@ nocterm_decorbox_border_shape_t nocterm_decorbox_border_shape(nocterm_decorbox_b
  */
 int nocterm_decorbox_set_label(nocterm_decorbox_t* decorbox, const char* label, uint64_t label_size, nocterm_attribute_t attribute, uint64_t left_offset);
 
-NOCTERM_INTERNAL int nocterm_decorbox_border_draw(nocterm_decorbox_t* decorbox, nocterm_decorbox_border_shape_t border_shape, nocterm_attribute_t attribute);
-
-NOCTERM_INTERNAL NOCTERM_WIDGET_KEY_HANDLER(nocterm_decorbox_key_handler);
-
-NOCTERM_INTERNAL NOCTERM_WIDGET_FOCUS_HANDLER(nocterm_decorbox_focus_handler);
-
 #ifdef __cplusplus
     }
 #endif

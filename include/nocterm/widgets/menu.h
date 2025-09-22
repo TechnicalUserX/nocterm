@@ -159,58 +159,6 @@ int nocterm_menu_get_selection(nocterm_menu_t* menu, uint64_t* selection);
  */
 int nocterm_menu_set_selection_attribute(nocterm_menu_t* menu, nocterm_attribute_t attribute);
 
-NOCTERM_INTERNAL
-int nocterm_menu_selection_move_up(nocterm_menu_t* menu);
-
-NOCTERM_INTERNAL
-int nocterm_menu_selection_move_down(nocterm_menu_t* menu);
-
-NOCTERM_INTERNAL
-int nocterm_menu_selection_move_top(nocterm_menu_t* menu);
-
-NOCTERM_INTERNAL
-int nocterm_menu_selection_move_bottom(nocterm_menu_t* menu);
-
-NOCTERM_INTERNAL
-NOCTERM_WIDGET_KEY_HANDLER(nocterm_menu_key_handler);
-
-NOCTERM_INTERNAL
-NOCTERM_WIDGET_FOCUS_HANDLER(nocterm_menu_focus_handler);
-
-// Dynamic Array Implementation
-
-NOCTERM_INTERNAL
-nocterm_menu_item_array_t* nocterm_menu_item_array_new(void);
-
-NOCTERM_INTERNAL
-void nocterm_menu_item_array_delete(nocterm_menu_item_array_t* nocterm_menu_item_array);
-
-NOCTERM_INTERNAL
-void nocterm_menu_item_array_increase_capacity(nocterm_menu_item_array_t* nocterm_menu_item_array);
-
-NOCTERM_INTERNAL
-int nocterm_menu_item_array_push_back(nocterm_menu_item_array_t* nocterm_menu_item_array, nocterm_menu_item_t item);
-
-NOCTERM_INTERNAL
-int nocterm_menu_item_array_pop_back(nocterm_menu_item_array_t* nocterm_menu_item_array, nocterm_menu_item_t* item);
-
-NOCTERM_INTERNAL
-int nocterm_menu_item_array_push_front(nocterm_menu_item_array_t* nocterm_menu_item_array, nocterm_menu_item_t item);
-
-NOCTERM_INTERNAL
-int nocterm_menu_item_array_pop_front(nocterm_menu_item_array_t* nocterm_menu_item_array, nocterm_menu_item_t* item);
-
-NOCTERM_INTERNAL
-int nocterm_menu_item_array_insert(nocterm_menu_item_array_t* nocterm_menu_item_array, nocterm_menu_item_t item, uint64_t index);
-
-NOCTERM_INTERNAL
-int nocterm_menu_item_array_remove(nocterm_menu_item_array_t* nocterm_menu_item_array,  nocterm_menu_item_t* item, uint64_t index);
-
-NOCTERM_INTERNAL
-int nocterm_menu_item_array_clear(nocterm_menu_item_array_t* nocterm_menu_item_array);
-
-NOCTERM_INTERNAL
-int nocterm_menu_item_array_shrink_to_fit(nocterm_menu_item_array_t* nocterm_menu_item_array);
 
 #ifdef __cplusplus
     }

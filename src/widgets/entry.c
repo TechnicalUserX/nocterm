@@ -1,5 +1,19 @@
 #include <nocterm/widgets/entry.h>
 
+NOCTERM_INTERNAL int nocterm_entry_cursor_move_left(nocterm_entry_t* entry);
+
+NOCTERM_INTERNAL int nocterm_entry_cursor_move_right(nocterm_entry_t* entry);
+
+NOCTERM_INTERNAL int nocterm_entry_cursor_insert(nocterm_entry_t* entry, nocterm_char_t character);
+
+NOCTERM_INTERNAL int nocterm_entry_cursor_erase_right(nocterm_entry_t* entry); // Delete Button
+
+NOCTERM_INTERNAL int nocterm_entry_cursor_erase_left(nocterm_entry_t* entry); // Backspace Button
+
+NOCTERM_INTERNAL NOCTERM_WIDGET_KEY_HANDLER(nocterm_entry_key_handler);
+
+NOCTERM_INTERNAL NOCTERM_WIDGET_FOCUS_HANDLER(nocterm_entry_focus_handler);
+
 nocterm_entry_t* nocterm_entry_new(nocterm_dimension_size_t width){
 
     nocterm_entry_t* new_entry = (nocterm_entry_t*)malloc(sizeof(nocterm_entry_t));

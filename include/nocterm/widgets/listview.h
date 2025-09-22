@@ -174,56 +174,6 @@ int nocterm_listview_set_autoscroll(nocterm_listview_t* listview, nocterm_listvi
  */
 int nocterm_listview_clear(nocterm_listview_t* listview);
 
-NOCTERM_INTERNAL
-int nocterm_listview_move_up(nocterm_listview_t* listview);
-
-NOCTERM_INTERNAL
-int nocterm_listview_move_down(nocterm_listview_t* listview);
-
-NOCTERM_INTERNAL
-int nocterm_listview_move_top(nocterm_listview_t* listview);
-
-NOCTERM_INTERNAL
-int nocterm_listview_move_bottom(nocterm_listview_t* listview);
-
-NOCTERM_INTERNAL
-NOCTERM_WIDGET_KEY_HANDLER(nocterm_listview_key_handler);
-
-// Dynamic Array Implementation
-
-NOCTERM_INTERNAL
-nocterm_listview_item_array_t* nocterm_listview_item_array_new(void);
-
-NOCTERM_INTERNAL
-void nocterm_listview_item_array_delete(nocterm_listview_item_array_t* dynamic_array);
-
-NOCTERM_INTERNAL
-void nocterm_listview_item_array_increase_capacity(nocterm_listview_item_array_t* dynamic_array);
-
-NOCTERM_INTERNAL
-int nocterm_listview_item_array_push_back(nocterm_listview_item_array_t* dynamic_array, nocterm_listview_item_t item);
-
-NOCTERM_INTERNAL
-int nocterm_listview_item_array_pop_back(nocterm_listview_item_array_t* dynamic_array, nocterm_listview_item_t* item);
-
-NOCTERM_INTERNAL
-int nocterm_listview_item_array_push_front(nocterm_listview_item_array_t* dynamic_array, nocterm_listview_item_t item);
-
-NOCTERM_INTERNAL
-int nocterm_listview_item_array_pop_front(nocterm_listview_item_array_t* dynamic_array, nocterm_listview_item_t* item);
-
-NOCTERM_INTERNAL
-int nocterm_listview_item_array_insert(nocterm_listview_item_array_t* dynamic_array, nocterm_listview_item_t item, uint64_t index);
-
-NOCTERM_INTERNAL
-int nocterm_listview_item_array_remove(nocterm_listview_item_array_t* dynamic_array,  nocterm_listview_item_t* item, uint64_t index);
-
-NOCTERM_INTERNAL
-int nocterm_listview_item_array_clear(nocterm_listview_item_array_t* dynamic_array);
-
-NOCTERM_INTERNAL
-int nocterm_listview_item_array_shrink_to_fit(nocterm_listview_item_array_t* dynamic_array);
-
 #ifdef __cplusplus
     }
 #endif

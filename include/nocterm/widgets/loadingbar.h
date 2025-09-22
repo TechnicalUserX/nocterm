@@ -89,9 +89,6 @@ int nocterm_loadingbar_enable(nocterm_loadingbar_t* loadingbar);
  */
 int nocterm_loadingbar_disable(nocterm_loadingbar_t* loadingbar);
 
-NOCTERM_INTERNAL
-NOCTERM_TIMER_CALLBACK(nocterm_loadingbar_timer_callback);
-
 #ifdef __cplusplus
     }
 #endif

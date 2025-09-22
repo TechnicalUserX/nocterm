@@ -19,8 +19,8 @@
 #include <sys/ioctl.h>
 #include <sys/time.h>
 
-#if defined(_PTHREAD_H) || defined(_SEMAPHORE_H)
-    #error "Do not include pthread.h and semaphroe.h before including this library"
+#if defined(_PTHREAD_H)
+    #error "Do not include pthread.h before including this library"
 #endif
 
 #include <pthread.h>
@@ -38,10 +38,8 @@
     #include <ctime>
     #include <cerrno>
     #include <thread>
-    #include <cassert>
     #include <clocale>
     #include <cctype>
-    #include <cmath>
 #else
     #include <stdatomic.h>
     #include <stdarg.h>
@@ -53,10 +51,8 @@
     #include <wchar.h>
     #include <time.h>
     #include <errno.h>
-    #include <assert.h>
     #include <locale.h>
     #include <ctype.h>
-    #include <math.h>
 #endif
 
 #endif

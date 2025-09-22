@@ -3,11 +3,11 @@
 
 int main(){
 
-    nocterm_widget_t* my_widget = nocterm_widget_new((nocterm_dimension_t){0,0,10,10}, NOCTERM_WIDGET_FOCUSABLE_YES, NOCTERM_WIDGET_TYPE_REAL);
+    nocterm_widget_t* my_widget = nocterm_widget_new(10,10, NOCTERM_WIDGET_FOCUSABLE_YES, NOCTERM_WIDGET_TYPE_REAL);
 
-    nocterm_decorbox_t* my_decorbox = nocterm_decorbox_new(1,1, my_widget);
-
-    nocterm_label_t* my_label = nocterm_label_new(0,0, "HI", 3, NOCTERM_ATTRIBUTE_EMPTY);
+    nocterm_decorbox_t* my_decorbox = nocterm_decorbox_new(my_widget);
+    
+    nocterm_label_t* my_label = nocterm_label_new("HI", 3);
 
     nocterm_widget_add_subwidget(my_widget, NOCTERM_WIDGET(my_label));
  
@@ -22,10 +22,10 @@ int main(){
     
     nocterm_page_t* main_page = nocterm_page_new("Main page", sizeof("Main page"), NOCTERM_WIDGET(my_decorbox));
 
-    nocterm_widget_align_center_horizontal(NOCTERM_WIDGET(my_decorbox));
-    nocterm_widget_align_center_vertical(NOCTERM_WIDGET(my_decorbox));
-    nocterm_widget_align_center_horizontal(NOCTERM_WIDGET(my_label));
-    nocterm_widget_align_center_vertical(NOCTERM_WIDGET(my_label));
+    nocterm_widget_align_horizontal(NOCTERM_WIDGET(my_decorbox), 50);
+    nocterm_widget_align_vertical(NOCTERM_WIDGET(my_decorbox), 50);
+    nocterm_widget_align_horizontal(NOCTERM_WIDGET(my_label), 50);
+    nocterm_widget_align_vertical(NOCTERM_WIDGET(my_label), 50);
 
     nocterm_page_stack_push(main_page); 
  

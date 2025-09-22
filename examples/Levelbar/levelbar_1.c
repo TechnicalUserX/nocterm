@@ -2,16 +2,18 @@
  
 int main(){
  
-    nocterm_widget_t* my_widget = nocterm_widget_new((nocterm_dimension_t){0,0,10,10}, NOCTERM_WIDGET_FOCUSABLE_YES, NOCTERM_WIDGET_TYPE_REAL);
+    nocterm_widget_t* my_widget = nocterm_widget_new(10,10, NOCTERM_WIDGET_FOCUSABLE_YES, NOCTERM_WIDGET_TYPE_REAL);
     nocterm_page_t* main_page = nocterm_page_new("Main page", sizeof("Main page"), my_widget);
  
-    nocterm_levelbar_t* my_levelbar = nocterm_levelbar_new(1,1, 20, 0, 20, NOCTERM_LEVELBAR_TYPE_HORIZONTAL, false);
+    nocterm_levelbar_t* my_levelbar = nocterm_levelbar_new(20, 0, 20, NOCTERM_LEVELBAR_TYPE_HORIZONTAL, false);
 
-    nocterm_decorbox_t* my_levelbar_dbox = nocterm_decorbox_new(1,1, NOCTERM_WIDGET(my_levelbar));
+
+    nocterm_decorbox_t* my_levelbar_dbox = nocterm_decorbox_new(NOCTERM_WIDGET(my_levelbar));
+    nocterm_widget_set_position(NOCTERM_WIDGET(my_levelbar_dbox), 1, 1);
 
     nocterm_decorbox_border_shape_t border_shape = nocterm_decorbox_border_shape(NOCTERM_DECORBOX_BORDER_SHAPE_TYPE_UNICODE_ROUND);
 
-    nocterm_decorbox_border(my_levelbar_dbox, border_shape, NOCTERM_ATTRIBUTE_EMPTY, NOCTERM_ATTRIBUTE_EMPTY);
+    nocterm_decorbox_set_border(my_levelbar_dbox, border_shape, NOCTERM_ATTRIBUTE_EMPTY, NOCTERM_ATTRIBUTE_EMPTY);
 
     nocterm_char_t levelbar_char = {
         .bytes = {'='},

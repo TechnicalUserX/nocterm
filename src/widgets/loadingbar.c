@@ -1,5 +1,7 @@
 #include <nocterm/widgets/loadingbar.h>
 
+NOCTERM_INTERNAL NOCTERM_TIMER_CALLBACK(nocterm_loadingbar_timer_callback);
+
 nocterm_loadingbar_t* nocterm_loadingbar_new(uint64_t interval){
 
     nocterm_loadingbar_t* new_loadingbar = (nocterm_loadingbar_t*)malloc(sizeof(nocterm_loadingbar_t));

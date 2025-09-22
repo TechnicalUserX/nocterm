@@ -36,7 +36,6 @@ NOCTERM_CHECKBOX_ONCHECK_HANDLER(make_menu_visible_handler){
     
 }
 
-
 NOCTERM_MENU_ONSELECT_HANDLER(menu_select_handler){
 
 

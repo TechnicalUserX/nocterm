@@ -70,7 +70,6 @@ int nocterm_button_constructor(nocterm_button_t* button, const char* text, uint6
  */
 int nocterm_button_destructor(nocterm_button_t* button);
 
-
 /**
  * @brief Deletes a button widget.
  * 
@@ -88,12 +87,6 @@ int nocterm_button_delete(nocterm_button_t* button);
  * @return int 
  */
 int nocterm_button_set_attribute(nocterm_button_t* button, nocterm_attribute_t normal, nocterm_attribute_t focused);
-
-NOCTERM_INTERNAL
-NOCTERM_WIDGET_KEY_HANDLER(nocterm_button_key_handler);
-
-NOCTERM_INTERNAL
-NOCTERM_WIDGET_FOCUS_HANDLER(nocterm_button_focus_handler);
 
 #ifdef __cplusplus
     }

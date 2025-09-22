@@ -261,7 +261,7 @@ int nocterm_widget_set_position(nocterm_widget_t* widget, nocterm_dimension_size
     return NOCTERM_SUCCESS;
 }
 
-int nocterm_widget_set_position_row(nocterm_widget_t* widget, nocterm_dimension_size_t row){
+int nocterm_widget_set_row(nocterm_widget_t* widget, nocterm_dimension_size_t row){
     // Absolute
     
     if(widget == NULL){
@@ -286,7 +286,7 @@ int nocterm_widget_set_position_row(nocterm_widget_t* widget, nocterm_dimension_
     return NOCTERM_SUCCESS;
 }
 
-int nocterm_widget_set_position_col(nocterm_widget_t* widget, nocterm_dimension_size_t col){
+int nocterm_widget_set_col(nocterm_widget_t* widget, nocterm_dimension_size_t col){
     // Absolute
     
     if(widget == NULL){
@@ -310,26 +310,6 @@ int nocterm_widget_set_position_col(nocterm_widget_t* widget, nocterm_dimension_
     pthread_mutex_unlock(&widget->lock);
 
     return NOCTERM_SUCCESS;
-}
-
-int nocterm_widget_align_center_horizontal(nocterm_widget_t* widget){
-
-    if(widget == NULL){
-        errno = EINVAL;
-        return NOCTERM_FAILURE;
-    }
-
-    return nocterm_widget_align_percent_horizontal(widget, 50);
-}
-
-int nocterm_widget_align_center_vertical(nocterm_widget_t* widget){
-
-    if(widget == NULL){
-        errno = EINVAL;
-        return NOCTERM_FAILURE;
-    }
-
-    return nocterm_widget_align_percent_vertical(widget, 50);
 }
 
 int nocterm_widget_align_left(nocterm_widget_t* widget, nocterm_widget_align_edge_margin_t margin){
@@ -564,7 +544,7 @@ int nocterm_widget_align_bottom(nocterm_widget_t* widget, nocterm_widget_align_e
     return NOCTERM_SUCCESS;
 }
 
-int nocterm_widget_align_percent_horizontal(nocterm_widget_t* widget, uint8_t percent){
+int nocterm_widget_align_horizontal(nocterm_widget_t* widget, uint8_t percent){
 
     if(widget == NULL){
         errno = EINVAL;
@@ -616,7 +596,7 @@ int nocterm_widget_align_percent_horizontal(nocterm_widget_t* widget, uint8_t pe
     return NOCTERM_SUCCESS;
 }
 
-int nocterm_widget_align_percent_vertical(nocterm_widget_t* widget, uint8_t percent){
+int nocterm_widget_align_vertical(nocterm_widget_t* widget, uint8_t percent){
 
     if(widget == NULL){
         errno = EINVAL;
@@ -678,7 +658,7 @@ int nocterm_widget_align_update(nocterm_widget_t* widget){
     }else if(widget->align.flags.right){
         nocterm_widget_align_right(widget, widget->align.edge_margin);
     }else if(widget->align.flags.percent_horizontal){
-        nocterm_widget_align_percent_horizontal(widget, widget->align.percent_values.horizontal);
+        nocterm_widget_align_horizontal(widget, widget->align.percent_values.horizontal);
     }
     
     if(widget->align.flags.top){
@@ -686,7 +666,7 @@ int nocterm_widget_align_update(nocterm_widget_t* widget){
     }else if(widget->align.flags.bottom){
         nocterm_widget_align_bottom(widget, widget->align.edge_margin);
     }else if(widget->align.flags.percent_vertical){
-        nocterm_widget_align_percent_vertical(widget, widget->align.percent_values.vertical);
+        nocterm_widget_align_vertical(widget, widget->align.percent_values.vertical);
     }
 
     for(uint64_t i = 0; i < widget->subwidgets_size; i++){
@@ -1007,13 +987,12 @@ int nocterm_widget_resize(nocterm_widget_t* widget, nocterm_dimension_size_t hei
         widget->viewport.col = 0;
         widget->viewport.height = widget->bounds.height;
         widget->viewport.width = widget->bounds.width; 
-        nocterm_screen_ownership_reset(); 
         nocterm_widget_enforce_root_refresh(widget);
         return NOCTERM_SUCCESS;
     }
 
-    // At least something is changed internally
     if(width != widget->bounds.width || height != widget->bounds.height){
+        // At least something is changed internally
 
         uint32_t new_buffer_size = width*height;
 
@@ -1052,7 +1031,6 @@ int nocterm_widget_resize(nocterm_widget_t* widget, nocterm_dimension_size_t hei
     
     }
     
-    nocterm_screen_ownership_reset(); 
     nocterm_widget_enforce_root_refresh(widget);
 
     return NOCTERM_SUCCESS;

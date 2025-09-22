@@ -215,7 +215,7 @@ int nocterm_widget_set_position(nocterm_widget_t* widget, nocterm_dimension_size
  * @param row 
  * @return int 
  */
-int nocterm_widget_set_position_row(nocterm_widget_t* widget, nocterm_dimension_size_t row);
+int nocterm_widget_set_row(nocterm_widget_t* widget, nocterm_dimension_size_t row);
 
 /**
  * @brief Sets the column position of a widget.
@@ -224,23 +224,7 @@ int nocterm_widget_set_position_row(nocterm_widget_t* widget, nocterm_dimension_
  * @param col 
  * @return int 
  */
-int nocterm_widget_set_position_col(nocterm_widget_t* widget, nocterm_dimension_size_t col);
-
-/**
- * @brief Centers a widget horizontally.
- * 
- * @param widget 
- * @return int 
- */
-int nocterm_widget_align_center_horizontal(nocterm_widget_t* widget);
-
-/**
- * @brief Centers a widget vertically.
- * 
- * @param widget 
- * @return int 
- */
-int nocterm_widget_align_center_vertical(nocterm_widget_t* widget);
+int nocterm_widget_set_col(nocterm_widget_t* widget, nocterm_dimension_size_t col);
 
 /**
  * @brief Aligns a widget to the left
@@ -285,7 +269,7 @@ int nocterm_widget_align_bottom(nocterm_widget_t* widget, nocterm_widget_align_e
  * @param percent 
  * @return int 
  */
-int nocterm_widget_align_percent_horizontal(nocterm_widget_t* widget, uint8_t percent);
+int nocterm_widget_align_horizontal(nocterm_widget_t* widget, uint8_t percent);
 
 /**
  * @brief Aligns a widget with a vertical percentage from top
@@ -294,7 +278,7 @@ int nocterm_widget_align_percent_horizontal(nocterm_widget_t* widget, uint8_t pe
  * @param percent 
  * @return int 
  */
-int nocterm_widget_align_percent_vertical(nocterm_widget_t* widget, uint8_t percent);
+int nocterm_widget_align_vertical(nocterm_widget_t* widget, uint8_t percent);
 
 /**
  * @brief Update positions of widgets if they are centered in any way.

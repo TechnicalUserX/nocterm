@@ -6,7 +6,7 @@ NOCTERM_BUTTON_ONPRESS_HANDLER(handler){
 
 int main(){
 
-    nocterm_widget_t* my_widget = nocterm_widget_new((nocterm_dimension_t){0,0,10,10}, NOCTERM_WIDGET_FOCUSABLE_YES, NOCTERM_WIDGET_TYPE_REAL);
+    nocterm_widget_t* my_widget = nocterm_widget_new(10,10, NOCTERM_WIDGET_FOCUSABLE_YES, NOCTERM_WIDGET_TYPE_REAL);
     nocterm_page_t* main_page = nocterm_page_new("Main page", sizeof("Main page"), my_widget);
  
     nocterm_attribute_t button_focused = {
@@ -14,7 +14,8 @@ int main(){
         .color.ansi.codes.fg = 5
     };
 
-    nocterm_button_t* my_button = nocterm_button_new(1,1,"Press me", 9, handler, NULL);
+    nocterm_button_t* my_button = nocterm_button_new("Press me", 9, handler, NULL);
+    nocterm_widget_set_position(NOCTERM_WIDGET(my_button), 1, 1);
 
     nocterm_button_set_attribute(my_button, NOCTERM_ATTRIBUTE_EMPTY, button_focused);
 

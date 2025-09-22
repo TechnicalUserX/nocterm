@@ -3,9 +3,10 @@
 
 int main(){
 
-    nocterm_widget_t* my_widget = nocterm_widget_new((nocterm_dimension_t){0,0,10,10}, NOCTERM_WIDGET_FOCUSABLE_YES, NOCTERM_WIDGET_TYPE_REAL);
+    nocterm_widget_t* my_widget = nocterm_widget_new(10,10, NOCTERM_WIDGET_FOCUSABLE_YES, NOCTERM_WIDGET_TYPE_REAL);
 
-    nocterm_decorbox_t* my_decorbox = nocterm_decorbox_new(1,1, my_widget);
+    nocterm_decorbox_t* my_decorbox = nocterm_decorbox_new(my_widget);
+    nocterm_widget_set_position(NOCTERM_WIDGET(my_decorbox), 1, 1);
 
     // Here, we are giving decorbox as the root widget
     nocterm_page_t* main_page = nocterm_page_new("Main page", sizeof("Main page"), NOCTERM_WIDGET(my_decorbox));

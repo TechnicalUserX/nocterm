@@ -1,5 +1,11 @@
 #include <nocterm/widgets/decorbox.h>
 
+NOCTERM_INTERNAL int nocterm_decorbox_border_draw(nocterm_decorbox_t* decorbox, nocterm_decorbox_border_shape_t border_shape, nocterm_attribute_t attribute);
+
+NOCTERM_INTERNAL NOCTERM_WIDGET_KEY_HANDLER(nocterm_decorbox_key_handler);
+
+NOCTERM_INTERNAL NOCTERM_WIDGET_FOCUS_HANDLER(nocterm_decorbox_focus_handler);
+
 nocterm_decorbox_t* nocterm_decorbox_new(nocterm_widget_t* contained_widget){
 
     if(contained_widget == NULL){

@@ -1,5 +1,9 @@
 #include <nocterm/widgets/button.h>
 
+NOCTERM_INTERNAL NOCTERM_WIDGET_KEY_HANDLER(nocterm_button_key_handler);
+
+NOCTERM_INTERNAL NOCTERM_WIDGET_FOCUS_HANDLER(nocterm_button_focus_handler);
+
 nocterm_button_t* nocterm_button_new(const char* text, uint64_t text_size, nocterm_button_onpress_handler_t onpress_handler, void* user_data){
 
     if(text == NULL || text_size == 0){

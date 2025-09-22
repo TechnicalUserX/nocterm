@@ -1,5 +1,39 @@
 #include <nocterm/widgets/menu.h>
 
+NOCTERM_INTERNAL int nocterm_menu_selection_move_up(nocterm_menu_t* menu);
+
+NOCTERM_INTERNAL int nocterm_menu_selection_move_down(nocterm_menu_t* menu);
+
+NOCTERM_INTERNAL int nocterm_menu_selection_move_top(nocterm_menu_t* menu);
+
+NOCTERM_INTERNAL int nocterm_menu_selection_move_bottom(nocterm_menu_t* menu);
+
+NOCTERM_INTERNAL NOCTERM_WIDGET_KEY_HANDLER(nocterm_menu_key_handler);
+
+NOCTERM_INTERNAL NOCTERM_WIDGET_FOCUS_HANDLER(nocterm_menu_focus_handler);
+
+NOCTERM_INTERNAL nocterm_menu_item_array_t* nocterm_menu_item_array_new(void);
+
+NOCTERM_INTERNAL void nocterm_menu_item_array_delete(nocterm_menu_item_array_t* nocterm_menu_item_array);
+
+NOCTERM_INTERNAL void nocterm_menu_item_array_increase_capacity(nocterm_menu_item_array_t* nocterm_menu_item_array);
+
+NOCTERM_INTERNAL int nocterm_menu_item_array_push_back(nocterm_menu_item_array_t* nocterm_menu_item_array, nocterm_menu_item_t item);
+
+NOCTERM_INTERNAL int nocterm_menu_item_array_pop_back(nocterm_menu_item_array_t* nocterm_menu_item_array, nocterm_menu_item_t* item);
+
+NOCTERM_INTERNAL int nocterm_menu_item_array_push_front(nocterm_menu_item_array_t* nocterm_menu_item_array, nocterm_menu_item_t item);
+
+NOCTERM_INTERNAL int nocterm_menu_item_array_pop_front(nocterm_menu_item_array_t* nocterm_menu_item_array, nocterm_menu_item_t* item);
+
+NOCTERM_INTERNAL int nocterm_menu_item_array_insert(nocterm_menu_item_array_t* nocterm_menu_item_array, nocterm_menu_item_t item, uint64_t index);
+
+NOCTERM_INTERNAL int nocterm_menu_item_array_remove(nocterm_menu_item_array_t* nocterm_menu_item_array,  nocterm_menu_item_t* item, uint64_t index);
+
+NOCTERM_INTERNAL int nocterm_menu_item_array_clear(nocterm_menu_item_array_t* nocterm_menu_item_array);
+
+NOCTERM_INTERNAL int nocterm_menu_item_array_shrink_to_fit(nocterm_menu_item_array_t* nocterm_menu_item_array);
+
 nocterm_menu_t* nocterm_menu_new(nocterm_dimension_size_t items_displayed, uint64_t items_total, nocterm_dimension_size_t item_width, nocterm_menu_onselect_handler_t onselect_handler, void* user_data){
     nocterm_menu_t* new_menu = (nocterm_menu_t*)malloc(sizeof(nocterm_menu_t));
 
@@ -418,8 +452,6 @@ NOCTERM_WIDGET_FOCUS_HANDLER(nocterm_menu_focus_handler){
         }break;
     }
 }
-
-// Dynamic Array Implemenation
 
 nocterm_menu_item_array_t* nocterm_menu_item_array_new(void){
     nocterm_menu_item_array_t* new_nocterm_menu_item_array = (nocterm_menu_item_array_t*)malloc(sizeof(nocterm_menu_item_array_t));

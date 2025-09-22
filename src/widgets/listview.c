@@ -1,31 +1,38 @@
 #include <nocterm/widgets/listview.h>
 
-NOCTERM_WIDGET_KEY_HANDLER(nocterm_listview_key_handler){
-    switch(nocterm_key_translate(key)){
+NOCTERM_INTERNAL int nocterm_listview_move_up(nocterm_listview_t* listview);
 
-        case NOCTERM_KEY_EVENT_LEFT:{
-            // Slide top
-            nocterm_listview_move_top(NOCTERM_LISTVIEW(self));
-        }break;
+NOCTERM_INTERNAL int nocterm_listview_move_down(nocterm_listview_t* listview);
 
-        case NOCTERM_KEY_EVENT_RIGHT:{
-            // Slide bottom
-            nocterm_listview_move_bottom(NOCTERM_LISTVIEW(self));
-        }break;
+NOCTERM_INTERNAL int nocterm_listview_move_top(nocterm_listview_t* listview);
 
-        case NOCTERM_KEY_EVENT_UP:{
-            // Slide up
-            nocterm_listview_move_up(NOCTERM_LISTVIEW(self));
-        }break;
+NOCTERM_INTERNAL int nocterm_listview_move_bottom(nocterm_listview_t* listview);
 
-        case NOCTERM_KEY_EVENT_DOWN:{
-            // Slide down
-            nocterm_listview_move_down(NOCTERM_LISTVIEW(self));
-        }break;
+NOCTERM_INTERNAL NOCTERM_WIDGET_KEY_HANDLER(nocterm_listview_key_handler);
 
-        default:
-    }
-}
+NOCTERM_INTERNAL nocterm_listview_item_array_t* nocterm_listview_item_array_new(void);
+
+NOCTERM_INTERNAL void nocterm_listview_item_array_delete(nocterm_listview_item_array_t* dynamic_array);
+
+NOCTERM_INTERNAL void nocterm_listview_item_array_increase_capacity(nocterm_listview_item_array_t* dynamic_array);
+
+NOCTERM_INTERNAL int nocterm_listview_item_array_push_back(nocterm_listview_item_array_t* dynamic_array, nocterm_listview_item_t item);
+
+NOCTERM_INTERNAL int nocterm_listview_item_array_pop_back(nocterm_listview_item_array_t* dynamic_array, nocterm_listview_item_t* item);
+
+NOCTERM_INTERNAL int nocterm_listview_item_array_push_front(nocterm_listview_item_array_t* dynamic_array, nocterm_listview_item_t item);
+
+NOCTERM_INTERNAL int nocterm_listview_item_array_pop_front(nocterm_listview_item_array_t* dynamic_array, nocterm_listview_item_t* item);
+
+NOCTERM_INTERNAL int nocterm_listview_item_array_insert(nocterm_listview_item_array_t* dynamic_array, nocterm_listview_item_t item, uint64_t index);
+
+NOCTERM_INTERNAL int nocterm_listview_item_array_remove(nocterm_listview_item_array_t* dynamic_array,  nocterm_listview_item_t* item, uint64_t index);
+
+NOCTERM_INTERNAL int nocterm_listview_item_array_clear(nocterm_listview_item_array_t* dynamic_array);
+
+NOCTERM_INTERNAL int nocterm_listview_item_array_shrink_to_fit(nocterm_listview_item_array_t* dynamic_array);
+
+NOCTERM_WIDGET_KEY_HANDLER(nocterm_listview_key_handler);
 
 nocterm_listview_t* nocterm_listview_new(nocterm_dimension_size_t items_displayed, uint64_t items_total, nocterm_dimension_size_t item_width){
 
@@ -509,8 +516,6 @@ int nocterm_listview_move_bottom(nocterm_listview_t* listview){
     return NOCTERM_SUCCESS;
 }
 
-// Dynamic Array Implementation
-
 nocterm_listview_item_array_t* nocterm_listview_item_array_new(void){
     nocterm_listview_item_array_t* new_dynamic_array = (nocterm_listview_item_array_t*)malloc(sizeof(nocterm_listview_item_array_t));
     if(new_dynamic_array == NULL){
@@ -666,4 +671,31 @@ int nocterm_listview_item_array_shrink_to_fit(nocterm_listview_item_array_t* dyn
     dynamic_array->items = new_items;
     dynamic_array->capacity = dynamic_array->size;
     return NOCTERM_SUCCESS;
+}
+
+NOCTERM_WIDGET_KEY_HANDLER(nocterm_listview_key_handler){
+    switch(nocterm_key_translate(key)){
+
+        case NOCTERM_KEY_EVENT_LEFT:{
+            // Slide top
+            nocterm_listview_move_top(NOCTERM_LISTVIEW(self));
+        }break;
+
+        case NOCTERM_KEY_EVENT_RIGHT:{
+            // Slide bottom
+            nocterm_listview_move_bottom(NOCTERM_LISTVIEW(self));
+        }break;
+
+        case NOCTERM_KEY_EVENT_UP:{
+            // Slide up
+            nocterm_listview_move_up(NOCTERM_LISTVIEW(self));
+        }break;
+
+        case NOCTERM_KEY_EVENT_DOWN:{
+            // Slide down
+            nocterm_listview_move_down(NOCTERM_LISTVIEW(self));
+        }break;
+
+        default:
+    }
 }

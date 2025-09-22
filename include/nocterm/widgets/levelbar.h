@@ -15,7 +15,6 @@
 
 #define NOCTERM_LEVELBAR(x) ((nocterm_levelbar_t*)x)
 
-
 #ifdef __cplusplus
     extern "C" {
 #endif

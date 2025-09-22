@@ -1,5 +1,9 @@
 #include <nocterm/widgets/checkbox.h>
 
+NOCTERM_INTERNAL NOCTERM_WIDGET_KEY_HANDLER(nocterm_checkbox_key_handler);
+
+NOCTERM_INTERNAL NOCTERM_WIDGET_FOCUS_HANDLER(nocterm_checkbox_focus_handler);
+
 nocterm_checkbox_t* nocterm_checkbox_new(nocterm_checkbox_oncheck_handler_t oncheck_handler, bool checked, void* user_data){
 
     nocterm_checkbox_t* new_checkbox = (nocterm_checkbox_t*)malloc(sizeof(nocterm_checkbox_t));
