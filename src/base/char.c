@@ -1,8 +1,7 @@
 #include <nocterm/base/char.h>
 #include <stdio.h>
 
-// Returns text in nocterm_char_t string format with null terminator
-// Expects a large enough src that is null terminated
+
 uint64_t nocterm_char_string_from_stream(nocterm_char_t* dest, uint64_t dest_size, const char* src, uint64_t src_size){
     
     if(dest == NULL){
@@ -72,8 +71,6 @@ uint64_t nocterm_char_string_from_stream(nocterm_char_t* dest, uint64_t dest_siz
     return parsed_length; // Return successfull character length
 }
 
-// Returns a text in char array with null terminator
-// Expects a large enough src that is null terminated
 uint64_t nocterm_char_string_to_stream(char* dest, uint64_t dest_size, const nocterm_char_t* src, uint64_t src_size){
     
     if(dest == NULL){
@@ -120,6 +117,29 @@ uint64_t nocterm_char_string_to_stream(char* dest, uint64_t dest_size, const noc
     dest[dest_position] = '\0';
 
     return parsed_length;
+}
+
+nocterm_char_t nocterm_char_from_ascii(char ch){
+    nocterm_char_t result = {0};
+    result.bytes[0] = (uint8_t)ch;
+    result.bytes_size = 1;
+    result.is_utf8 = false;
+    return result;
+}
+
+nocterm_char_t nocterm_char_from_utf8(wchar_t ch){
+    nocterm_char_t result = {0};
+    // Convert wchar_t to UTF-8
+    char buffer[4] = {0};
+    int bytes_written = wctomb(buffer, ch);
+    if(bytes_written == -1){
+        // Conversion failed, return empty char
+        return NOCTERM_CHAR_EMPTY;
+    }
+    memcpy(result.bytes, buffer, bytes_written);
+    result.bytes_size = (uint8_t)bytes_written;
+    result.is_utf8 = (bytes_written > 1) ? true : false;
+    return result;
 }
 
 bool nocterm_char_is_null(nocterm_char_t ch){

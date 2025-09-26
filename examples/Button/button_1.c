@@ -14,11 +14,12 @@ int main(){
         .color.ansi.codes.fg = 5
     };
 
-    nocterm_button_t* my_button = nocterm_button_new("Press me", 9, handler, NULL);
+    nocterm_button_t* my_button = nocterm_button_new(1, 8, handler, NULL);
     nocterm_widget_set_position(NOCTERM_WIDGET(my_button), 1, 1);
 
     nocterm_button_set_attribute(my_button, NOCTERM_ATTRIBUTE_EMPTY, button_focused);
-
+    nocterm_button_set_text(my_button, "Press me", sizeof("Press me"));
+        
     nocterm_widget_add_subwidget(my_widget, NOCTERM_WIDGET(my_button));
 
     nocterm_page_stack_push(main_page); 

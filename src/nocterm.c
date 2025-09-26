@@ -89,11 +89,17 @@ int nocterm_end(void){
 int nocterm_loop(void){
 
     nocterm_page_t* current_page = NULL;
+    nocterm_overlay_t* current_overlay = NULL;
 
     // EVENT LOOP
     while(1){
 
         nocterm_key_t key = {0};
+
+        // Checking the existance of an overlay
+        if(nocterm_overlay){
+            current_overlay = nocterm_overlay;
+        }
 
         if(nocterm_page_stack_size > 0){
 
@@ -123,11 +129,26 @@ int nocterm_loop(void){
 
                     // Everytime the page changes, alignments are updated,
                     // not waiting a screen resize event
+
+                    if(current_overlay){
+                        for(uint64_t i = 0; i < NOCTERM_OVERLAY_WIDGET_MAX_SIZE; i++){
+                            if(current_overlay->widgets[i]){
+                                nocterm_widget_align_update(current_overlay->widgets[i]);
+                            }
+                        }
+                    }
+
                     nocterm_widget_align_update(top_page->root_widget);
 
                 }
 
                 nocterm_io_clear();
+                nocterm_screen_ownership_reset();
+                top_page->root_widget->hard_refresh = true;
+                if(current_overlay){
+                    current_overlay->hard_refresh = true;
+                }
+
             }
 
             current_page = nocterm_page_stack[nocterm_page_stack_size-1];
@@ -140,7 +161,7 @@ int nocterm_loop(void){
 
         // CAPTURE KEY PHASE
 
-        struct timespec loop_sleep = {0, 10000000}; // 10 ms
+        struct timespec loop_sleep = {0, 1000000}; // 1 ms
         struct timeval io_wait_interval = { .tv_sec = 0, .tv_usec = 0 };
 
         bool available = false;
@@ -194,6 +215,7 @@ int nocterm_loop(void){
         if(nocterm_signal_flags.nocterm_signal_sigwinch){
 
             current_page->root_widget->hard_refresh = true;
+            current_overlay->hard_refresh = true;
             nocterm_signal_flags.nocterm_signal_sigwinch = false;
 
             struct winsize w = {0};
@@ -217,16 +239,40 @@ int nocterm_loop(void){
 
             // We need to traverse over the widgets to reset their positions after resize
             nocterm_widget_align_update(current_page->root_widget);
+
+            if(current_overlay){
+                for(uint64_t i = 0; i < NOCTERM_OVERLAY_WIDGET_MAX_SIZE; i++){
+                    if(current_overlay->widgets[i]){
+                        nocterm_widget_align_update(current_overlay->widgets[i]);
+                    }
+                }
+            }
+
+        }
+
+        // After timer callbacks happened and before the refresh phase,
+        // we will check whether the current focused widget is set invisible
+        if(current_page->focused_widget && current_page->focused_widget->visible == false){
+            nocterm_page_change_focus(current_page, NOCTERM_PAGE_FOCUS_NEXT);
+            nocterm_widget_focused = current_page->focused_widget;            
         }
 
         // REFRESH PHASE
         if(current_page->root_widget->hard_refresh){
+            if(current_overlay){
+                current_overlay->hard_refresh = true;
+            }
             nocterm_io_clear();
             nocterm_screen_ownership_reset();
         }
 
+        // Overlay refreshes before the pages
+        if(current_overlay){
+            nocterm_overlay_refresh(current_overlay);
+        }
+
         // Screen refreshes after each individual update has been made
-        nocterm_widget_refresh(current_page->root_widget); 
+        nocterm_page_refresh(current_page); 
 
         // To not stress the CPU
         nanosleep(&loop_sleep, NULL); 

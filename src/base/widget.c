@@ -312,7 +312,7 @@ int nocterm_widget_set_col(nocterm_widget_t* widget, nocterm_dimension_size_t co
     return NOCTERM_SUCCESS;
 }
 
-int nocterm_widget_align_left(nocterm_widget_t* widget, nocterm_widget_align_edge_margin_t margin){
+int nocterm_widget_align_left(nocterm_widget_t* widget, nocterm_dimension_size_t margin){
     
     if(widget == NULL){
         errno = EINVAL;
@@ -363,14 +363,14 @@ int nocterm_widget_align_left(nocterm_widget_t* widget, nocterm_widget_align_edg
     widget->align.flags.right = false;
     widget->align.flags.percent_horizontal = false;
 
-    widget->align.edge_margin = margin;
+    widget->align.edge_margin_horizontal = margin;
 
     pthread_mutex_unlock(&widget->lock);
 
     return NOCTERM_SUCCESS;
 }
 
-int nocterm_widget_align_right(nocterm_widget_t* widget, nocterm_widget_align_edge_margin_t margin){
+int nocterm_widget_align_right(nocterm_widget_t* widget, nocterm_dimension_size_t margin){
     
     if(widget == NULL){
         errno = EINVAL;
@@ -422,14 +422,14 @@ int nocterm_widget_align_right(nocterm_widget_t* widget, nocterm_widget_align_ed
     widget->align.flags.percent_horizontal = false;
 
 
-    widget->align.edge_margin = margin;
+    widget->align.edge_margin_horizontal = margin;
 
     pthread_mutex_unlock(&widget->lock);
 
     return NOCTERM_SUCCESS;
 }
 
-int nocterm_widget_align_top(nocterm_widget_t* widget, nocterm_widget_align_edge_margin_t margin){
+int nocterm_widget_align_top(nocterm_widget_t* widget, nocterm_dimension_size_t margin){
     
     if(widget == NULL){
         errno = EINVAL;
@@ -478,7 +478,7 @@ int nocterm_widget_align_top(nocterm_widget_t* widget, nocterm_widget_align_edge
 
     widget->align.flags.top = true;
     widget->align.flags.bottom = false;
-    widget->align.edge_margin = margin;
+    widget->align.edge_margin_vertical = margin;
     widget->align.flags.percent_vertical = false;
 
 
@@ -487,7 +487,7 @@ int nocterm_widget_align_top(nocterm_widget_t* widget, nocterm_widget_align_edge
     return NOCTERM_SUCCESS;
 }
 
-int nocterm_widget_align_bottom(nocterm_widget_t* widget, nocterm_widget_align_edge_margin_t margin){
+int nocterm_widget_align_bottom(nocterm_widget_t* widget, nocterm_dimension_size_t margin){
     
     if(widget == NULL){
         errno = EINVAL;
@@ -536,7 +536,7 @@ int nocterm_widget_align_bottom(nocterm_widget_t* widget, nocterm_widget_align_e
 
     widget->align.flags.top = false;
     widget->align.flags.bottom = true;
-    widget->align.edge_margin = margin;
+    widget->align.edge_margin_vertical = margin;
     widget->align.flags.percent_vertical = false;
 
     pthread_mutex_unlock(&widget->lock);
@@ -654,17 +654,17 @@ int nocterm_widget_align_update(nocterm_widget_t* widget){
     }
 
     if(widget->align.flags.left){
-        nocterm_widget_align_left(widget, widget->align.edge_margin);
+        nocterm_widget_align_left(widget, widget->align.edge_margin_horizontal);
     }else if(widget->align.flags.right){
-        nocterm_widget_align_right(widget, widget->align.edge_margin);
+        nocterm_widget_align_right(widget, widget->align.edge_margin_horizontal);
     }else if(widget->align.flags.percent_horizontal){
         nocterm_widget_align_horizontal(widget, widget->align.percent_values.horizontal);
     }
     
     if(widget->align.flags.top){
-        nocterm_widget_align_top(widget, widget->align.edge_margin);
+        nocterm_widget_align_top(widget, widget->align.edge_margin_vertical);
     }else if(widget->align.flags.bottom){
-        nocterm_widget_align_bottom(widget, widget->align.edge_margin);
+        nocterm_widget_align_bottom(widget, widget->align.edge_margin_vertical);
     }else if(widget->align.flags.percent_vertical){
         nocterm_widget_align_vertical(widget, widget->align.percent_values.vertical);
     }

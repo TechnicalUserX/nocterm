@@ -24,6 +24,7 @@
 #include <nocterm/base/encoding.h>
 #include <nocterm/base/screen.h>
 #include <nocterm/base/mouse.h>
+#include <nocterm/base/overlay.h>
 
 #include <nocterm/widgets/loadingbar.h>
 #include <nocterm/widgets/label.h>

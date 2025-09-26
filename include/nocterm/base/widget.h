@@ -46,8 +46,6 @@ typedef struct nocterm_widget_align_percent_values_t{
     uint8_t vertical;
 }nocterm_widget_align_percent_values_t;
 
-typedef uint16_t nocterm_widget_align_edge_margin_t;
-
 typedef struct nocterm_widget_align_flags_t{
     bool left:1; 
     bool right:1;
@@ -60,7 +58,8 @@ typedef struct nocterm_widget_align_flags_t{
 typedef struct nocterm_widget_align_t{
     nocterm_widget_align_flags_t flags;
     nocterm_widget_align_percent_values_t percent_values;
-    nocterm_widget_align_edge_margin_t edge_margin;
+    nocterm_dimension_size_t edge_margin_horizontal;
+    nocterm_dimension_size_t edge_margin_vertical;
 }nocterm_widget_align_t;
 
 typedef struct nocterm_widget_t nocterm_widget_t;
@@ -233,7 +232,7 @@ int nocterm_widget_set_col(nocterm_widget_t* widget, nocterm_dimension_size_t co
  * @param margin 
  * @return int 
  */
-int nocterm_widget_align_left(nocterm_widget_t* widget, nocterm_widget_align_edge_margin_t margin);
+int nocterm_widget_align_left(nocterm_widget_t* widget, nocterm_dimension_size_t margin);
 
 /**
  * @brief Aligns a widget to the right
@@ -242,7 +241,7 @@ int nocterm_widget_align_left(nocterm_widget_t* widget, nocterm_widget_align_edg
  * @param margin 
  * @return int 
  */
-int nocterm_widget_align_right(nocterm_widget_t* widget, nocterm_widget_align_edge_margin_t margin);
+int nocterm_widget_align_right(nocterm_widget_t* widget, nocterm_dimension_size_t margin);
 
 /**
  * @brief Aligns a widget to the top
@@ -251,7 +250,7 @@ int nocterm_widget_align_right(nocterm_widget_t* widget, nocterm_widget_align_ed
  * @param margin 
  * @return int 
  */
-int nocterm_widget_align_top(nocterm_widget_t* widget, nocterm_widget_align_edge_margin_t margin);
+int nocterm_widget_align_top(nocterm_widget_t* widget, nocterm_dimension_size_t margin);
 
 /**
  * @brief Aligns a widget to the bottom
@@ -260,7 +259,7 @@ int nocterm_widget_align_top(nocterm_widget_t* widget, nocterm_widget_align_edge
  * @param margin 
  * @return int 
  */
-int nocterm_widget_align_bottom(nocterm_widget_t* widget, nocterm_widget_align_edge_margin_t margin);
+int nocterm_widget_align_bottom(nocterm_widget_t* widget, nocterm_dimension_size_t margin);
 
 /**
  * @brief Aligns a widget with a horizontal percentage from left

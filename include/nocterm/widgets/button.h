@@ -36,31 +36,26 @@ typedef struct nocterm_button_t{
 }nocterm_button_t;
 
 /**
- * @brief Creates a new button widget.
+ * @brief Creates a button widget.
  * 
- * @param row 
- * @param col 
- * @param text 
- * @param text_size 
+ * @param height 
+ * @param width 
  * @param onpress_handler 
  * @param user_data 
  * @return nocterm_button_t* 
  */
-nocterm_button_t* nocterm_button_new(const char* text, uint64_t text_size, nocterm_button_onpress_handler_t onpress_handler, void* user_data);
+nocterm_button_t* nocterm_button_new(nocterm_dimension_size_t height, nocterm_dimension_size_t width, nocterm_button_onpress_handler_t onpress_handler, void* user_data);
 
 /**
  * @brief Constructs a button widget.
  * 
- * @param button 
- * @param row 
- * @param col 
- * @param text 
- * @param text_size 
+ * @param height 
+ * @param width 
  * @param onpress_handler 
  * @param user_data 
  * @return int 
  */
-int nocterm_button_constructor(nocterm_button_t* button, const char* text, uint64_t text_size, nocterm_button_onpress_handler_t onpress_handler, void* user_data);
+int nocterm_button_constructor(nocterm_button_t* button, nocterm_dimension_size_t height, nocterm_dimension_size_t width, nocterm_button_onpress_handler_t onpress_handler, void* user_data);
 
 /**
  * @brief Destructs a button widget.
@@ -87,6 +82,16 @@ int nocterm_button_delete(nocterm_button_t* button);
  * @return int 
  */
 int nocterm_button_set_attribute(nocterm_button_t* button, nocterm_attribute_t normal, nocterm_attribute_t focused);
+
+/**
+ * @brief Sets the text of a button widget.
+ * 
+ * @param button 
+ * @param text 
+ * @param text_size 
+ * @return int 
+ */
+int nocterm_button_set_text(nocterm_button_t* button, const char* text, uint64_t text_size);
 
 #ifdef __cplusplus
     }

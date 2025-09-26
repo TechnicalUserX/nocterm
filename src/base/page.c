@@ -224,3 +224,11 @@ int nocterm_page_change_focus(nocterm_page_t* page, nocterm_page_focus_t focus){
 
     return NOCTERM_SUCCESS;
 }
+
+int nocterm_page_refresh(nocterm_page_t* page){
+    if(page == NULL || page->root_widget == NULL){
+        errno = EINVAL;
+        return NOCTERM_FAILURE;
+    }
+    return nocterm_widget_refresh(page->root_widget);
+}

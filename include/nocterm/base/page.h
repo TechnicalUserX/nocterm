@@ -99,6 +99,14 @@ nocterm_widget_t* nocterm_page_find_prev_focusable_widget(nocterm_page_t* page);
  */
 int nocterm_page_change_focus(nocterm_page_t* page, nocterm_page_focus_t focus);
 
+/**
+ * @brief Refreshes the specified page.
+ * 
+ * @param page 
+ * @return int 
+ */
+int nocterm_page_refresh(nocterm_page_t* page);
+
 #ifdef __cplusplus
     }
 #endif

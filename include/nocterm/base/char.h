@@ -51,6 +51,21 @@ uint64_t nocterm_char_string_from_stream(nocterm_char_t* dest, uint64_t dest_siz
  */
 uint64_t nocterm_char_string_to_stream(char* dest, uint64_t dest_size, const nocterm_char_t* src, uint64_t src_size);
 
+/**
+ * @brief Converts a C char to nocterm_char_t.
+ * 
+ * @param ch 
+ * @return nocterm_char_t 
+ */
+nocterm_char_t nocterm_char_from_ascii(char ch);
+
+/**
+ * @brief Converts a wchar_t to nocterm_char_t.
+ * 
+ * @param ch 
+ * @return nocterm_char_t 
+ */
+nocterm_char_t nocterm_char_from_utf8(wchar_t ch);
 
 /**
  * @brief Checks whether a noctemr_char_t is equivalent to C null terminator char.
