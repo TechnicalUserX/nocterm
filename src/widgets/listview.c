@@ -128,13 +128,8 @@ int nocterm_listview_push_back(nocterm_listview_t* listview, nocterm_listview_it
     }
 
     // Widget Update
-    if(listview->item_array->size < listview->widget.viewport.width){
-        // Add items to the buffer only if the displayed viewport height is enough to cover it
-        // Otherwise, the user is obliged to change the viewport by arrow keys
-        for(uint64_t i = 0; i < listview->widget.bounds.width && i < item.content_length; i++){
-            nocterm_widget_update(NOCTERM_WIDGET(listview), listview->item_array->size-1,i, item.content[i].character, item.content[i].attribute);
-        }
-
+    for(uint64_t i = 0; i < listview->widget.bounds.width && i < item.content_length; i++){
+        nocterm_widget_update(NOCTERM_WIDGET(listview), listview->item_array->size-1,i, item.content[i].character, item.content[i].attribute);
     }
 
     // Autoscroll
@@ -225,8 +220,8 @@ int nocterm_listview_pop_back(nocterm_listview_t* listview, nocterm_listview_ite
 
     // Widget Update
     // If there are more items than viewport height, viewport must go one up after deletion and also viewport is at the end
-    for(uint64_t i = 0; i < listview->item_array->items[listview->item_array->size-1].content_length && i < listview->widget.bounds.width ; i++){
-        nocterm_widget_update(NOCTERM_WIDGET(listview),listview->item_array->size-1, i, NOCTERM_CHAR_EMPTY, NOCTERM_ATTRIBUTE_EMPTY);
+    for(uint64_t i = 0; i < listview->item_array->items[listview->item_array->size].content_length && i < listview->widget.bounds.width ; i++){
+        nocterm_widget_update(NOCTERM_WIDGET(listview), listview->item_array->size, i, NOCTERM_CHAR_EMPTY, NOCTERM_ATTRIBUTE_EMPTY);
     }
 
     if(NOCTERM_WIDGET(listview)->viewport.row + NOCTERM_WIDGET(listview)->viewport.height == listview->item_array->size){

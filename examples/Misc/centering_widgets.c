@@ -3,7 +3,7 @@
 
 int main(){
 
-    nocterm_widget_t* my_widget = nocterm_widget_new(10,10, NOCTERM_WIDGET_FOCUSABLE_YES, NOCTERM_WIDGET_TYPE_REAL);
+    nocterm_widget_t* my_widget = nocterm_widget_new(11,10, NOCTERM_WIDGET_FOCUSABLE_YES, NOCTERM_WIDGET_TYPE_REAL);
 
     nocterm_decorbox_t* my_decorbox = nocterm_decorbox_new(my_widget);
     
@@ -22,10 +22,10 @@ int main(){
     
     nocterm_page_t* main_page = nocterm_page_new("Main page", sizeof("Main page"), NOCTERM_WIDGET(my_decorbox));
 
-    nocterm_widget_align_horizontal(NOCTERM_WIDGET(my_decorbox), 50);
-    nocterm_widget_align_vertical(NOCTERM_WIDGET(my_decorbox), 50);
-    nocterm_widget_align_horizontal(NOCTERM_WIDGET(my_label), 50);
-    nocterm_widget_align_vertical(NOCTERM_WIDGET(my_label), 50);
+    nocterm_widget_align_percent_horizontal(NOCTERM_WIDGET(my_decorbox), 50);
+    nocterm_widget_align_percent_vertical(NOCTERM_WIDGET(my_decorbox), 50);
+    nocterm_widget_align_percent_horizontal(NOCTERM_WIDGET(my_label), 50);
+    nocterm_widget_align_percent_vertical(NOCTERM_WIDGET(my_label), 50);
 
     nocterm_page_stack_push(main_page); 
  

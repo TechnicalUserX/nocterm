@@ -72,10 +72,11 @@ int nocterm_entry_delete(nocterm_entry_t* entry);
  * @brief Sets the attribute of an entry widget.
  * 
  * @param entry 
- * @param attribute 
+ * @param text 
+ * @param cursor 
  * @return int 
  */
-int nocterm_entry_set_attribute(nocterm_entry_t* entry, nocterm_attribute_t attribute);
+int nocterm_entry_set_attribute(nocterm_entry_t* entry, nocterm_attribute_t text, nocterm_attribute_t cursor);
 
 /**
  * @brief Retrieves text from an entry widget.

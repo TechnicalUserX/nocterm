@@ -50,6 +50,9 @@ int nocterm_decorbox_constructor(nocterm_decorbox_t* decorbox, nocterm_widget_t*
     decorbox->contained_widget->bounds.col = 1; // Relative position just next to the border
     decorbox->contained_widget->owner = NOCTERM_WIDGET(decorbox);
 
+    // click activation is inherited from the contained widget
+    NOCTERM_WIDGET(decorbox)->click_activation = contained_widget->click_activation;
+
     nocterm_widget_add_subwidget(NOCTERM_WIDGET(decorbox), contained_widget);
 
     if(nocterm_widget_add_focus_handler(NOCTERM_WIDGET(decorbox), nocterm_decorbox_focus_handler) == NOCTERM_FAILURE){

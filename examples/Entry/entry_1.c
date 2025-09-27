@@ -22,7 +22,8 @@ int main(){
     nocterm_entry_t* my_entry = nocterm_entry_new(6);
     nocterm_widget_set_position(NOCTERM_WIDGET(my_entry), 1, 1);
 
-    nocterm_button_t* my_button = nocterm_button_new("Get text", 9, handler, my_entry);
+    nocterm_button_t* my_button = nocterm_button_new(1,8,handler, my_entry);
+    nocterm_button_set_text(my_button, "Get Text", 9);
     nocterm_widget_set_position(NOCTERM_WIDGET(my_button), 2, 1);
 
     nocterm_widget_add_subwidget(my_widget, NOCTERM_WIDGET(my_entry));

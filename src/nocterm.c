@@ -215,7 +215,9 @@ int nocterm_loop(void){
         if(nocterm_signal_flags.nocterm_signal_sigwinch){
 
             current_page->root_widget->hard_refresh = true;
-            current_overlay->hard_refresh = true;
+            if(current_overlay){
+                current_overlay->hard_refresh = true;
+            }
             nocterm_signal_flags.nocterm_signal_sigwinch = false;
 
             struct winsize w = {0};

@@ -309,7 +309,7 @@ int nocterm_entry_cursor_erase_left(nocterm_entry_t* entry){
     return NOCTERM_SUCCESS;
 }
 
-int nocterm_entry_set_attribute(nocterm_entry_t* entry, nocterm_attribute_t attribute){
+int nocterm_entry_set_attribute(nocterm_entry_t* entry, nocterm_attribute_t text, nocterm_attribute_t cursor){
 
     if(entry == NULL){
         errno = EINVAL;
@@ -318,9 +318,8 @@ int nocterm_entry_set_attribute(nocterm_entry_t* entry, nocterm_attribute_t attr
     
     pthread_mutex_lock(&NOCTERM_WIDGET(entry)->lock);
 
-    entry->normal_attribute = attribute;
-    entry->cursor_attribute = attribute;
-    entry->cursor_attribute.inverse = true;
+    entry->normal_attribute = text;
+    entry->cursor_attribute = cursor;
 
     for(nocterm_dimension_size_t i = 0; i < entry->current_length; i++){
         nocterm_widget_update(NOCTERM_WIDGET(entry), 0,i, NOCTERM_WIDGET(entry)->buffer[i].character, entry->normal_attribute);    

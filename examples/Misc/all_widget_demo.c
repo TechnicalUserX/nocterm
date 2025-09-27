@@ -151,6 +151,7 @@ int main(){
     nocterm_widget_set_position(NOCTERM_WIDGET(enable_menu_label), 1, 5);
 
     nocterm_listview_t* item_list = nocterm_listview_new(3, 20, 16);
+    nocterm_listview_set_autoscroll(item_list, NOCTERM_LISTVIEW_AUTOSCROLL_DOWN);
     nocterm_decorbox_t* item_list_decorbox = nocterm_decorbox_new(NOCTERM_WIDGET(item_list));
     nocterm_widget_set_position(NOCTERM_WIDGET(item_list_decorbox), 5, 20);
     nocterm_decorbox_set_border(item_list_decorbox, generic_widget_border_shape, generic_widget_attribute_normal, generic_widget_attribute_focused); 
@@ -160,7 +161,8 @@ int main(){
     add_item_handler_arg->entry = entry;
     add_item_handler_arg->listview = item_list;
 
-    nocterm_button_t* add_items_to_list = nocterm_button_new("Add Item", 9, add_item_handler, add_item_handler_arg);
+    nocterm_button_t* add_items_to_list = nocterm_button_new(1, 8, add_item_handler, add_item_handler_arg);
+    nocterm_button_set_text(add_items_to_list, "Add Item", 9);
     nocterm_decorbox_t* add_items_to_list_decorbox = nocterm_decorbox_new(NOCTERM_WIDGET(add_items_to_list));
     nocterm_widget_set_position(NOCTERM_WIDGET(add_items_to_list_decorbox), 2, 20);
     nocterm_decorbox_set_border(add_items_to_list_decorbox, generic_widget_border_shape, generic_widget_attribute_normal, generic_widget_attribute_focused); 
@@ -203,15 +205,15 @@ int main(){
 
     nocterm_loadingbar_enable(loadingbar);
 
-    nocterm_widget_align_center_horizontal(NOCTERM_WIDGET(main_widget_decorbox));
-    nocterm_widget_align_center_vertical(NOCTERM_WIDGET(main_widget_decorbox));
+    nocterm_widget_align_percent_horizontal(NOCTERM_WIDGET(main_widget_decorbox), 50);
+    nocterm_widget_align_percent_vertical(NOCTERM_WIDGET(main_widget_decorbox), 50);
 
     nocterm_page_t* main_page = nocterm_page_new("Main Page", 10, NOCTERM_WIDGET(main_widget_decorbox));
     nocterm_page_stack_push(main_page);
 
     // Enable mouse support
     // Use on supporting temrinals
-    nocterm_mouse_support(NOCTERM_MOUSE_SUPPORT_ADVANCED);
+    nocterm_mouse_support(NOCTERM_MOUSE_SUPPORT_SIMPLE);
 
     // Main Loop
     nocterm_init();
