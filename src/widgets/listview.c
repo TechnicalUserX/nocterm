@@ -63,7 +63,7 @@ int nocterm_listview_constructor(nocterm_listview_t* listview, nocterm_dimension
         return NOCTERM_FAILURE;
     }
 
-    nocterm_widget_viewport(NOCTERM_WIDGET(listview), (nocterm_dimension_t){0, 0, items_displayed, NOCTERM_WIDGET(listview)->bounds.width});
+    nocterm_widget_set_viewport(NOCTERM_WIDGET(listview), (nocterm_dimension_t){0, 0, items_displayed, NOCTERM_WIDGET(listview)->bounds.width});
     
     listview->item_array = nocterm_listview_item_array_new();
     if(listview->item_array == NULL){
@@ -141,10 +141,10 @@ int nocterm_listview_push_back(nocterm_listview_t* listview, nocterm_listview_it
     if(listview->item_array->size > NOCTERM_WIDGET(listview)->viewport.height){
         switch(listview->autoscroll){
             case NOCTERM_LISTVIEW_AUTOSCROLL_UP:
-                nocterm_widget_viewport(NOCTERM_WIDGET(listview), (nocterm_dimension_t){0, 0, NOCTERM_WIDGET(listview)->viewport.height, NOCTERM_WIDGET(listview)->viewport.width});
+                nocterm_widget_set_viewport(NOCTERM_WIDGET(listview), (nocterm_dimension_t){0, 0, NOCTERM_WIDGET(listview)->viewport.height, NOCTERM_WIDGET(listview)->viewport.width});
                 break;
             case NOCTERM_LISTVIEW_AUTOSCROLL_DOWN:
-                nocterm_widget_viewport(NOCTERM_WIDGET(listview), (nocterm_dimension_t){listview->item_array->size - NOCTERM_WIDGET(listview)->viewport.height, 0, NOCTERM_WIDGET(listview)->viewport.height, NOCTERM_WIDGET(listview)->viewport.width});
+                nocterm_widget_set_viewport(NOCTERM_WIDGET(listview), (nocterm_dimension_t){listview->item_array->size - NOCTERM_WIDGET(listview)->viewport.height, 0, NOCTERM_WIDGET(listview)->viewport.height, NOCTERM_WIDGET(listview)->viewport.width});
                 break;
             case NOCTERM_LISTVIEW_AUTOSCROLL_NONE:
         }
@@ -188,10 +188,10 @@ int nocterm_listview_push_front(nocterm_listview_t* listview, nocterm_listview_i
     if(listview->item_array->size > NOCTERM_WIDGET(listview)->viewport.height){
         switch(listview->autoscroll){
             case NOCTERM_LISTVIEW_AUTOSCROLL_UP:
-                nocterm_widget_viewport(NOCTERM_WIDGET(listview), (nocterm_dimension_t){0, 0, NOCTERM_WIDGET(listview)->viewport.height, NOCTERM_WIDGET(listview)->viewport.width});
+                nocterm_widget_set_viewport(NOCTERM_WIDGET(listview), (nocterm_dimension_t){0, 0, NOCTERM_WIDGET(listview)->viewport.height, NOCTERM_WIDGET(listview)->viewport.width});
                 break;
             case NOCTERM_LISTVIEW_AUTOSCROLL_DOWN:
-                nocterm_widget_viewport(NOCTERM_WIDGET(listview), (nocterm_dimension_t){listview->item_array->size - NOCTERM_WIDGET(listview)->viewport.height, 0, NOCTERM_WIDGET(listview)->viewport.height, NOCTERM_WIDGET(listview)->viewport.width});
+                nocterm_widget_set_viewport(NOCTERM_WIDGET(listview), (nocterm_dimension_t){listview->item_array->size - NOCTERM_WIDGET(listview)->viewport.height, 0, NOCTERM_WIDGET(listview)->viewport.height, NOCTERM_WIDGET(listview)->viewport.width});
                 break;
             case NOCTERM_LISTVIEW_AUTOSCROLL_NONE:
         }
@@ -234,7 +234,7 @@ int nocterm_listview_pop_back(nocterm_listview_t* listview, nocterm_listview_ite
 
         if(listview->item_array->size > NOCTERM_WIDGET(listview)->viewport.height){
             // There are items at the top
-            nocterm_widget_viewport_up(NOCTERM_WIDGET(listview));
+            nocterm_widget_set_viewport_up(NOCTERM_WIDGET(listview));
         }
     }
 
@@ -285,7 +285,7 @@ int nocterm_listview_pop_front(nocterm_listview_t* listview, nocterm_listview_it
         // We are at most bottom edge
         if(NOCTERM_WIDGET(listview)->viewport.row > 0 ){
             // There are items at the top
-            nocterm_widget_viewport_up(NOCTERM_WIDGET(listview));
+            nocterm_widget_set_viewport_up(NOCTERM_WIDGET(listview));
         }
     }
 
@@ -329,10 +329,10 @@ int nocterm_listview_insert(nocterm_listview_t* listview, nocterm_listview_item_
     if(listview->item_array->size > NOCTERM_WIDGET(listview)->viewport.height){
         switch(listview->autoscroll){
             case NOCTERM_LISTVIEW_AUTOSCROLL_UP:
-                nocterm_widget_viewport(NOCTERM_WIDGET(listview), (nocterm_dimension_t){0, 0, NOCTERM_WIDGET(listview)->viewport.height, NOCTERM_WIDGET(listview)->viewport.width});
+                nocterm_widget_set_viewport(NOCTERM_WIDGET(listview), (nocterm_dimension_t){0, 0, NOCTERM_WIDGET(listview)->viewport.height, NOCTERM_WIDGET(listview)->viewport.width});
                 break;
             case NOCTERM_LISTVIEW_AUTOSCROLL_DOWN:
-                nocterm_widget_viewport(NOCTERM_WIDGET(listview), (nocterm_dimension_t){listview->item_array->size - NOCTERM_WIDGET(listview)->viewport.height, 0, NOCTERM_WIDGET(listview)->viewport.height, NOCTERM_WIDGET(listview)->viewport.width});
+                nocterm_widget_set_viewport(NOCTERM_WIDGET(listview), (nocterm_dimension_t){listview->item_array->size - NOCTERM_WIDGET(listview)->viewport.height, 0, NOCTERM_WIDGET(listview)->viewport.height, NOCTERM_WIDGET(listview)->viewport.width});
                 break;
             case NOCTERM_LISTVIEW_AUTOSCROLL_NONE:
         }
@@ -457,7 +457,7 @@ int nocterm_listview_move_up(nocterm_listview_t* listview){
 
     pthread_mutex_lock(&NOCTERM_WIDGET(listview)->lock);
 
-    nocterm_widget_viewport_up(NOCTERM_WIDGET(listview));          
+    nocterm_widget_set_viewport_up(NOCTERM_WIDGET(listview));          
 
     pthread_mutex_unlock(&NOCTERM_WIDGET(listview)->lock);
 
@@ -474,7 +474,7 @@ int nocterm_listview_move_down(nocterm_listview_t* listview){
     pthread_mutex_lock(&NOCTERM_WIDGET(listview)->lock);
 
     if(NOCTERM_WIDGET(listview)->viewport.row + NOCTERM_WIDGET(listview)->viewport.height < NOCTERM_LISTVIEW(listview)->item_array->size){
-        nocterm_widget_viewport_down(NOCTERM_WIDGET(listview));
+        nocterm_widget_set_viewport_down(NOCTERM_WIDGET(listview));
     }
 
     pthread_mutex_unlock(&NOCTERM_WIDGET(listview)->lock);
@@ -491,7 +491,7 @@ int nocterm_listview_move_top(nocterm_listview_t* listview){
 
     pthread_mutex_lock(&NOCTERM_WIDGET(listview)->lock);
 
-    nocterm_widget_viewport(NOCTERM_WIDGET(listview),(nocterm_dimension_t){0,0, NOCTERM_WIDGET(listview)->viewport.height, NOCTERM_WIDGET(listview)->viewport.width});
+    nocterm_widget_set_viewport(NOCTERM_WIDGET(listview),(nocterm_dimension_t){0,0, NOCTERM_WIDGET(listview)->viewport.height, NOCTERM_WIDGET(listview)->viewport.width});
 
     pthread_mutex_unlock(&NOCTERM_WIDGET(listview)->lock);
 
@@ -508,7 +508,7 @@ int nocterm_listview_move_bottom(nocterm_listview_t* listview){
     pthread_mutex_lock(&NOCTERM_WIDGET(listview)->lock);
 
     if(listview->item_array->size > NOCTERM_WIDGET(listview)->viewport.height){
-        nocterm_widget_viewport(NOCTERM_WIDGET(listview), (nocterm_dimension_t){listview->item_array->size -  NOCTERM_WIDGET(listview)->viewport.height, 0, NOCTERM_WIDGET(listview)->viewport.height, NOCTERM_WIDGET(listview)->viewport.width});
+        nocterm_widget_set_viewport(NOCTERM_WIDGET(listview), (nocterm_dimension_t){listview->item_array->size -  NOCTERM_WIDGET(listview)->viewport.height, 0, NOCTERM_WIDGET(listview)->viewport.height, NOCTERM_WIDGET(listview)->viewport.width});
     }
 
     pthread_mutex_unlock(&NOCTERM_WIDGET(listview)->lock);

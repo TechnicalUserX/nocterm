@@ -61,7 +61,7 @@ int nocterm_menu_constructor(nocterm_menu_t* menu, nocterm_dimension_size_t item
         return NOCTERM_FAILURE;
     }
 
-    nocterm_widget_viewport(NOCTERM_WIDGET(menu), (nocterm_dimension_t){0, 0, items_displayed, NOCTERM_WIDGET(menu)->bounds.width});
+    nocterm_widget_set_viewport(NOCTERM_WIDGET(menu), (nocterm_dimension_t){0, 0, items_displayed, NOCTERM_WIDGET(menu)->bounds.width});
     
     menu->item_array = nocterm_menu_item_array_new();
     if(menu->item_array == NULL){
@@ -292,7 +292,7 @@ int nocterm_menu_selection_move_up(nocterm_menu_t* menu){
                 nocterm_widget_update(NOCTERM_WIDGET(menu), menu->current_item-1, i, menu->item_array->items[menu->current_item-1].content[i].character , menu->selection_attribute);
             }
             menu->current_item--;
-            nocterm_widget_viewport_up(NOCTERM_WIDGET(menu));
+            nocterm_widget_set_viewport_up(NOCTERM_WIDGET(menu));
 
         }
 
@@ -323,7 +323,7 @@ int nocterm_menu_selection_move_down(nocterm_menu_t* menu){
         }
 
         if(menu->selection_position == NOCTERM_WIDGET(menu)->viewport.height - 1){
-            nocterm_widget_viewport_down(NOCTERM_WIDGET(menu));
+            nocterm_widget_set_viewport_down(NOCTERM_WIDGET(menu));
 
         }else{
             menu->selection_position++;
@@ -355,7 +355,7 @@ int nocterm_menu_selection_move_top(nocterm_menu_t* menu){
     menu->current_item = 0;
     menu->selection_position = 0;
 
-    nocterm_widget_viewport(NOCTERM_WIDGET(menu), (nocterm_dimension_t){0,0, NOCTERM_WIDGET(menu)->viewport.height, NOCTERM_WIDGET(menu)->viewport.width});
+    nocterm_widget_set_viewport(NOCTERM_WIDGET(menu), (nocterm_dimension_t){0,0, NOCTERM_WIDGET(menu)->viewport.height, NOCTERM_WIDGET(menu)->viewport.width});
 
     pthread_mutex_unlock(&NOCTERM_WIDGET(menu)->lock);
 
@@ -382,7 +382,7 @@ int nocterm_menu_selection_move_bottom(nocterm_menu_t* menu){
         // There are items more than the viewport height
         // So the last item is OK but we need to find the viewport
 
-        nocterm_widget_viewport(NOCTERM_WIDGET(menu), (nocterm_dimension_t){menu->item_array->size - NOCTERM_WIDGET(menu)->viewport.height, 0, NOCTERM_WIDGET(menu)->viewport.height, NOCTERM_WIDGET(menu)->viewport.width});
+        nocterm_widget_set_viewport(NOCTERM_WIDGET(menu), (nocterm_dimension_t){menu->item_array->size - NOCTERM_WIDGET(menu)->viewport.height, 0, NOCTERM_WIDGET(menu)->viewport.height, NOCTERM_WIDGET(menu)->viewport.width});
         menu->selection_position = NOCTERM_WIDGET(menu)->viewport.height-1;
         menu->current_item = menu->item_array->size-1;
     }else{

@@ -38,6 +38,7 @@ int nocterm_button_constructor(nocterm_button_t* button, nocterm_dimension_size_
         return NOCTERM_FAILURE;
     }
 
+    nocterm_widget_set_click_activation(NOCTERM_WIDGET(button), true);
 
     for(nocterm_dimension_size_t i = 0; i < NOCTERM_WIDGET(button)->buffer_size; i++){
         nocterm_widget_update(NOCTERM_WIDGET(button), 0, i, nocterm_char_from_ascii(' '), NOCTERM_ATTRIBUTE_EMPTY);

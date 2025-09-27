@@ -99,6 +99,10 @@ typedef struct nocterm_widget_t{
     bool is_virtual;
     bool focusable;
 
+    // For mouse support: This flag indicates that when clicked with mouse/touch input, it will trigger ENTER key instantly
+    // This flag must be handled carefully by widget constructors
+    bool click_activation; 
+
     nocterm_widget_align_t align;
 
     nocterm_widget_key_handler_t key_handler;
@@ -153,7 +157,7 @@ int nocterm_widget_constructor(nocterm_widget_t* widget, nocterm_dimension_size_
  * @param viewport 
  * @return int 
  */
-int nocterm_widget_viewport(nocterm_widget_t* widget, nocterm_dimension_t viewport);
+int nocterm_widget_set_viewport(nocterm_widget_t* widget, nocterm_dimension_t viewport);
 
 /**
  * @brief Moves up the viewport of a widget.
@@ -161,7 +165,7 @@ int nocterm_widget_viewport(nocterm_widget_t* widget, nocterm_dimension_t viewpo
  * @param widget 
  * @return int 
  */
-int nocterm_widget_viewport_up(nocterm_widget_t* widget);
+int nocterm_widget_set_viewport_up(nocterm_widget_t* widget);
 
 /**
  * @brief Moves down the viewport of a widget.
@@ -169,7 +173,7 @@ int nocterm_widget_viewport_up(nocterm_widget_t* widget);
  * @param widget 
  * @return int 
  */
-int nocterm_widget_viewport_down(nocterm_widget_t* widget);
+int nocterm_widget_set_viewport_down(nocterm_widget_t* widget);
 
 /**
  * @brief Moves right the viewport of a widget.
@@ -177,7 +181,7 @@ int nocterm_widget_viewport_down(nocterm_widget_t* widget);
  * @param widget 
  * @return int 
  */
-int nocterm_widget_viewport_right(nocterm_widget_t* widget);
+int nocterm_widget_set_viewport_right(nocterm_widget_t* widget);
 
 /**
  * @brief Moves left the viewport of a widget.
@@ -185,7 +189,7 @@ int nocterm_widget_viewport_right(nocterm_widget_t* widget);
  * @param widget 
  * @return int 
  */
-int nocterm_widget_viewport_left(nocterm_widget_t* widget);
+int nocterm_widget_set_viewport_left(nocterm_widget_t* widget);
 
 /**
  * @brief Retrieves the row and column position of a widget.
@@ -322,6 +326,15 @@ int nocterm_widget_get_visible(nocterm_widget_t* widget, bool* visible);
  * @return int 
  */
 int nocterm_widget_set_visible(nocterm_widget_t* widget, bool visible);
+
+/**
+ * @brief Sets click activation feature of a widget.
+ * 
+ * @param widget 
+ * @param click_activation 
+ * @return int 
+ */
+int nocterm_widget_set_click_activation(nocterm_widget_t* widget, bool click_activation);
 
 /**
  * @brief Adds a subwidget to a widget.

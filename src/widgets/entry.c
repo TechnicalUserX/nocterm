@@ -75,7 +75,7 @@ int nocterm_entry_constructor(nocterm_entry_t* entry, nocterm_dimension_size_t w
         return NOCTERM_FAILURE;
     }
 
-    nocterm_widget_viewport(NOCTERM_WIDGET(entry), (nocterm_dimension_t){0, 0, 1, width});
+    nocterm_widget_set_viewport(NOCTERM_WIDGET(entry), (nocterm_dimension_t){0, 0, 1, width});
 
     nocterm_widget_update(NOCTERM_WIDGET(entry), 0, 0, NOCTERM_ENTRY_CURSOR_CHAR, entry->normal_attribute);
 
@@ -138,7 +138,7 @@ int nocterm_entry_cursor_move_left(nocterm_entry_t* entry){
             nocterm_widget_update(NOCTERM_WIDGET(entry), 0, entry->buffer_position, NOCTERM_WIDGET(entry)->buffer[entry->buffer_position].character, entry->normal_attribute);
             nocterm_widget_update(NOCTERM_WIDGET(entry), 0, entry->buffer_position - 1, NOCTERM_WIDGET(entry)->buffer[entry->buffer_position - 1].character, entry->cursor_attribute);
             entry->buffer_position--;
-            nocterm_widget_viewport_left(NOCTERM_WIDGET(entry));
+            nocterm_widget_set_viewport_left(NOCTERM_WIDGET(entry));
         }
     }
 
@@ -172,7 +172,7 @@ int nocterm_entry_cursor_move_right(nocterm_entry_t* entry){
         // Now we need to check whether we should move the viewport to right, if the cursor was previously at the very end, then we had to modify viewport
         if(entry->cursor_position == NOCTERM_WIDGET(entry)->viewport.width-1){
             // Cursor at rightmost
-            nocterm_widget_viewport_right(NOCTERM_WIDGET(entry));
+            nocterm_widget_set_viewport_right(NOCTERM_WIDGET(entry));
         }else{
             entry->cursor_position++;
         }
@@ -295,11 +295,11 @@ int nocterm_entry_cursor_erase_left(nocterm_entry_t* entry){
 
             if(entry->current_length >= NOCTERM_WIDGET(entry)->viewport.width-1){
                 entry->cursor_position = NOCTERM_WIDGET(entry)->viewport.width-1;
-                nocterm_widget_viewport(NOCTERM_WIDGET(entry), (nocterm_dimension_t){0, entry->current_length-NOCTERM_WIDGET(entry)->viewport.width+1,1,NOCTERM_WIDGET(entry)->viewport.width});
+                nocterm_widget_set_viewport(NOCTERM_WIDGET(entry), (nocterm_dimension_t){0, entry->current_length-NOCTERM_WIDGET(entry)->viewport.width+1,1,NOCTERM_WIDGET(entry)->viewport.width});
 
             }else{
                 entry->cursor_position = entry->current_length;
-                nocterm_widget_viewport(NOCTERM_WIDGET(entry),(nocterm_dimension_t){0,0,1,NOCTERM_WIDGET(entry)->viewport.width});
+                nocterm_widget_set_viewport(NOCTERM_WIDGET(entry),(nocterm_dimension_t){0,0,1,NOCTERM_WIDGET(entry)->viewport.width});
             }
 
         }
@@ -399,10 +399,10 @@ int nocterm_entry_set_text(nocterm_entry_t* entry, char* buffer, uint64_t buffer
 
     if(new_entry_text_length <= NOCTERM_WIDGET(entry)->viewport.width - 1){
         entry->cursor_position = new_entry_text_length;
-        nocterm_widget_viewport(NOCTERM_WIDGET(entry), (nocterm_dimension_t){0, 0, NOCTERM_WIDGET(entry)->viewport.height, NOCTERM_WIDGET(entry)->viewport.width});
+        nocterm_widget_set_viewport(NOCTERM_WIDGET(entry), (nocterm_dimension_t){0, 0, NOCTERM_WIDGET(entry)->viewport.height, NOCTERM_WIDGET(entry)->viewport.width});
     }else{
         entry->cursor_position = NOCTERM_WIDGET(entry)->viewport.width - 1;
-        nocterm_widget_viewport(NOCTERM_WIDGET(entry), (nocterm_dimension_t){0, new_entry_text_length - NOCTERM_WIDGET(entry)->viewport.width + 1, NOCTERM_WIDGET(entry)->viewport.height , NOCTERM_WIDGET(entry)->viewport.width});
+        nocterm_widget_set_viewport(NOCTERM_WIDGET(entry), (nocterm_dimension_t){0, new_entry_text_length - NOCTERM_WIDGET(entry)->viewport.width + 1, NOCTERM_WIDGET(entry)->viewport.height , NOCTERM_WIDGET(entry)->viewport.width});
     }
     
     pthread_mutex_unlock(&NOCTERM_WIDGET(entry)->lock);

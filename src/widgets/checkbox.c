@@ -33,6 +33,8 @@ int nocterm_checkbox_constructor(nocterm_checkbox_t* checkbox, nocterm_checkbox_
         return NOCTERM_FAILURE;
     }
 
+    nocterm_widget_set_click_activation(NOCTERM_WIDGET(checkbox), true);
+
     checkbox->checked = checked;
 
     checkbox->oncheck_handler = oncheck_handler;

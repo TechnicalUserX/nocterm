@@ -262,6 +262,9 @@ int nocterm_loop(void){
             if(current_overlay){
                 current_overlay->hard_refresh = true;
             }
+        }
+
+        if(current_page->root_widget->hard_refresh || (current_overlay && current_overlay->hard_refresh)){
             nocterm_io_clear();
             nocterm_screen_ownership_reset();
         }
@@ -280,5 +283,6 @@ int nocterm_loop(void){
 
     // END PHASE
 
+    
     return EXIT_SUCCESS;
 }

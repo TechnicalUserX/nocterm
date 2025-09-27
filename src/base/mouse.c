@@ -206,7 +206,7 @@ int nocterm_mouse_controller(nocterm_key_t* key){
 
                 if(previous_mouse_event.button == NOCTERM_MOUSE_BUTTON_LMB){
 
-                    if(current_page->focused_widget == current_mouse_widget->owner || previous_mouse_event.modifier.ctrl){
+                    if(current_page->focused_widget == current_mouse_widget->owner || previous_mouse_event.modifier.ctrl || previous_mouse_widget->click_activation){
                         
                         if(current_mouse_widget->owner->key_handler){
                             memcpy(crafted_key.buffer, "\n", 1);
