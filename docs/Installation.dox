@@ -14,11 +14,11 @@ To build and install Nocterm to your Linux system, you need to install the follo
 
 - `make`
 - `gcc`
-- `git`
+- `git` (Optional)
 
 To install these requirements:
 
-**Ubuntu/Debian**
+**Debian Based Systems**
 
 ```shell
 sudo apt install gcc make git
@@ -27,6 +27,8 @@ sudo apt install gcc make git
 ## 2. Building & Installing
 
 To build and install the library, you have to clone the project to your system via `git` first:
+
+> If you don't want to use 
 
 ```shell
 git clone https://github.com/technicaluserx/nocterm.git
@@ -44,7 +46,7 @@ The project must be configured first:
 ./configure --targets=nocterm
 ```
 
-After configuration, we compile the project:
+After configuration, compile the project:
 
 ```shell
 make
@@ -57,4 +59,3 @@ sudo make install
 ```
 
 > Header files are copied to `/usr/local/include` and library binary is copied to `/usr/local/lib`.
-

@@ -346,6 +346,25 @@ int nocterm_widget_set_click_activation(nocterm_widget_t* widget, bool click_act
 int nocterm_widget_add_subwidget(nocterm_widget_t* widget, nocterm_widget_t* subwidget);
 
 /**
+ * @brief Removes a subwidget from a widget.
+ * 
+ * @param widget 
+ * @param subwidget 
+ * @return int 
+ */
+int nocterm_widget_remove_subwidget(nocterm_widget_t* widget, nocterm_widget_t* subwidget);
+
+/**
+ * @brief Checks whether a widget contains a specified subwidget.
+ * 
+ * @param widget 
+ * @param subwidget 
+ * @return true 
+ * @return false 
+ */
+bool nocterm_widget_contains_subwidget(nocterm_widget_t* widget, nocterm_widget_t* subwidget);
+
+/**
  * @brief Assigns a key handler callback to a widget.
  * 
  * @param widget 
@@ -390,14 +409,6 @@ int nocterm_widget_destructor(nocterm_widget_t* widget);
  * @return int 
  */
 int nocterm_widget_update(nocterm_widget_t* widget, nocterm_dimension_size_t row, nocterm_dimension_size_t col, nocterm_char_t ch, nocterm_attribute_t attr);
-
-/**
- * @brief Refreshes given and all subwidgets, draws them on the screen.
- * 
- * @param widget 
- * @return int 
- */
-int nocterm_widget_refresh(nocterm_widget_t* widget);
 
 /**
  * @brief Enforces root to be refreshed.

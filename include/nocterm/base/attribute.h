@@ -125,8 +125,8 @@ typedef struct nocterm_attribute_t{
 /**
  * @brief Sets attributes of the current terminal.
  * 
- * @param attribute Terminal formatting attribute
- * @return int
+ * @param attribute 
+ * @return int 
  */
 int nocterm_attribute_set(nocterm_attribute_t attribute);
 

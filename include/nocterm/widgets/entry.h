@@ -17,7 +17,7 @@
 
 #define NOCTERM_ENTRY_BUFFER_MAX_SIZE 128
 
-#define NOCTERM_ENTRY_CURSOR_CHAR NOCTERM_CHAR_SPACE
+#define NOCTERM_ENTRY_CURSOR_CHAR nocterm_char_from_ascii(' ')
 
 #ifdef __cplusplus
     extern "C" {
@@ -35,8 +35,6 @@ typedef struct nocterm_entry_t{
 /**
  * @brief Creates a new entry widget.
  * 
- * @param row 
- * @param col 
  * @param width 
  * @return nocterm_entry_t* 
  */
@@ -45,8 +43,7 @@ nocterm_entry_t* nocterm_entry_new(nocterm_dimension_size_t width);
 /**
  * @brief Constructs an entry widget.
  * 
- * @param row 
- * @param col 
+ * @param entry 
  * @param width 
  * @return int 
  */

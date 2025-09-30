@@ -37,7 +37,6 @@
  * 
  */
 
-
 typedef enum nocterm_mouse_button_t{
     NOCTERM_MOUSE_BUTTON_LMB,
     NOCTERM_MOUSE_BUTTON_RMB,
@@ -68,19 +67,19 @@ typedef enum nocterm_mouse_support_t{
     NOCTERM_MOUSE_SUPPORT_ADVANCED
 }nocterm_mouse_support_t;
 
-extern nocterm_dimension_size_t nocterm_mouse_row, nocterm_mouse_col;
-
+/**
+ * @brief Used to enable mouse support.
+ * 
+ * @param support 
+ */
 void nocterm_mouse_support(nocterm_mouse_support_t support);
 
-NOCTERM_INTERNAL extern nocterm_mouse_support_t nocterm_mouse_support_flag;
-
-NOCTERM_INTERNAL int nocterm_mouse_enable(void);
-
-NOCTERM_INTERNAL int nocterm_mouse_disable(void);
-
-NOCTERM_INTERNAL nocterm_mouse_event_t nocterm_mouse_event(uint8_t mouse_byte, uint8_t col_byte, uint8_t row_byte);
-
-NOCTERM_INTERNAL int nocterm_mouse_controller(nocterm_key_t* key);
+/**
+ * @brief Retruns the internal mouse support flag.
+ * 
+ * @return nocterm_mouse_support_t 
+ */
+nocterm_mouse_support_t nocterm_mouse_get_support_flag(void);
 
 #ifdef __cplusplus
     }

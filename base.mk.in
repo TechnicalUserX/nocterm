@@ -35,7 +35,7 @@ SHELL := /bin/bash
 ########################################
 # Prefix - Used For Installation Directory
 
-PREFIX := $(if ${DESTDIR}, /usr, /usr/local)
+PREFIX := $(if ${PREFIX},${PREFIX},$(if ${DESTDIR},/usr,/usr/local))
 
 ########################################
 # Directories

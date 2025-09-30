@@ -30,8 +30,6 @@ typedef struct nocterm_loadingbar_t{
 /**
  * @brief Creates a new loadingbar widget.
  * 
- * @param row 
- * @param col 
  * @param interval 
  * @return nocterm_loadingbar_t* 
  */
@@ -40,8 +38,7 @@ nocterm_loadingbar_t* nocterm_loadingbar_new(uint64_t interval);
 /**
  * @brief Constructs a loadingbar widget.
  * 
- * @param row 
- * @param col 
+ * @param loadingbar 
  * @param interval 
  * @return int 
  */

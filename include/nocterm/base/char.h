@@ -12,9 +12,7 @@
 
 #include <nocterm/common/nocterm.h>
 
-#define NOCTERM_CHAR_NULL (nocterm_char_t){.bytes = {'\0'}, .bytes_size = 1, .is_utf8 = false}
 #define NOCTERM_CHAR_EMPTY (nocterm_char_t){0}
-#define NOCTERM_CHAR_SPACE (nocterm_char_t){.bytes = {' '}, .bytes_size = 1, .is_utf8 = false}
 
 #ifdef __cplusplus
     extern "C" {
@@ -26,7 +24,6 @@ typedef struct nocterm_char_t{
     uint8_t is_utf8:1;
     uint8_t bytes_size:3;
 }nocterm_char_t;
-
 
 /**
  * @brief Returns a nocterm_char_t array from C char array.

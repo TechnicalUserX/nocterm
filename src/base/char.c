@@ -1,7 +1,6 @@
 #include <nocterm/base/char.h>
 #include <stdio.h>
 
-
 uint64_t nocterm_char_string_from_stream(nocterm_char_t* dest, uint64_t dest_size, const char* src, uint64_t src_size){
     
     if(dest == NULL){
@@ -66,7 +65,7 @@ uint64_t nocterm_char_string_from_stream(nocterm_char_t* dest, uint64_t dest_siz
         return 0;
     }    
 
-    dest[dest_position] = NOCTERM_CHAR_NULL; // Null terminator 
+    dest[dest_position] = nocterm_char_from_ascii('\0'); // Null terminator 
 
     return parsed_length; // Return successfull character length
 }
@@ -143,7 +142,8 @@ nocterm_char_t nocterm_char_from_utf8(wchar_t ch){
 }
 
 bool nocterm_char_is_null(nocterm_char_t ch){
-    if(memcmp(&ch, &NOCTERM_CHAR_NULL, sizeof(nocterm_char_t)) == 0){
+    nocterm_char_t null = nocterm_char_from_ascii('\0');
+    if(memcmp(&ch, &null, sizeof(nocterm_char_t)) == 0){
         // Null terminator detected
         return true;
     }else{

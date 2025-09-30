@@ -47,8 +47,6 @@ typedef struct nocterm_checkbox_t{
 /**
  * @brief Creates a new checkbox widget.
  * 
- * @param row 
- * @param col 
  * @param oncheck_handler 
  * @param checked 
  * @param user_data 
@@ -60,8 +58,6 @@ nocterm_checkbox_t* nocterm_checkbox_new(nocterm_checkbox_oncheck_handler_t onch
  * @brief Constructs a checkbox widget.
  * 
  * @param checkbox 
- * @param row 
- * @param col 
  * @param oncheck_handler 
  * @param checked 
  * @param user_data 

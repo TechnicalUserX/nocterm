@@ -1,5 +1,40 @@
 #include <nocterm/nocterm.h>
 
+// ====================== Internal Access ====================== //
+
+int nocterm_mouse_controller(nocterm_key_t* key);
+
+nocterm_mouse_event_t nocterm_mouse_event(uint8_t mouse_byte, uint8_t col_byte, uint8_t row_byte);
+
+int nocterm_mouse_enable(void);
+
+int nocterm_mouse_disable(void);
+
+int nocterm_overlay_refresh(nocterm_overlay_t* overlay);
+
+nocterm_widget_t* nocterm_page_find_next_focusable_widget(nocterm_page_t* page);
+
+nocterm_widget_t* nocterm_page_find_prev_focusable_widget(nocterm_page_t* page);
+
+int nocterm_page_change_focus(nocterm_page_t* page, nocterm_page_focus_t focus);
+
+int nocterm_page_refresh(nocterm_page_t* page);
+
+void nocterm_screen_ownership_reset(void);
+
+extern nocterm_screen_ownership_t* nocterm_screen_ownership;
+
+extern nocterm_signal_flags_t nocterm_signal_flags;
+
+void nocterm_timer_tick(void);
+
+int nocterm_widget_refresh(nocterm_widget_t* widget);
+
+int nocterm_signal_init(void);
+
+// ====================== Internal Access ====================== //
+
+
 int nocterm_init(void){
 
     if(nocterm_mode_init() == NOCTERM_FAILURE){
@@ -22,7 +57,7 @@ int nocterm_init(void){
         return NOCTERM_FAILURE;
     }
 
-    if(nocterm_mouse_support_flag != NOCTERM_MOUSE_SUPPORT_NONE){
+    if(nocterm_mouse_get_support_flag() != NOCTERM_MOUSE_SUPPORT_NONE){
         if(nocterm_mouse_enable() == NOCTERM_FAILURE){
             return NOCTERM_FAILURE;
         }
@@ -31,8 +66,6 @@ int nocterm_init(void){
     if(nocterm_io_clear() == NOCTERM_FAILURE){
         return NOCTERM_FAILURE;
     }
-
-
 
     struct winsize w = {0};
     if(ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) == -1){
@@ -67,7 +100,7 @@ int nocterm_end(void){
         return NOCTERM_FAILURE;
     }
 
-    if(nocterm_mouse_support_flag){
+    if(nocterm_mouse_get_support_flag() != NOCTERM_MOUSE_SUPPORT_NONE){
         if(nocterm_mouse_disable() == NOCTERM_FAILURE){
             return NOCTERM_FAILURE;
         }
@@ -87,6 +120,8 @@ int nocterm_end(void){
 }
 
 int nocterm_loop(void){
+
+
 
     nocterm_page_t* current_page = NULL;
     nocterm_overlay_t* current_overlay = NULL;
@@ -189,13 +224,13 @@ int nocterm_loop(void){
             
             }else if(key_event == NOCTERM_KEY_EVENT_ESCAPE){
 
-                // Call the key_handler for the focused widget
-                if(nocterm_page_stack_size > 1){
+                // If the current page is the only page in the stack, exit the application
+                // otherwise no effect
+                
+                if(nocterm_page_stack_size == 1){
                     nocterm_page_stack_pop();
-
-                }else{
                     nocterm_io_clear();
-                    nocterm_io_cursor_move(0,0);
+                    nocterm_io_cursor_move(0,0);                    
                     break;
                 }
             }else if(key_event == NOCTERM_KEY_EVENT_MOUSE){

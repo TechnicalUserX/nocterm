@@ -20,7 +20,7 @@ int main(){
 
     for(uint16_t i = 0; i < 10; i++){
         for(uint16_t j = 0; j < 10; j++){
-            nocterm_pixelgrid_print(my_pixelgrid, i,j, i*10 + j*10, i*10 + j*10, i*10 + j*10);
+            nocterm_pixelgrid_set_pixel(my_pixelgrid, i,j, i*10 + j*10, i*10 + j*10, i*10 + j*10);
         }
     }
 

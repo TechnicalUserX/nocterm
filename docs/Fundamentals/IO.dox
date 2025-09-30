@@ -10,7 +10,7 @@ To achieve this, a uniform I/O (Input and Output) function interface is implemen
 
 Nocterm I/O implementation's two most fundamental functions are `nocterm_io_read()` and `nocterm_io_write()`. `nocterm_io_read()` is used to read input from terminals byte per byte, while `nocterm_io_write()` allows writing in bytes. These functions are high level abstractions of `read()` and `write()` but with more read/write guarantees.
 
-> Nocterm I/O functions are essentially designed to be used by widget refresh mechanism (Refer to \ref widgets), but these functions can be used individually by any program, including simple ones.
+> Nocterm I/O functions are essentially designed to be used by widget refresh mechanism (Refer to \ref widgets) and capturing key presses, but these functions can be used individually by any program, including simple ones.
 
 
 ---
@@ -18,7 +18,7 @@ Nocterm I/O implementation's two most fundamental functions are `nocterm_io_read
 
 Following code prints 6th row and 11th column of the terminal:
 
-> Nocterm I/O functions are zero-indexed in terms of row and column position.
+> Nocterm I/O functions are zero-indexed, unlike default terminal is being 1-indexed, in terms of row and column position.
 
 ```c
 #include <nocterm/nocterm.h>

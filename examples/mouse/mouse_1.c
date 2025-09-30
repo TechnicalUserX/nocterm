@@ -1,0 +1,39 @@
+#include <nocterm/nocterm.h>
+
+NOCTERM_BUTTON_ONPRESS_HANDLER(handler){
+    nocterm_io_print_at(5,0,"Button pressed");
+}
+
+int main(){
+
+    nocterm_widget_t* my_widget = nocterm_widget_new(10,10, NOCTERM_WIDGET_FOCUSABLE_YES, NOCTERM_WIDGET_TYPE_REAL);
+    nocterm_page_t* main_page = nocterm_page_new("Main page", sizeof("Main page"), my_widget);
+ 
+    nocterm_attribute_t button_focused = {
+        .color.ansi.fg = true,
+        .color.ansi.codes.fg = 5
+    };
+
+    nocterm_button_t* my_button = nocterm_button_new(1, 8, handler, NULL);
+    nocterm_widget_set_position(NOCTERM_WIDGET(my_button), 1, 1);
+
+    nocterm_button_set_attribute(my_button, NOCTERM_ATTRIBUTE_EMPTY, button_focused);
+    nocterm_button_set_text(my_button, "Press me", sizeof("Press me"));
+        
+    nocterm_widget_add_subwidget(my_widget, NOCTERM_WIDGET(my_button));
+
+    nocterm_page_stack_push(main_page); 
+ 
+    // Call this function before nocterm_init()
+    nocterm_mouse_support(NOCTERM_MOUSE_SUPPORT_SIMPLE);
+
+    nocterm_init();
+    nocterm_loop(); 
+    nocterm_end();
+
+    nocterm_widget_delete(my_widget);
+    nocterm_page_delete(main_page); 
+    nocterm_button_delete(my_button);
+ 
+    return 0;
+}

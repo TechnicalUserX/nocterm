@@ -74,39 +74,6 @@ int nocterm_page_stack_push(nocterm_page_t* page);
  */
 int nocterm_page_stack_pop();
 
-/**
- * @brief Searches the next focusable widget in the widget tree.
- * 
- * @param page 
- * @return nocterm_widget_t* 
- */
-nocterm_widget_t* nocterm_page_find_next_focusable_widget(nocterm_page_t* page);
-
-/**
- * @brief Searches the previous focusable widget in the widget tree.
- * 
- * @param page 
- * @return nocterm_widget_t* 
- */
-nocterm_widget_t* nocterm_page_find_prev_focusable_widget(nocterm_page_t* page);
-
-/**
- * @brief Manages focus in the page.
- * 
- * @param page 
- * @param focus 
- * @return int 
- */
-int nocterm_page_change_focus(nocterm_page_t* page, nocterm_page_focus_t focus);
-
-/**
- * @brief Refreshes the specified page.
- * 
- * @param page 
- * @return int 
- */
-int nocterm_page_refresh(nocterm_page_t* page);
-
 #ifdef __cplusplus
     }
 #endif

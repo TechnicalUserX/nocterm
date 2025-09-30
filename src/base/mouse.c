@@ -1,8 +1,15 @@
 #include <nocterm/base/mouse.h>
 
-nocterm_mouse_support_t nocterm_mouse_support_flag = NOCTERM_MOUSE_SUPPORT_NONE;
+// ====================== Internal Access ====================== //
 
-nocterm_dimension_size_t nocterm_mouse_row = 0, nocterm_mouse_col = 0;
+extern nocterm_screen_ownership_t* nocterm_screen_ownership;
+
+// ====================== Internal Access ====================== //
+
+
+NOCTERM_INTERNAL nocterm_mouse_support_t nocterm_mouse_support_flag = NOCTERM_MOUSE_SUPPORT_NONE;
+
+NOCTERM_INTERNAL nocterm_dimension_size_t nocterm_mouse_row = 0, nocterm_mouse_col = 0;
 
 void nocterm_mouse_support(nocterm_mouse_support_t support){
     nocterm_mouse_support_flag = support;
@@ -303,4 +310,8 @@ int nocterm_mouse_controller(nocterm_key_t* key){
     }
 
     return NOCTERM_SUCCESS;
+}
+
+nocterm_mouse_support_t nocterm_mouse_get_support_flag(void){
+    return nocterm_mouse_support_flag;
 }

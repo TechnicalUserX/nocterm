@@ -1,6 +1,13 @@
 #include <nocterm/base/widget.h>
 
-nocterm_widget_t* nocterm_widget_focused = NULL;
+// ====================== Internal Access ====================== //
+
+extern nocterm_screen_ownership_t* nocterm_screen_ownership;
+
+// ====================== Internal Access ====================== //
+
+
+NOCTERM_INTERNAL nocterm_widget_t* nocterm_widget_focused = NULL;
 
 nocterm_widget_t* nocterm_widget_new(nocterm_dimension_size_t height, nocterm_dimension_size_t width, nocterm_widget_focusable_t focusable, nocterm_widget_type_t type){
 
@@ -303,7 +310,6 @@ int nocterm_widget_set_col(nocterm_widget_t* widget, nocterm_dimension_size_t co
         widget->align.flags.left = false;
         widget->align.flags.right = false;
 
-        nocterm_screen_ownership_reset();
         nocterm_widget_enforce_root_refresh(widget);
     }
 
@@ -794,9 +800,81 @@ int nocterm_widget_add_subwidget(nocterm_widget_t* widget, nocterm_widget_t* sub
 
     free(old_subwidgets);
 
+    nocterm_widget_enforce_root_refresh(widget);
+
     pthread_mutex_unlock(&widget->lock);
 
     return NOCTERM_SUCCESS;
+}
+
+int nocterm_widget_remove_subwidget(nocterm_widget_t* widget, nocterm_widget_t* subwidget){
+    
+    if(widget == NULL){
+        errno = EINVAL;
+        return NOCTERM_FAILURE;
+    }
+
+    if(subwidget == NULL){
+        return NOCTERM_SUCCESS;
+    }
+
+    pthread_mutex_lock(&widget->lock);
+
+    if(widget->subwidgets_size == 0){
+        pthread_mutex_unlock(&widget->lock);
+        return NOCTERM_FAILURE;
+    }
+
+    // Check membership first, before locking subwidget
+    if(!nocterm_widget_contains_subwidget(widget, subwidget)){
+        pthread_mutex_unlock(&widget->lock);
+        return NOCTERM_FAILURE;
+    }
+
+    // Now we know it's a child, safe to lock both
+    pthread_mutex_lock(&subwidget->lock);
+    
+    if(widget->subwidgets_size == 1 && widget->subwidgets[0] == subwidget){
+        free(widget->subwidgets);
+        widget->subwidgets = NULL;
+        widget->subwidgets_size = 0;
+    }else{
+        nocterm_widget_t** old_subwidgets = widget->subwidgets;
+        nocterm_widget_t** new_subwidgets = (nocterm_widget_t**)malloc(sizeof(nocterm_widget_t*)*(widget->subwidgets_size-1));
+
+        for(uint64_t i = 0, j = 0; i < widget->subwidgets_size; i++){
+            if(widget->subwidgets[i] != subwidget){
+                new_subwidgets[j] = widget->subwidgets[i];
+                j++;
+            }
+        }
+        
+        widget->subwidgets = new_subwidgets;
+        free(old_subwidgets);
+        widget->subwidgets_size--;
+    }
+    
+    subwidget->parent = NULL;
+    nocterm_widget_enforce_root_refresh(widget);
+    
+    pthread_mutex_unlock(&subwidget->lock);
+    pthread_mutex_unlock(&widget->lock);
+    
+    return NOCTERM_SUCCESS;
+}
+
+bool nocterm_widget_contains_subwidget(nocterm_widget_t* widget, nocterm_widget_t* subwidget){
+    if(widget == NULL || subwidget == NULL){
+        return false;
+    }
+
+    for(uint64_t i = 0; i < widget->subwidgets_size; i++){
+        if(widget->subwidgets[i] == subwidget){
+            return true;
+        }
+    }
+
+    return false;
 }
 
 int nocterm_widget_add_key_handler(nocterm_widget_t* widget, nocterm_widget_key_handler_t key_handler){
@@ -861,117 +939,6 @@ int nocterm_widget_update(nocterm_widget_t* widget, nocterm_dimension_size_t row
     widget->buffer[row * widget->bounds.width + col].attribute = attribute;
 
     return NOCTERM_SUCCESS;
-}
-
-int nocterm_widget_refresh(nocterm_widget_t* widget){
-
-    // POST ORDER TREE TRAVERSAL WITH PRE ORDER LOCKING
-
-    if(widget == NULL){
-        errno = EINVAL;
-        return NOCTERM_FAILURE;
-    }
-
-    if(pthread_mutex_trylock(&widget->lock) != 0){
-        return NOCTERM_SUCCESS;
-    }
-
-    if(widget->visible == false){
-        pthread_mutex_unlock(&widget->lock);
-        return NOCTERM_SUCCESS;
-    }
-
-    // If widget includes sub widgets, those are going to be freed recursively
-    for(uint64_t i = 0; i < widget->subwidgets_size; i++){
-        if(widget->subwidgets[i] != NULL && widget->subwidgets[i]->visible == true){
-            if(widget->hard_refresh){
-                widget->subwidgets[i]->hard_refresh = true;
-            }
-            nocterm_widget_refresh(widget->subwidgets[i]);
-        }
-    }
-
-    // Refresh loop
-    uint16_t relative_row, relative_col;
-    if(nocterm_widget_get_position(widget, &relative_row, &relative_col) == NOCTERM_FAILURE){
-        pthread_mutex_unlock(&widget->lock);
-        return NOCTERM_FAILURE;
-    }
-    
-    bool at_least_one_refresh_remaining = false;
-
-    // If there is no change at all, then there is no need to perform this loop, so exhausting! :D
-    if((widget->soft_refresh || widget->hard_refresh) && widget->is_virtual == false){
-        
-        for(nocterm_dimension_size_t row = 0; row < widget->viewport.height; row++ ){
-            for(nocterm_dimension_size_t col = 0; col < widget->viewport.width; col++){
-                
-                uint16_t buffer_index = (widget->viewport.row + row) * widget->bounds.width + (widget->viewport.col + col);
-
-                if(widget->hard_refresh || widget->buffer[buffer_index].refresh){
-                    
-                    uint64_t absolute_row = relative_row + row;
-                    uint64_t absolute_col = relative_col + col;
-
-                    uint64_t screen_index = absolute_row * nocterm_screen_width + absolute_col;
-                    uint64_t screen_size = nocterm_screen_height * nocterm_screen_width;
-                    nocterm_screen_ownership_t* current_ownership = NULL;
-
-                    if (absolute_row >= nocterm_screen_height || absolute_col >= nocterm_screen_width) {
-                        // Skip this cell - it's outside screen boundaries
-                        continue;
-                    }
-                    
-                    if(screen_index < screen_size){
-                        current_ownership = &(nocterm_screen_ownership[screen_index]);
-                    }
-
-                    if(current_ownership && (current_ownership->owner == (void*)widget || current_ownership->owner == NULL)){
-
-                        if(widget->buffer[buffer_index].character.bytes_size != 0){
-                            if(nocterm_attribute_set(widget->buffer[buffer_index].attribute) == NOCTERM_FAILURE){
-                                pthread_mutex_unlock(&widget->lock);
-                                return NOCTERM_FAILURE;
-                            }                        
-                            if(nocterm_io_put_char_at(relative_row + row, relative_col + col, widget->buffer[buffer_index].character) == NOCTERM_FAILURE){
-                                pthread_mutex_unlock(&widget->lock);
-                                return NOCTERM_FAILURE;
-                            }  
-                            if(nocterm_attribute_clear() == NOCTERM_FAILURE){
-                                pthread_mutex_unlock(&widget->lock);
-                                return NOCTERM_FAILURE;
-                            }    
-                        }else{
-                            if(nocterm_io_erase_char_at(relative_row + row, relative_col + col) == NOCTERM_FAILURE){
-                                pthread_mutex_unlock(&widget->lock);
-                                return NOCTERM_FAILURE;
-                            }
-                        }
-
-                        current_ownership->owner = (void*)widget;
-                        widget->buffer[buffer_index].refresh = false;
-                    }else{
-                        at_least_one_refresh_remaining = true;
-                    }
-
-                }
-            }
-        }
-
-    }
-
-    if(at_least_one_refresh_remaining){
-        widget->soft_refresh = true;
-    }else{
-        widget->soft_refresh = false;
-    }
-
-    widget->hard_refresh = false;
-
-    pthread_mutex_unlock(&widget->lock);
-
-    return NOCTERM_SUCCESS;
-
 }
 
 int nocterm_widget_enforce_root_refresh(nocterm_widget_t* widget){
@@ -1088,4 +1055,115 @@ bool nocterm_widget_is_focused(nocterm_widget_t* widget){
             return false;
         }
     }
+}
+
+NOCTERM_INTERNAL int nocterm_widget_refresh(nocterm_widget_t* widget){
+
+    // POST ORDER TREE TRAVERSAL WITH PRE ORDER LOCKING
+
+    if(widget == NULL){
+        errno = EINVAL;
+        return NOCTERM_FAILURE;
+    }
+
+    if(pthread_mutex_trylock(&widget->lock) != 0){
+        return NOCTERM_SUCCESS;
+    }
+
+    if(widget->visible == false){
+        pthread_mutex_unlock(&widget->lock);
+        return NOCTERM_SUCCESS;
+    }
+
+    // If widget includes sub widgets, those are going to be freed recursively
+    for(uint64_t i = 0; i < widget->subwidgets_size; i++){
+        if(widget->subwidgets[i] != NULL && widget->subwidgets[i]->visible == true){
+            if(widget->hard_refresh){
+                widget->subwidgets[i]->hard_refresh = true;
+            }
+            nocterm_widget_refresh(widget->subwidgets[i]);
+        }
+    }
+
+    // Refresh loop
+    uint16_t relative_row, relative_col;
+    if(nocterm_widget_get_position(widget, &relative_row, &relative_col) == NOCTERM_FAILURE){
+        pthread_mutex_unlock(&widget->lock);
+        return NOCTERM_FAILURE;
+    }
+    
+    bool at_least_one_refresh_remaining = false;
+
+    // If there is no change at all, then there is no need to perform this loop, so exhausting! :D
+    if((widget->soft_refresh || widget->hard_refresh) && widget->is_virtual == false){
+        
+        for(nocterm_dimension_size_t row = 0; row < widget->viewport.height; row++ ){
+            for(nocterm_dimension_size_t col = 0; col < widget->viewport.width; col++){
+                
+                uint16_t buffer_index = (widget->viewport.row + row) * widget->bounds.width + (widget->viewport.col + col);
+
+                if(widget->hard_refresh || widget->buffer[buffer_index].refresh){
+                    
+                    uint64_t absolute_row = relative_row + row;
+                    uint64_t absolute_col = relative_col + col;
+
+                    uint64_t screen_index = absolute_row * nocterm_screen_width + absolute_col;
+                    uint64_t screen_size = nocterm_screen_height * nocterm_screen_width;
+                    nocterm_screen_ownership_t* current_ownership = NULL;
+
+                    if (absolute_row >= nocterm_screen_height || absolute_col >= nocterm_screen_width) {
+                        // Skip this cell - it's outside screen boundaries
+                        continue;
+                    }
+                    
+                    if(screen_index < screen_size){
+                        current_ownership = &(nocterm_screen_ownership[screen_index]);
+                    }
+
+                    if(current_ownership && (current_ownership->owner == (void*)widget || current_ownership->owner == NULL)){
+
+                        if(widget->buffer[buffer_index].character.bytes_size != 0){
+                            if(nocterm_attribute_set(widget->buffer[buffer_index].attribute) == NOCTERM_FAILURE){
+                                pthread_mutex_unlock(&widget->lock);
+                                return NOCTERM_FAILURE;
+                            }                        
+                            if(nocterm_io_put_char_at(relative_row + row, relative_col + col, widget->buffer[buffer_index].character) == NOCTERM_FAILURE){
+                                pthread_mutex_unlock(&widget->lock);
+                                return NOCTERM_FAILURE;
+                            }  
+                            if(nocterm_attribute_clear() == NOCTERM_FAILURE){
+                                pthread_mutex_unlock(&widget->lock);
+                                return NOCTERM_FAILURE;
+                            }    
+                        }else{
+                            if(nocterm_io_erase_char_at(relative_row + row, relative_col + col) == NOCTERM_FAILURE){
+                                pthread_mutex_unlock(&widget->lock);
+                                return NOCTERM_FAILURE;
+                            }
+                        }
+
+                        current_ownership->owner = (void*)widget;
+                        widget->buffer[buffer_index].refresh = false;
+                    }else{
+                        at_least_one_refresh_remaining = true;
+                    }
+
+                }
+            }
+        }
+
+    }
+
+    if(at_least_one_refresh_remaining){
+        widget->soft_refresh = true;
+    }else{
+        widget->soft_refresh = false;
+    }
+
+    widget->hard_refresh = false;
+
+    pthread_mutex_unlock(&widget->lock);
+
+    return NOCTERM_SUCCESS;
+
 }

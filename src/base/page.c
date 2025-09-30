@@ -1,5 +1,12 @@
 #include <nocterm/base/page.h>
 
+// ====================== Internal Access ====================== //
+
+int nocterm_widget_refresh(nocterm_widget_t* widget);
+
+// ====================== Internal Access ====================== //
+
+
 uint64_t nocterm_page_stack_size = 0;
 
 nocterm_page_t* nocterm_page_stack[NOCTERM_PAGE_STACK_MAX_SIZE] = {0};
@@ -83,7 +90,7 @@ int nocterm_page_stack_pop(){
     return NOCTERM_SUCCESS;
 }
 
-nocterm_widget_t* nocterm_page_find_next_focusable_widget(nocterm_page_t* page) {
+NOCTERM_INTERNAL nocterm_widget_t* nocterm_page_find_next_focusable_widget(nocterm_page_t* page) {
     if (page == NULL || page->root_widget == NULL) {
         return NULL;
     }
@@ -122,7 +129,7 @@ nocterm_widget_t* nocterm_page_find_next_focusable_widget(nocterm_page_t* page) 
     return NULL; // No focusable widget at all
 }
 
-nocterm_widget_t* nocterm_page_find_prev_focusable_widget(nocterm_page_t* page) {
+NOCTERM_INTERNAL nocterm_widget_t* nocterm_page_find_prev_focusable_widget(nocterm_page_t* page) {
     if (page == NULL || page->root_widget == NULL) {
         return NULL;
     }
@@ -179,7 +186,7 @@ nocterm_widget_t* nocterm_page_find_prev_focusable_widget(nocterm_page_t* page) 
     return last_focusable;
 }
 
-int nocterm_page_change_focus(nocterm_page_t* page, nocterm_page_focus_t focus){
+NOCTERM_INTERNAL int nocterm_page_change_focus(nocterm_page_t* page, nocterm_page_focus_t focus){
 
     if(page == NULL){
         errno = EINVAL;
@@ -225,10 +232,12 @@ int nocterm_page_change_focus(nocterm_page_t* page, nocterm_page_focus_t focus){
     return NOCTERM_SUCCESS;
 }
 
-int nocterm_page_refresh(nocterm_page_t* page){
+NOCTERM_INTERNAL int nocterm_page_refresh(nocterm_page_t* page){
     if(page == NULL || page->root_widget == NULL){
         errno = EINVAL;
         return NOCTERM_FAILURE;
     }
+    
+
     return nocterm_widget_refresh(page->root_widget);
 }

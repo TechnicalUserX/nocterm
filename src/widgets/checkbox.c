@@ -69,7 +69,7 @@ int nocterm_checkbox_constructor(nocterm_checkbox_t* checkbox, nocterm_checkbox_
     if(checked){
         nocterm_widget_update(NOCTERM_WIDGET(checkbox), 0, 1, checkbox->check_marker, checkbox->main_attribute);
     }else{
-        nocterm_widget_update(NOCTERM_WIDGET(checkbox), 0, 1, NOCTERM_CHAR_SPACE, checkbox->main_attribute);
+        nocterm_widget_update(NOCTERM_WIDGET(checkbox), 0, 1, nocterm_char_from_ascii(' '), checkbox->main_attribute);
     }
 
     nocterm_widget_add_key_handler(NOCTERM_WIDGET(checkbox), nocterm_checkbox_key_handler);
@@ -180,7 +180,7 @@ NOCTERM_WIDGET_KEY_HANDLER(nocterm_checkbox_key_handler){
         case NOCTERM_KEY_EVENT_ENTER:{
            
             if(NOCTERM_CHECKBOX(self)->checked){
-                nocterm_widget_update(self, 0,1, NOCTERM_CHAR_SPACE, NOCTERM_CHECKBOX(self)->cursor_attribute);
+                nocterm_widget_update(self, 0,1, nocterm_char_from_ascii(' '), NOCTERM_CHECKBOX(self)->cursor_attribute);
                 NOCTERM_CHECKBOX(self)->checked = false;
                 if(NOCTERM_CHECKBOX(self)->oncheck_handler){
                     NOCTERM_CHECKBOX(self)->oncheck_handler(self, NOCTERM_CHECKBOX_ACTION_UNCHECK, NOCTERM_CHECKBOX(self)->user_data);
@@ -202,7 +202,7 @@ NOCTERM_WIDGET_KEY_HANDLER(nocterm_checkbox_key_handler){
                 // This is a valid key press for checking or unchecking
                
                 if(NOCTERM_CHECKBOX(self)->checked){
-                    nocterm_widget_update(self, 0,1, NOCTERM_CHAR_SPACE, NOCTERM_CHECKBOX(self)->cursor_attribute);
+                    nocterm_widget_update(self, 0,1, nocterm_char_from_ascii(' '), NOCTERM_CHECKBOX(self)->cursor_attribute);
                     NOCTERM_CHECKBOX(self)->checked = false;
                     if(NOCTERM_CHECKBOX(self)->oncheck_handler){
                         NOCTERM_CHECKBOX(self)->oncheck_handler(self, NOCTERM_CHECKBOX_ACTION_UNCHECK, NOCTERM_CHECKBOX(self)->user_data);

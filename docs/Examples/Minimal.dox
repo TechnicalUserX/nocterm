@@ -4,7 +4,7 @@ Below is the most minimal Nocterm program that can be run:
 
 # Source Code
 
-\include Minimal.c
+\include misc/minimal.c
 
 # Output
 

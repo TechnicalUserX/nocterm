@@ -31,8 +31,6 @@ typedef struct nocterm_timer_t{
 
 typedef void (*nocterm_timer_callback_t)(nocterm_widget_t* widget, void* user_data);
 
-extern nocterm_timer_t* nocterm_timer_list_head;
-
 /**
  * @brief Creates a new timer.
  * 
@@ -44,13 +42,6 @@ extern nocterm_timer_t* nocterm_timer_list_head;
  */
 nocterm_timer_t* nocterm_timer_create(nocterm_widget_t* widget, uint64_t interval, nocterm_timer_callback_t callback, void* user_data );
 
-/**
- * @brief Used to determine timeouts and exeucte callbacks in the main loop.
- * 
- * @return NOCTERM_INTERNAL 
- */
-NOCTERM_INTERNAL
-void nocterm_timer_tick(void);
 
 /**
  * @brief Starts a timer.

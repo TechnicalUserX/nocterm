@@ -2,7 +2,7 @@
 
 # Source Code
 
-\include CenteringWidgets.c
+\include misc/centering_widgets.c
 
 # Output
 

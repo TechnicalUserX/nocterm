@@ -2,8 +2,8 @@
 
 # Source Code
 
-\include WidgetDemo.c
+\include misc/all_widget_demo.c
 
 # Output
 
-![](images/widgetdemo.png)
+![](images/all_widget_demo.png)

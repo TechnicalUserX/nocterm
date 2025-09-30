@@ -1,0 +1,19 @@
+\page mouse Mouse
+
+It is sometimes easier to control a user interface with mouse actions rather than the sole keyboard. Luckily, most of the 
+terminal emulators support mouse features.
+
+Below table describes different mouse support modes in the Nocterm library:
+
+| Feature                        | Description                         |
+| ------------------------------ | ----------------------------------- |
+| NOCTERM_MOUSE_SUPPORT_NONE     | Mouse support is disabled (Default) |
+| NOCTERM_MOUSE_SUPPORT_SIMPLE   | Classic mouse actions are allowed   |
+| NOCTERM_MOUSE_SUPPORT_ADVANCED | Classic + advanced features         |
+
+To set the current mouse support, call the `nocterm_mouse_support()` before calling the `nocterm_init()` function. 
+
+In the example below, it should be possible to press the button with a mouse click:
+
+\include mouse/mouse_1.c
+

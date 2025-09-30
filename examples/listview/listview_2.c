@@ -101,19 +101,30 @@ int main(){
     nocterm_widget_add_subwidget(my_widget, NOCTERM_WIDGET(my_listview_db));
     nocterm_widget_set_position(NOCTERM_WIDGET(my_listview_db), 1, 1);
 
+    nocterm_label_t* my_listview_label = nocterm_label_new("List", 5);
+    nocterm_widget_add_subwidget(my_widget, NOCTERM_WIDGET(my_listview_label));
+    nocterm_widget_set_position(NOCTERM_WIDGET(my_listview_label), 0,1);
 
 
     input = nocterm_entry_new(20);
     nocterm_decorbox_t* input_db = nocterm_decorbox_new(NOCTERM_WIDGET(input));
     nocterm_widget_add_subwidget(my_widget, NOCTERM_WIDGET(input_db));
     nocterm_decorbox_set_border(NOCTERM_DECORBOX(input_db), border_shape, NOCTERM_ATTRIBUTE_EMPTY, attr);
-    nocterm_widget_set_position(NOCTERM_WIDGET(input_db), 8,1);
+    nocterm_widget_set_position(NOCTERM_WIDGET(input_db), 10,1);
+
+    nocterm_label_t* input_label = nocterm_label_new("Input", 6);
+    nocterm_widget_add_subwidget(my_widget, NOCTERM_WIDGET(input_label));
+    nocterm_widget_set_position(NOCTERM_WIDGET(input_label), 9,1);
 
     list_index = nocterm_entry_new(4);
     nocterm_decorbox_t* list_index_db = nocterm_decorbox_new(NOCTERM_WIDGET(list_index));
     nocterm_decorbox_set_border(list_index_db, border_shape, NOCTERM_ATTRIBUTE_EMPTY, attr);
     nocterm_widget_add_subwidget(my_widget, NOCTERM_WIDGET(list_index_db));
-    nocterm_widget_set_position(NOCTERM_WIDGET(list_index_db), 8, 30);
+    nocterm_widget_set_position(NOCTERM_WIDGET(list_index_db), 10, 30);
+
+    nocterm_label_t* list_index_label = nocterm_label_new("Index", 6);
+    nocterm_widget_add_subwidget(my_widget, NOCTERM_WIDGET(list_index_label));
+    nocterm_widget_set_position(NOCTERM_WIDGET(list_index_label), 9,30);
 
     nocterm_button_t* buttons[6];
     buttons[0] = nocterm_button_new(1, 9, button0_handler, my_listview);
@@ -154,6 +165,5 @@ int main(){
   
     nocterm_widget_delete(my_widget);
     nocterm_page_delete(main_page); 
- 
     return 0;
 }

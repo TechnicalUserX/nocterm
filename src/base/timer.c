@@ -1,6 +1,6 @@
 #include <nocterm/base/timer.h>
 
-nocterm_timer_t* nocterm_timer_list_head = NULL;
+NOCTERM_INTERNAL nocterm_timer_t* nocterm_timer_list_head = NULL;
 
 nocterm_timer_t* nocterm_timer_create(nocterm_widget_t* widget, uint64_t interval, nocterm_timer_callback_t callback, void* user_data){
 
@@ -32,22 +32,6 @@ nocterm_timer_t* nocterm_timer_create(nocterm_widget_t* widget, uint64_t interva
     t->next = nocterm_timer_list_head;
     nocterm_timer_list_head = t;
     return t;
-}
-
-void nocterm_timer_tick(void){
-
-    struct timeval tv = {0};
-    gettimeofday(&tv,NULL);
-    uint64_t now = (tv.tv_sec * 1000000 + tv.tv_usec)/1000; // current time in ms
-
-    nocterm_timer_t* t = nocterm_timer_list_head;
-    while (t) {
-        if (t->active && (now - t->last_call >= t->interval)) {
-            t->callback(t->widget, t->user_data);
-            t->last_call = now;  // Update last fire time
-        }
-        t = t->next;
-    }
 }
 
 int nocterm_timer_start(nocterm_timer_t* timer){
@@ -183,3 +167,18 @@ int nocterm_timer_delete_all_of_widget(nocterm_widget_t* widget){
     return NOCTERM_SUCCESS;
 }
 
+NOCTERM_INTERNAL void nocterm_timer_tick(void){
+
+    struct timeval tv = {0};
+    gettimeofday(&tv,NULL);
+    uint64_t now = (tv.tv_sec * 1000000 + tv.tv_usec)/1000; // current time in ms
+
+    nocterm_timer_t* t = nocterm_timer_list_head;
+    while (t) {
+        if (t->active && (now - t->last_call >= t->interval)) {
+            t->callback(t->widget, t->user_data);
+            t->last_call = now;  // Update last fire time
+        }
+        t = t->next;
+    }
+}

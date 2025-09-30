@@ -1,6 +1,6 @@
 \page attributes Attributes
 
-An attribute in terms of Nocterm is a generic character formatting structure, eventually converted to an ANSI escape sequence to change the 
+An attribute in terms of Nocterm is a generic character formatting structure, eventually converted to an ANSI escape sequence to change the
 formatting of the current terminal.
 
 The attribute type `nocterm_attribute_t` has boolean fields that affects the creation of final ANSI escape sequence.

@@ -27,11 +27,8 @@ typedef struct nocterm_label_t{
 /**
  * @brief Creates a new label widget.
  * 
- * @param row 
- * @param col 
  * @param text 
  * @param text_size 
- * @param attribute 
  * @return nocterm_label_t* 
  */
 nocterm_label_t* nocterm_label_new(const char* text, uint64_t text_size);
@@ -40,11 +37,8 @@ nocterm_label_t* nocterm_label_new(const char* text, uint64_t text_size);
  * @brief Constructs a label widget.
  * 
  * @param label 
- * @param row 
- * @param col 
  * @param text 
  * @param text_size 
- * @param attribute 
  * @return int 
  */
 int nocterm_label_constructor(nocterm_label_t* label, const char* text, uint64_t text_size);

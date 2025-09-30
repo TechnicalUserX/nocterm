@@ -1,3 +1,12 @@
+/**
+ * @file overlay.h
+ * @author TecnicalUserX (technicaluserx@outlook.com)
+ * @date 2025-09-29
+ * 
+ * @copyright Copyright (c) 2025
+ * 
+ */
+
 #ifndef NOCTERM_OVERLAY_H
 #define NOCTERM_OVERLAY_H
 
@@ -20,17 +29,46 @@ typedef struct nocterm_overlay_t{
 
 extern nocterm_overlay_t* nocterm_overlay; // Global overlay
 
+/**
+ * @brief Creates a new overlay.
+ * 
+ * @return nocterm_overlay_t* 
+ */
 nocterm_overlay_t* nocterm_overlay_new();
 
+/**
+ * @brief Deletes an overlay.
+ * 
+ * @param overlay 
+ * @return int 
+ */
 int nocterm_overlay_delete(nocterm_overlay_t* overlay);
 
+/**
+ * @brief Sets the current overlay.
+ * 
+ * @param overlay 
+ * @return int 
+ */
 int nocterm_overlay_set(nocterm_overlay_t* overlay);
 
+/**
+ * @brief Adds a widget to an overlay.
+ * 
+ * @param overlay 
+ * @param widget 
+ * @return int 
+ */
 int nocterm_overlay_add_widget(nocterm_overlay_t* overlay, nocterm_widget_t* widget);
 
+/**
+ * @brief Removes a widget from an overlay.
+ * 
+ * @param overlay 
+ * @param widget 
+ * @return int 
+ */
 int nocterm_overlay_remove_widget(nocterm_overlay_t* overlay, nocterm_widget_t* widget);
-
-int nocterm_overlay_refresh(nocterm_overlay_t* overlay);
 
 #ifdef __cplusplus
     }

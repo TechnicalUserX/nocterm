@@ -1,5 +1,12 @@
 #include <nocterm/base/overlay.h>
 
+// ====================== Internal Access ====================== //
+
+int nocterm_widget_refresh(nocterm_widget_t* widget);
+
+// ====================== Internal Access ====================== //
+
+
 nocterm_overlay_t* nocterm_overlay = {0}; // Global overlay
 
 nocterm_overlay_t* nocterm_overlay_new(){
@@ -78,7 +85,7 @@ int nocterm_overlay_remove_widget(nocterm_overlay_t* overlay, nocterm_widget_t* 
     return NOCTERM_FAILURE;
 }
 
-int nocterm_overlay_refresh(nocterm_overlay_t* overlay){
+NOCTERM_INTERNAL int nocterm_overlay_refresh(nocterm_overlay_t* overlay){
 
     if(overlay == NULL){
         errno = EINVAL;

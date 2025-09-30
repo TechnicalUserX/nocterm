@@ -52,8 +52,6 @@ typedef struct nocterm_listview_t{
 /**
  * @brief Creates a new listview widget.
  * 
- * @param row 
- * @param col 
  * @param items_displayed 
  * @param items_total 
  * @param item_width 
@@ -65,8 +63,6 @@ nocterm_listview_t* nocterm_listview_new(nocterm_dimension_size_t items_displaye
  * @brief Constructs a listview widget.
  * 
  * @param listview 
- * @param row 
- * @param col 
  * @param items_displayed 
  * @param items_total 
  * @param item_width 
@@ -158,7 +154,7 @@ int nocterm_listview_remove(nocterm_listview_t* listview, nocterm_listview_item_
 int nocterm_listview_item_constructor(nocterm_listview_item_t* item, const char* text, uint64_t text_size, nocterm_attribute_t attribute);
 
 /**
- * @brief Enables auto-scroll feature for a listview widget.
+ * @brief Enables/disables auto-scroll feature for a listview widget.
  * 
  * @param listview 
  * @param autoscroll 

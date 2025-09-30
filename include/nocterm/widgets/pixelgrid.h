@@ -38,8 +38,6 @@ typedef struct nocterm_pixelgrid_t{
 /**
  * @brief Creates a new pixelgrid widget.
  * 
- * @param row 
- * @param col 
  * @param pixel_height 
  * @param pixel_width 
  * @return nocterm_pixelgrid_t* 
@@ -50,8 +48,6 @@ nocterm_pixelgrid_t* nocterm_pixelgrid_new(uint32_t pixel_height, uint16_t pixel
  * @brief Constructs a pixelgrid widget.
  * 
  * @param pixelgrid 
- * @param row 
- * @param col 
  * @param pixel_height 
  * @param pixel_width 
  * @return int 
@@ -85,7 +81,21 @@ int nocterm_pixelgrid_delete(nocterm_pixelgrid_t* pixelgrid);
  * @param blue 
  * @return int 
  */
-int nocterm_pixelgrid_print(nocterm_pixelgrid_t* pixelgrid, uint32_t pixel_row, uint16_t pixel_col, uint8_t red, uint8_t green, uint8_t blue);
+int nocterm_pixelgrid_set_pixel(nocterm_pixelgrid_t* pixelgrid, uint32_t pixel_row, uint16_t pixel_col, uint8_t red, uint8_t green, uint8_t blue);
+
+/**
+ * @brief Retrieves a pixel at a specified location from a pixelgrid widget.
+ * 
+ * @param pixelgrid 
+ * @param pixel_row 
+ * @param pixel_col 
+ * @param red 
+ * @param green 
+ * @param blue 
+ * @return int 
+ */
+int nocterm_pixelgrid_get_pixel(nocterm_pixelgrid_t* pixelgrid, uint32_t pixel_row, uint16_t pixel_col, uint8_t* red, uint8_t* green, uint8_t* blue);
+
 
 /**
  * @brief Erases a pixel at a specified location on a pixelgrid widget.

@@ -49,6 +49,7 @@ nocterm_button_t* nocterm_button_new(nocterm_dimension_size_t height, nocterm_di
 /**
  * @brief Constructs a button widget.
  * 
+ * @param button 
  * @param height 
  * @param width 
  * @param onpress_handler 

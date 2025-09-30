@@ -58,13 +58,11 @@ typedef struct nocterm_menu_t{
 /**
  * @brief Creates a new menu widget.
  * 
- * @param row 
- * @param col 
- * @param selection 
  * @param items_displayed 
  * @param items_total 
  * @param item_width 
  * @param onselect_handler 
+ * @param user_data 
  * @return nocterm_menu_t* 
  */
 nocterm_menu_t* nocterm_menu_new(nocterm_dimension_size_t items_displayed, uint64_t items_total, nocterm_dimension_size_t item_width, nocterm_menu_onselect_handler_t onselect_handler, void* user_data);
@@ -74,9 +72,6 @@ nocterm_menu_t* nocterm_menu_new(nocterm_dimension_size_t items_displayed, uint6
  * @brief Constructs a menu widget.
  * 
  * @param menu 
- * @param row 
- * @param col 
- * @param selection 
  * @param items_displayed 
  * @param items_total 
  * @param item_width 

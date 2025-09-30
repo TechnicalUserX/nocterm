@@ -80,7 +80,7 @@ int nocterm_pixelgrid_delete(nocterm_pixelgrid_t *pixelgrid){
     return NOCTERM_SUCCESS;
 }
 
-int nocterm_pixelgrid_print(nocterm_pixelgrid_t *pixelgrid, uint32_t pixel_row, uint16_t pixel_col, uint8_t red, uint8_t green, uint8_t blue){
+int nocterm_pixelgrid_set_pixel(nocterm_pixelgrid_t *pixelgrid, uint32_t pixel_row, uint16_t pixel_col, uint8_t red, uint8_t green, uint8_t blue){
     // Not thread-safe, use wisely
 
     if(pixelgrid == NULL){
@@ -133,6 +133,35 @@ int nocterm_pixelgrid_print(nocterm_pixelgrid_t *pixelgrid, uint32_t pixel_row, 
     pixelgrid->cells[pixelgrid->cell_width * cell_row + cell_col][cell_inner_position].red = red;
     pixelgrid->cells[pixelgrid->cell_width * cell_row + cell_col][cell_inner_position].green = green;
     pixelgrid->cells[pixelgrid->cell_width * cell_row + cell_col][cell_inner_position].blue = blue;
+
+    return NOCTERM_SUCCESS;
+}
+
+int nocterm_pixelgrid_get_pixel(nocterm_pixelgrid_t* pixelgrid, uint32_t pixel_row, uint16_t pixel_col, uint8_t* red, uint8_t* green, uint8_t* blue){
+
+    if(pixelgrid == NULL){
+        errno = EINVAL;
+        return NOCTERM_FAILURE;
+    }
+
+    if(pixel_row >= pixelgrid->pixel_height || pixel_col >= pixelgrid->pixel_width){
+        errno = EINVAL;
+        return NOCTERM_FAILURE;
+    }
+
+    uint16_t cell_row = pixel_row / 2;
+    uint16_t cell_col = pixel_col;
+    uint16_t cell_inner_position = pixel_row % 2;
+
+    if(red){
+        *red = pixelgrid->cells[pixelgrid->cell_width * cell_row + cell_col][cell_inner_position].red;
+    }
+    if(green){
+        *green = pixelgrid->cells[pixelgrid->cell_width * cell_row + cell_col][cell_inner_position].green;
+    }
+    if(blue){
+        *blue = pixelgrid->cells[pixelgrid->cell_width * cell_row + cell_col][cell_inner_position].blue;
+    }
 
     return NOCTERM_SUCCESS;
 }

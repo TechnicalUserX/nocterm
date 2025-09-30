@@ -27,8 +27,8 @@ typedef struct nocterm_textview_t{
 /**
  * @brief Creates a new textview widget.
  * 
- * @param bounds 
- * @param attribute 
+ * @param height 
+ * @param width 
  * @return nocterm_textview_t* 
  */
 nocterm_textview_t* nocterm_textview_new(nocterm_dimension_size_t height, nocterm_dimension_size_t width);
@@ -37,8 +37,8 @@ nocterm_textview_t* nocterm_textview_new(nocterm_dimension_size_t height, nocter
  * @brief Constructs a textview widget.
  * 
  * @param textview 
- * @param bounds 
- * @param attribute 
+ * @param height 
+ * @param width 
  * @return int 
  */
 int nocterm_textview_constructor(nocterm_textview_t* textview, nocterm_dimension_size_t height, nocterm_dimension_size_t width);

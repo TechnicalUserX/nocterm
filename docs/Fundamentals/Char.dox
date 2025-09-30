@@ -7,10 +7,46 @@ This type is one of the building blocks of the **buffers** of **widgets** alongs
 
 ---
 
-There are 2 predefined constants for characters:
+There are various functions to create Nocterm compatible characters and strings
 
-- `NOCTERM_CHAR_EMPTY`: Literally nothing, all zeroes
-- `NOCTERM_CHAR_NULL`: Equivalent to null terminator character (`.byte_size` field is set to 1)
+- `nocterm_char_from_ascii()` can turn a character literal to `nocterm_char_t`.
+- `nocterm_char_from_utf8()` can turn a unicode character literal to `nocterm_char_t`.
 
+Below example shows the aforementioned character functions in action:
 
+```c
+#include <nocterm/nocterm.h>
+ 
+int main(){
+ 
+    setlocale(LC_ALL, "en_US.UTF-8");
 
+    nocterm_char_t my_ascii_char = nocterm_char_from_ascii('A');
+    nocterm_char_t my_utf8_char = nocterm_char_from_utf8(L'Ğ');
+
+    nocterm_io_put_char(my_ascii_char);
+    nocterm_io_put_char(my_utf8_char);
+    
+    return 0;
+}
+```
+
+It is also possible to convert a C string to a `nocterm_char_t` based string, or vice versa.
+
+```c
+#include <nocterm/nocterm.h>
+ 
+int main(){
+ 
+    nocterm_char_t my_string[10] = {0};
+    
+    nocterm_char_string_from_stream(my_string, 10, "hello", 6);
+
+    for(int i = 0; i < 10; i++){
+        nocterm_io_put_char(my_string[i]);
+    }
+
+    return 0;
+}
+
+```

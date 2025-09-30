@@ -20,15 +20,8 @@ typedef struct nocterm_screen_ownership_t{
     void* owner; // Owner widget
 }nocterm_screen_ownership_t;
 
-extern nocterm_screen_ownership_t* nocterm_screen_ownership;
 extern nocterm_dimension_size_t nocterm_screen_height;
 extern nocterm_dimension_size_t nocterm_screen_width;
-
-/**
- * @brief Resets screen ownerships of all widgets.
- * 
- */
-void nocterm_screen_ownership_reset(void);
 
 #ifdef __cplusplus
     }

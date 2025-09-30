@@ -39,8 +39,6 @@ typedef struct nocterm_levelbar_t{
 /**
  * @brief Creates a levelbar widget.
  * 
- * @param row 
- * @param col 
  * @param length 
  * @param min_value 
  * @param max_value 
@@ -54,8 +52,6 @@ nocterm_levelbar_t* nocterm_levelbar_new(uint64_t length, uint64_t min_value, ui
  * @brief Constructs a levelbar widget.
  * 
  * @param levelbar 
- * @param row 
- * @param col 
  * @param length 
  * @param min_value 
  * @param max_value 

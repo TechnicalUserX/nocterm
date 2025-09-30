@@ -10,5 +10,3 @@ New widgets will be added when there is a need.
 - \subpage usinglibrary
 - \subpage fundamentals
 - \subpage examples
-
-\include main.c
