@@ -142,6 +142,7 @@ int nocterm_listview_push_back(nocterm_listview_t* listview, nocterm_listview_it
                 nocterm_widget_set_viewport(NOCTERM_WIDGET(listview), (nocterm_dimension_t){listview->item_array->size - NOCTERM_WIDGET(listview)->viewport.height, 0, NOCTERM_WIDGET(listview)->viewport.height, NOCTERM_WIDGET(listview)->viewport.width});
                 break;
             case NOCTERM_LISTVIEW_AUTOSCROLL_NONE:
+                break;
         }
     }
 
@@ -189,6 +190,7 @@ int nocterm_listview_push_front(nocterm_listview_t* listview, nocterm_listview_i
                 nocterm_widget_set_viewport(NOCTERM_WIDGET(listview), (nocterm_dimension_t){listview->item_array->size - NOCTERM_WIDGET(listview)->viewport.height, 0, NOCTERM_WIDGET(listview)->viewport.height, NOCTERM_WIDGET(listview)->viewport.width});
                 break;
             case NOCTERM_LISTVIEW_AUTOSCROLL_NONE:
+                break;
         }
     }
 
@@ -330,6 +332,7 @@ int nocterm_listview_insert(nocterm_listview_t* listview, nocterm_listview_item_
                 nocterm_widget_set_viewport(NOCTERM_WIDGET(listview), (nocterm_dimension_t){listview->item_array->size - NOCTERM_WIDGET(listview)->viewport.height, 0, NOCTERM_WIDGET(listview)->viewport.height, NOCTERM_WIDGET(listview)->viewport.width});
                 break;
             case NOCTERM_LISTVIEW_AUTOSCROLL_NONE:
+                break;
         }
     }
 

@@ -121,17 +121,14 @@ NOCTERM_TIMER_CALLBACK(nocterm_loadingbar_timer_callback){
 
         case 1:{
             memcpy(ch.bytes, "/", 1);
-
         }break;
 
         case 2:{
             memcpy(ch.bytes, "-", 1);
-
         }break;
 
         case 3:{
             memcpy(ch.bytes, "\\", 1);
-
         }break;
     }
     

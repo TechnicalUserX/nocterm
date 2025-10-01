@@ -7,8 +7,9 @@ NOCTERM_INTERNAL void nocterm_signal_handler(int sig){
     switch(sig){
         case SIGWINCH:{
             nocterm_signal_flags.nocterm_signal_sigwinch = true;
-        }
-        break;
+        }break;
+        default:
+            break;
     }
     return;
 }

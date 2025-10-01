@@ -7,7 +7,7 @@ NOCTERM_CHECKBOX_ONCHECK_HANDLER(handler){
                 nocterm_io_print_at(5,0,"%-10s", "Checked");
             break;
 
-            case NOCTERM_CHECKBOX_ACTION_UNCHECK:
+        case NOCTERM_CHECKBOX_ACTION_UNCHECK:
             nocterm_io_print_at(5,0,"%-10s", "Unchecked");
             break;
     }
