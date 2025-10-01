@@ -14,6 +14,7 @@ To build and install Nocterm to your Linux system, you need to install the follo
 
 - `make`
 - `gcc`
+- `binutils`
 - `git` (Optional)
 
 To install these requirements:

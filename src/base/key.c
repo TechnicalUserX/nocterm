@@ -111,7 +111,16 @@ int nocterm_key_capture(nocterm_key_t* k){
     // By default, it is 1, because we already read the initial byte
     uint64_t byte_sequence_size = 1; 
 
-    while(1){
+    uint8_t phase = 0;
+    bool bytes_remaining_set = false;
+    uint64_t bytes_remaining = 0;
+
+    while(true){
+
+        if(bytes_remaining_set && bytes_remaining == 0){
+            break;
+        }
+
         bool available = false;
         struct timeval tv = {NOCTERM_KEY_ESCSEQ_INTERVAL/1000, NOCTERM_KEY_ESCSEQ_INTERVAL};
         if(nocterm_io_read_available(&available, tv) == NOCTERM_FAILURE){
@@ -128,12 +137,44 @@ int nocterm_key_capture(nocterm_key_t* k){
             return NOCTERM_FAILURE;
         }
 
-        char subsequent_byte = 0;
+        char subsequent_byte = '\0';
 
         if(nocterm_io_read(&subsequent_byte, 1) == NOCTERM_FAILURE){
             return NOCTERM_FAILURE;
         }
         
+        if(phase == 0){
+            
+            if(subsequent_byte == '['){
+                phase++;
+            }else{
+                return NOCTERM_FAILURE;
+            }
+        }else if(phase == 1){
+
+            switch(subsequent_byte){
+                case 'M':
+                    bytes_remaining_set = true;
+                    bytes_remaining = 3;
+                    break;
+                
+                case '3':
+                    bytes_remaining_set = true;
+                    bytes_remaining = 1;
+                    break;
+
+                case 'A':
+                case 'B':
+                case 'C':
+                case 'D':
+                case 'Z':
+                    bytes_remaining_set = true;
+                    bytes_remaining = 0;
+                    break;
+            }
+        
+        }
+
         k_temp.buffer[byte_sequence_size] = subsequent_byte;
         byte_sequence_size++;
     }
@@ -200,7 +241,7 @@ nocterm_key_event_t nocterm_key_translate(nocterm_key_t* key){
             return NOCTERM_KEY_EVENT_LEFT;
         }else if(memcmp(key->buffer,"\033[3~", 4) == 0){
             return NOCTERM_KEY_EVENT_DELETE;
-        }else if(memcmp(key->buffer,"\033[Z", 4) == 0){
+        }else if(memcmp(key->buffer,"\033[Z", 3) == 0){
             return NOCTERM_KEY_EVENT_SHIFT_TAB;
         }else if(memcmp(key->buffer, "\033[M",3) == 0){
             return NOCTERM_KEY_EVENT_MOUSE;

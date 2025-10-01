@@ -427,6 +427,7 @@ NOCTERM_WIDGET_KEY_HANDLER(nocterm_menu_key_handler){
         }break;
 
         default:
+            break;
     }
 
 

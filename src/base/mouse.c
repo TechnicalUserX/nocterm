@@ -194,6 +194,7 @@ int nocterm_mouse_controller(nocterm_key_t* key){
             }break;
 
             default:
+                break;
         }
 
     }else{

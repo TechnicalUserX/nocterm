@@ -692,5 +692,6 @@ NOCTERM_WIDGET_KEY_HANDLER(nocterm_listview_key_handler){
         }break;
 
         default:
+            break;
     }
 }

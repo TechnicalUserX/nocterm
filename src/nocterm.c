@@ -247,6 +247,7 @@ int nocterm_loop(void){
         // EXECUTE TIMER CALLBACKS PHASE
         nocterm_timer_tick();
 
+        // Resize control
         if(nocterm_signal_flags.nocterm_signal_sigwinch){
 
             current_page->root_widget->hard_refresh = true;
@@ -267,12 +268,22 @@ int nocterm_loop(void){
             free(nocterm_screen_ownership);
 
             nocterm_screen_ownership = (nocterm_screen_ownership_t*)malloc(sizeof(nocterm_screen_ownership_t) * nocterm_screen_height * nocterm_screen_width);
-        
             if(nocterm_screen_ownership == NULL){
                 return NOCTERM_FAILURE;
             }
-        
-            memset(nocterm_screen_ownership, 0x0, sizeof(nocterm_screen_ownership_t) * nocterm_screen_height * nocterm_screen_width);
+
+            nocterm_screen_ownership_reset();
+
+            // Resize events happen first before alignments happen
+
+            // nocterm_widget_resize_update(current_page->root_widget)
+            // if(current_overlay){
+            //     for(uint64_t i = 0; i < NOCTERM_OVERLAY_WIDGET_MAX_SIZE; i++){
+            //         if(current_overlay->widgets[i]){
+            //             nocterm_widget_resize_update(current_overlay->widgets[i]);
+            //         }
+            //     }
+            // }
 
             // We need to traverse over the widgets to reset their positions after resize
             nocterm_widget_align_update(current_page->root_widget);
@@ -284,6 +295,8 @@ int nocterm_loop(void){
                     }
                 }
             }
+
+
 
         }
 

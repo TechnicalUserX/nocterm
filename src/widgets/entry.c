@@ -439,6 +439,7 @@ NOCTERM_WIDGET_KEY_HANDLER(nocterm_entry_key_handler){
         }break;
 
         default:
+            break;
     }
 }
 

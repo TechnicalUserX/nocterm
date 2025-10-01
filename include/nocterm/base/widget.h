@@ -41,35 +41,72 @@ typedef enum nocterm_widget_focus_t{
     NOCTERM_WIDGET_FOCUS_LEAVE 
 }nocterm_widget_focus_t;
 
-typedef struct nocterm_widget_align_percent_values_t{
-    uint8_t horizontal;                 
-    uint8_t vertical;
-}nocterm_widget_align_percent_values_t;
+typedef struct nocterm_widget_align_percentages_t{
+    nocterm_percentage_t horizontal;                 
+    nocterm_percentage_t vertical;
+}nocterm_widget_align_percentages_t;
+
+typedef struct nocterm_widget_align_margins_t{
+    nocterm_dimension_size_t horizontal;
+    nocterm_dimension_size_t vertical;
+}nocterm_widget_align_margins_t;
 
 typedef struct nocterm_widget_align_flags_t{
-    bool left:1; 
-    bool right:1;
-    bool top:1;
-    bool bottom:1;
-    bool percent_horizontal:1; // Starts from left
-    bool percent_vertical:1; // Starts from top
+    bool horizontal:1;
+    bool vertical:1;
+    struct{
+        bool left:1;
+        bool center:1;
+        bool right:1;
+    }horizontal_flags;    
+    struct{
+        bool top:1;
+        bool center:1;
+        bool bottom:1;
+    }vertical_flags;
 }nocterm_widget_align_flags_t;
 
-typedef struct nocterm_widget_align_t{
-    nocterm_widget_align_flags_t flags;
-    nocterm_widget_align_percent_values_t percent_values;
-    nocterm_dimension_size_t margin_horizontal;
-    nocterm_dimension_size_t margin_vertical;
+typedef enum nocterm_widget_align_t{
+    NOCTERM_WIDGET_ALIGN_HORIZONTAL_LEFT,
+    NOCTERM_WIDGET_ALIGN_HORIZONTAL_CENTER,
+    NOCTERM_WIDGET_ALIGN_HORIZONTAL_RIGHT,
+    NOCTERM_WIDGET_ALIGN_VERTICAL_TOP,
+    NOCTERM_WIDGET_ALIGN_VERTICAL_CENTER,
+    NOCTERM_WIDGET_ALIGN_VERTICAL_BOTTOM
 }nocterm_widget_align_t;
+
+typedef struct nocterm_widget_align_policy_t{
+    nocterm_widget_align_flags_t flags;
+    nocterm_widget_align_percentages_t percentages;
+    nocterm_widget_align_margins_t margins;
+}nocterm_widget_align_policy_t;
+
+typedef struct nocterm_widget_flex_percentages_t{
+    nocterm_percentage_t height;
+    nocterm_percentage_t width;
+}nocterm_widget_flex_percentages_t;
+
+typedef struct nocterm_widget_flex_flags_t{
+    bool height;
+    bool width;
+}nocterm_widget_flex_flags_t;
+
+typedef struct nocterm_widget_flex_policy_t{
+    nocterm_widget_flex_flags_t flags;
+    nocterm_widget_flex_percentages_t percentages;
+}nocterm_widget_flex_policy_t;
 
 typedef struct nocterm_widget_t nocterm_widget_t;
 
 typedef void (*nocterm_widget_key_handler_t)(nocterm_widget_t* self, nocterm_key_t* key);
 typedef void (*nocterm_widget_focus_handler_t)(nocterm_widget_t* self, nocterm_widget_focus_t focus);
+typedef void (*nocterm_widget_resize_handler_t)(nocterm_widget_t* self, nocterm_dimension_t new_bounds, nocterm_dimension_t new_viewport);
 
 #define NOCTERM_WIDGET_KEY_HANDLER(identifier) void identifier(nocterm_widget_t* self, nocterm_key_t* key)
 
 #define NOCTERM_WIDGET_FOCUS_HANDLER(identifier) void identifier(nocterm_widget_t* self, nocterm_widget_focus_t focus)
+
+#define NOCTERM_WIDGET_RESIZE_HANDLER(identifier) void identifier(nocterm_widget_t* self, nocterm_dimension_t bounds, nocterm_dimension_t viewport);
 
 typedef struct nocterm_widget_t{
 
@@ -106,10 +143,12 @@ typedef struct nocterm_widget_t{
     // If this is activated, widgets can be drawn outside the borders of it's parent.
     bool floating_subwidgets;
 
-    nocterm_widget_align_t align;
+    nocterm_widget_align_policy_t align_policy;
+    nocterm_widget_flex_policy_t resize_policy;
 
     nocterm_widget_key_handler_t key_handler;
     nocterm_widget_focus_handler_t focus_handler;
+    nocterm_widget_resize_handler_t resize_handler;
 
 }nocterm_widget_t;
 
@@ -152,6 +191,22 @@ nocterm_widget_t* nocterm_widget_new(nocterm_dimension_size_t height, nocterm_di
  * @return int 
  */
 int nocterm_widget_constructor(nocterm_widget_t* widget, nocterm_dimension_size_t  height, nocterm_dimension_size_t width, nocterm_widget_focusable_t focusable, nocterm_widget_type_t type);
+
+/**
+ * @brief Destructs a widget on an allocated memory.
+ * 
+ * @param widget 
+ * @return int 
+ */
+int nocterm_widget_destructor(nocterm_widget_t* widget);
+
+/**
+ * @brief Deletes a widget.
+ * 
+ * @param widget 
+ * @return int 
+ */
+int nocterm_widget_delete(nocterm_widget_t* widget);
 
 /**
  * @brief Changes viewport of a widget.
@@ -233,57 +288,31 @@ int nocterm_widget_set_row(nocterm_widget_t* widget, nocterm_dimension_size_t ro
 int nocterm_widget_set_col(nocterm_widget_t* widget, nocterm_dimension_size_t col);
 
 /**
- * @brief Aligns a widget to the left
+ * @brief Aligns a widget.
  * 
  * @param widget 
+ * @param align 
  * @return int 
  */
-int nocterm_widget_align_left(nocterm_widget_t* widget);
+int nocterm_widget_align(nocterm_widget_t* widget, nocterm_widget_align_t align);
 
 /**
- * @brief Aligns a widget to the right
+ * @brief Sets horizontal percentage position for a widget.
  * 
  * @param widget 
- * @param margin 
+ * @param percentage 
  * @return int 
  */
-int nocterm_widget_align_right(nocterm_widget_t* widget);
+int nocterm_widget_align_set_percentage_horizontal(nocterm_widget_t* widget, nocterm_percentage_t percentage);
 
 /**
- * @brief Aligns a widget to the top
+ * @brief Sets vertical percentage position for a widget.
  * 
  * @param widget 
- * @param margin 
+ * @param percentage 
  * @return int 
  */
-int nocterm_widget_align_top(nocterm_widget_t* widget);
-
-/**
- * @brief Aligns a widget to the bottom
- * 
- * @param widget 
- * @param margin 
- * @return int 
- */
-int nocterm_widget_align_bottom(nocterm_widget_t* widget);
-
-/**
- * @brief Aligns a widget with a horizontal percentage from left
- * 
- * @param widget 
- * @param percent 
- * @return int 
- */
-int nocterm_widget_align_percent_horizontal(nocterm_widget_t* widget, uint8_t percent);
-
-/**
- * @brief Aligns a widget with a vertical percentage from top
- * 
- * @param widget 
- * @param percent 
- * @return int 
- */
-int nocterm_widget_align_percent_vertical(nocterm_widget_t* widget, uint8_t percent);
+int nocterm_widget_align_set_percentage_vertical(nocterm_widget_t* widget, nocterm_percentage_t percentage);
 
 /**
  * @brief Sets horizontal margin for a widget.
@@ -396,20 +425,13 @@ int nocterm_widget_add_key_handler(nocterm_widget_t* widget, nocterm_widget_key_
 int nocterm_widget_add_focus_handler(nocterm_widget_t* widget, nocterm_widget_focus_handler_t focus_handler);
 
 /**
- * @brief Deletes a widget.
+ * @brief Assigns a resize handler callback to a widget.
  * 
  * @param widget 
+ * @param resize_handler 
  * @return int 
  */
-int nocterm_widget_delete(nocterm_widget_t* widget);
-
-/**
- * @brief Destructs a widget on an allocated memory.
- * 
- * @param widget 
- * @return int 
- */
-int nocterm_widget_destructor(nocterm_widget_t* widget);
+int nocterm_widget_add_resize_handler(nocterm_widget_t* widget, nocterm_widget_resize_handler_t resize_handler);
 
 /**
  * @brief Updates a single cell in the widget cell buffer.
@@ -438,17 +460,6 @@ int nocterm_widget_enforce_root_refresh(nocterm_widget_t* widget);
  * @return int 
  */
 int nocterm_widget_clear(nocterm_widget_t* widget);
-
-/**
- * @brief Resizes the cell buffer of a widget.
- * 
- * @param widget 
- * @param height 
- * @param width 
- * @param preserve_buffer 
- * @return int 
- */
-int nocterm_widget_resize(nocterm_widget_t* widget, nocterm_dimension_size_t height, nocterm_dimension_size_t width, bool preserve_buffer);
 
 /**
  * @brief Checks whether the current widget is the focused one.

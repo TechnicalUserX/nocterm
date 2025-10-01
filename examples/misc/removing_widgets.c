@@ -9,8 +9,9 @@ NOCTERM_TIMER_CALLBACK(my_callback){
         i = 0;
 
         nocterm_widget_add_subwidget(widget, NOCTERM_WIDGET(user_data));
-        nocterm_widget_align_percent_horizontal(NOCTERM_WIDGET(user_data), 50);
-        nocterm_widget_align_percent_vertical(NOCTERM_WIDGET(user_data), 50);        
+        
+        nocterm_widget_align_center_percent_horizontal(NOCTERM_WIDGET(user_data), 50);
+        nocterm_widget_align_center_percent_vertical(NOCTERM_WIDGET(user_data), 50);        
 
     }else{
         i = 1;
@@ -40,8 +41,8 @@ int main(){
     
     nocterm_page_t* main_page = nocterm_page_new("Main page", sizeof("Main page"), NOCTERM_WIDGET(my_decorbox));
 
-    nocterm_widget_align_percent_horizontal(NOCTERM_WIDGET(my_decorbox), 50);
-    nocterm_widget_align_percent_vertical(NOCTERM_WIDGET(my_decorbox), 50);
+    nocterm_widget_align_center_percent_horizontal(NOCTERM_WIDGET(my_decorbox), 50);
+    nocterm_widget_align_center_percent_vertical(NOCTERM_WIDGET(my_decorbox), 50);
 
 
     nocterm_timer_t* my_timer = nocterm_timer_create(my_widget, 500, my_callback, my_label);

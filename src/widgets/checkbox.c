@@ -218,6 +218,7 @@ NOCTERM_WIDGET_KEY_HANDLER(nocterm_checkbox_key_handler){
 
         }break;
         default:
+            break;
     }
 }
 

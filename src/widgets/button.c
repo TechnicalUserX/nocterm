@@ -151,6 +151,7 @@ NOCTERM_WIDGET_KEY_HANDLER(nocterm_button_key_handler){
             }
         }break;
         default:
+            break;
     }
 }
 

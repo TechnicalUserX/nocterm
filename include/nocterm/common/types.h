@@ -39,6 +39,7 @@
 #endif
 
 // Terminal dimension for character grid
+
 typedef uint16_t nocterm_dimension_size_t;
 
 typedef struct nocterm_dimension_t{
@@ -47,6 +48,9 @@ typedef struct nocterm_dimension_t{
     nocterm_dimension_size_t height;
     nocterm_dimension_size_t width;
 }nocterm_dimension_t;
+
+typedef uint8_t nocterm_percentage_t;
+
 
 #ifdef __cplusplus
     }
