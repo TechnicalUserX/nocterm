@@ -411,7 +411,7 @@ int nocterm_widget_align_right(nocterm_widget_t* widget){
             if(widget->parent->viewport.width >= widget->viewport.width + widget->align.margin_horizontal){
                 // We can align right because parent has enough width
                 nocterm_dimension_size_t new_col = widget->parent->viewport.width - widget->viewport.width - widget->align.margin_horizontal;
-                widget->bounds.row = new_col;
+                widget->bounds.col = new_col;
             }
             // Else no effect
         }
@@ -877,6 +877,23 @@ bool nocterm_widget_contains_subwidget(nocterm_widget_t* widget, nocterm_widget_
     return false;
 }
 
+int nocterm_widget_set_floating_subwidgets(nocterm_widget_t* widget, bool floating_subwidgets){
+    
+    if(widget == NULL){
+        errno = EINVAL;
+        return NOCTERM_FAILURE;
+    }
+
+    pthread_mutex_lock(&widget->lock);
+
+    widget->floating_subwidgets = floating_subwidgets;
+    nocterm_widget_enforce_root_refresh(widget);
+    
+    pthread_mutex_unlock(&widget->lock);
+
+    return NOCTERM_SUCCESS;
+}
+
 int nocterm_widget_add_key_handler(nocterm_widget_t* widget, nocterm_widget_key_handler_t key_handler){
 
     if(widget == NULL || key_handler == NULL){
@@ -1111,11 +1128,40 @@ NOCTERM_INTERNAL int nocterm_widget_refresh(nocterm_widget_t* widget){
                     uint64_t screen_size = nocterm_screen_height * nocterm_screen_width;
                     nocterm_screen_ownership_t* current_ownership = NULL;
 
-                    if (absolute_row >= nocterm_screen_height || absolute_col >= nocterm_screen_width) {
+                    if(absolute_row >= nocterm_screen_height || absolute_col >= nocterm_screen_width) {
                         // Skip this cell - it's outside screen boundaries
                         continue;
                     }
-                    
+
+                    // Check widget positional cell access restriction
+                    nocterm_widget_t* parent_iterator = widget->parent;
+                    bool has_cell_access = true;
+                    while(parent_iterator != NULL){
+
+                        nocterm_dimension_size_t parent_absolute_row, parent_absolute_col;
+                        nocterm_widget_get_position(parent_iterator, &parent_absolute_row, &parent_absolute_col);
+
+                        if(parent_iterator->floating_subwidgets == false && parent_iterator->bounds.width * parent_iterator->bounds.height > 0 && (
+                            (absolute_row < parent_absolute_row) ||
+                            (absolute_row >= parent_absolute_row + parent_iterator->viewport.height) ||
+                            (absolute_col < parent_absolute_col) ||
+                            (absolute_col >= parent_absolute_col + parent_iterator->viewport.width)
+                        )){
+                            // Skip this cell, floating_widgets is not allowed and cell position is not inside the bounds of its parent.
+                            has_cell_access = false;
+                            break;
+                        }else if(parent_iterator->floating_subwidgets == true || parent_iterator->bounds.width * parent_iterator->bounds.height == 0){
+                            has_cell_access = true;
+                            break;
+                        }
+
+                        parent_iterator = parent_iterator->parent;
+                    }
+                    if(has_cell_access == false){
+                        continue;
+                    }
+                    // If widget has no parent, then this check is unnecessary
+
                     if(screen_index < screen_size){
                         current_ownership = &(nocterm_screen_ownership[screen_index]);
                     }
@@ -1123,23 +1169,29 @@ NOCTERM_INTERNAL int nocterm_widget_refresh(nocterm_widget_t* widget){
                     if(current_ownership && (current_ownership->owner == (void*)widget || current_ownership->owner == NULL)){
 
                         if(widget->buffer[buffer_index].character.bytes_size != 0){
+                            
                             if(nocterm_attribute_set(widget->buffer[buffer_index].attribute) == NOCTERM_FAILURE){
                                 pthread_mutex_unlock(&widget->lock);
                                 return NOCTERM_FAILURE;
                             }                        
+                            
                             if(nocterm_io_put_char_at(relative_row + row, relative_col + col, widget->buffer[buffer_index].character) == NOCTERM_FAILURE){
                                 pthread_mutex_unlock(&widget->lock);
                                 return NOCTERM_FAILURE;
                             }  
+                            
                             if(nocterm_attribute_clear() == NOCTERM_FAILURE){
                                 pthread_mutex_unlock(&widget->lock);
                                 return NOCTERM_FAILURE;
-                            }    
+                            }
+
                         }else{
+                            
                             if(nocterm_io_erase_char_at(relative_row + row, relative_col + col) == NOCTERM_FAILURE){
                                 pthread_mutex_unlock(&widget->lock);
                                 return NOCTERM_FAILURE;
                             }
+
                         }
 
                         current_ownership->owner = (void*)widget;

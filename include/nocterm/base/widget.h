@@ -103,6 +103,9 @@ typedef struct nocterm_widget_t{
     // This flag must be handled carefully by widget constructors
     bool click_activation; 
 
+    // If this is activated, widgets can be drawn outside the borders of it's parent.
+    bool floating_subwidgets;
+
     nocterm_widget_align_t align;
 
     nocterm_widget_key_handler_t key_handler;
@@ -363,6 +366,16 @@ int nocterm_widget_remove_subwidget(nocterm_widget_t* widget, nocterm_widget_t* 
  * @return false 
  */
 bool nocterm_widget_contains_subwidget(nocterm_widget_t* widget, nocterm_widget_t* subwidget);
+
+/**
+ * @brief Enables whether the subwidgets can be drawn outside the boundaries of their parent.
+ * 
+ * @note This function has no effect for widgets with zero dimensional bounds.
+ * @param widget 
+ * @param floating_subwidgets 
+ * @return int 
+ */
+int nocterm_widget_set_floating_subwidgets(nocterm_widget_t* widget, bool floating_subwidgets);
 
 /**
  * @brief Assigns a key handler callback to a widget.
