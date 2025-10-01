@@ -143,6 +143,10 @@ int nocterm_key_capture(nocterm_key_t* k){
             return NOCTERM_FAILURE;
         }
         
+        if(bytes_remaining_set){
+            bytes_remaining--;
+        }
+        
         if(phase == 0){
             
             if(subsequent_byte == '['){
@@ -172,7 +176,7 @@ int nocterm_key_capture(nocterm_key_t* k){
                     bytes_remaining = 0;
                     break;
             }
-        
+            phase++;
         }
 
         k_temp.buffer[byte_sequence_size] = subsequent_byte;
