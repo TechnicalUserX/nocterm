@@ -36,10 +36,20 @@ typedef struct nocterm_widget_cell_t{
     bool refresh;
 }nocterm_widget_cell_t;
 
+typedef enum nocterm_widget_type_t{
+    NOCTERM_WIDGET_TYPE_REAL,
+    NOCTERM_WIDGET_TYPE_VIRTUAL,
+}nocterm_widget_type_t;
+
 typedef enum nocterm_widget_focus_t{
     NOCTERM_WIDGET_FOCUS_ENTER,
     NOCTERM_WIDGET_FOCUS_LEAVE 
 }nocterm_widget_focus_t;
+
+typedef enum nocterm_widget_focusable_t{
+    NOCTERM_WIDGET_FOCUSABLE_NO,
+    NOCTERM_WIDGET_FOCUSABLE_YES
+}nocterm_widget_focusable_t;
 
 typedef struct nocterm_widget_align_percentages_t{
     nocterm_percentage_t horizontal;                 
@@ -67,6 +77,7 @@ typedef struct nocterm_widget_align_flags_t{
 }nocterm_widget_align_flags_t;
 
 typedef enum nocterm_widget_align_t{
+    NOCTERM_WIDGET_ALIGN_NONE,
     NOCTERM_WIDGET_ALIGN_HORIZONTAL_LEFT,
     NOCTERM_WIDGET_ALIGN_HORIZONTAL_CENTER,
     NOCTERM_WIDGET_ALIGN_HORIZONTAL_RIGHT,
@@ -144,7 +155,7 @@ typedef struct nocterm_widget_t{
     bool floating_subwidgets;
 
     nocterm_widget_align_policy_t align_policy;
-    nocterm_widget_flex_policy_t resize_policy;
+    nocterm_widget_flex_policy_t flex_policy;
 
     nocterm_widget_key_handler_t key_handler;
     nocterm_widget_focus_handler_t focus_handler;
@@ -152,15 +163,7 @@ typedef struct nocterm_widget_t{
 
 }nocterm_widget_t;
 
-typedef enum nocterm_widget_type_t{
-    NOCTERM_WIDGET_TYPE_REAL,
-    NOCTERM_WIDGET_TYPE_VIRTUAL,
-}nocterm_widget_type_t;
 
-typedef enum nocterm_widget_focusable_t{
-    NOCTERM_WIDGET_FOCUSABLE_NO,
-    NOCTERM_WIDGET_FOCUSABLE_YES
-}nocterm_widget_focusable_t;
 
 /**
  * @brief Keeps track of the currently focused widget, globally.

@@ -348,6 +348,20 @@ int nocterm_widget_align(nocterm_widget_t* widget, nocterm_widget_align_t align)
 
     switch(align){
 
+        case NOCTERM_WIDGET_ALIGN_NONE:{
+
+            widget->align_policy.flags.horizontal = false;
+            widget->align_policy.flags.horizontal_flags.left = false;
+            widget->align_policy.flags.horizontal_flags.center = false;
+            widget->align_policy.flags.horizontal_flags.right = false;
+
+            widget->align_policy.flags.vertical = false;
+            widget->align_policy.flags.vertical_flags.top = false;
+            widget->align_policy.flags.vertical_flags.center = false;
+            widget->align_policy.flags.vertical_flags.bottom = false;
+
+        }break;
+
         case NOCTERM_WIDGET_ALIGN_HORIZONTAL_LEFT:{
 
             nocterm_dimension_size_t percent_distance = (parent_width * widget->align_policy.percentages.horizontal) / 100;
@@ -386,13 +400,12 @@ int nocterm_widget_align(nocterm_widget_t* widget, nocterm_widget_align_t align)
                     widget->bounds.col = parent_width - widget->viewport.width;
                 }
                 // Else no effect
-        
-                widget->align_policy.flags.horizontal = true;
-                widget->align_policy.flags.horizontal_flags.left = false;
-                widget->align_policy.flags.horizontal_flags.center = true;
-                widget->align_policy.flags.horizontal_flags.right = false;
-
             }
+
+            widget->align_policy.flags.horizontal = true;
+            widget->align_policy.flags.horizontal_flags.left = false;
+            widget->align_policy.flags.horizontal_flags.center = true;
+            widget->align_policy.flags.horizontal_flags.right = false;
 
         }break;
 
@@ -586,6 +599,17 @@ int nocterm_widget_align_update(nocterm_widget_t* widget){
     }
 
     return NOCTERM_SUCCESS;
+}
+
+int nocterm_widget_flex(nocterm_widget_t* widget){
+
+    return NOCTERM_SUCCESS;
+}
+
+int nocterm_widget_flex_update(nocterm_widget_t* widget){
+    
+    return NOCTERM_SUCCESS;
+
 }
 
 int nocterm_widget_get_visible(nocterm_widget_t* widget, bool* visible){
