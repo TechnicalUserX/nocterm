@@ -8,8 +8,8 @@ Nocterm is a terminal user interface library for basic needs, designed to be use
 It is expected to evolve and improve in time. New widgets will be added when there is a need.
 
 # Sample Widget Demonstration
-
-![](docs/widgetdemo.png)
+    
+![](docs/Examples/images/all_widget_demo.png)
 
 ---
 
