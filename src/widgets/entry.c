@@ -344,7 +344,9 @@ int nocterm_entry_get_text(nocterm_entry_t* entry, char* buffer, uint64_t buffer
     pthread_mutex_lock(&NOCTERM_WIDGET(entry)->lock);
 
     if(entry->current_length == 0){
-        *entry_length = 0;
+        if(entry_length){
+            *entry_length = 0;
+        }
         pthread_mutex_unlock(&NOCTERM_WIDGET(entry)->lock);
         return NOCTERM_SUCCESS;
     }

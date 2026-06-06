@@ -133,7 +133,7 @@ int nocterm_widget_delete(nocterm_widget_t* widget){
 int nocterm_widget_set_viewport(nocterm_widget_t* widget, nocterm_dimension_t viewport){
 
     if(widget == NULL){
-        errno = ENOMEM;
+        errno = EINVAL;
         return NOCTERM_FAILURE;
     }
 
@@ -939,6 +939,10 @@ NOCTERM_INTERNAL int nocterm_widget_buffer_resize(nocterm_widget_t* widget, noct
 
         if(new_buffer_size > 0){
             nocterm_widget_cell_t* new_buffer = (nocterm_widget_cell_t*)malloc(sizeof(nocterm_widget_cell_t) * new_buffer_size);
+            
+            if(new_buffer == NULL){
+                return NOCTERM_FAILURE;
+            }
             memset(new_buffer, 0x0, sizeof(nocterm_widget_cell_t) * new_buffer_size);
 
             // Preserve contents as much as possible if said so

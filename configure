@@ -643,10 +643,10 @@ BUILD_HDR_DIR="${BUILD_DIR}/include"
 
 CC="gcc"
 CXX="g++"
-CFLAGS="-Werror -Wall -I\"${ROOT_DIR}/include\" -I\"${ROOT_DIR}/src\" -I\"${ROOT_DIR}/lib\" -I\"${BUILD_HDR_DIR}\" -I/usr/include/libnl3"
+CFLAGS="-Werror -Wall -I\"${ROOT_DIR}/include\" -I\"${BUILD_HDR_DIR}\""
 CPPFLAGS=""
 CXXFLAGS=""
-LDFLAGS="-lnl-genl-3 -lnl-3 -lm -lconfig" 
+LDFLAGS="" 
 
 ########################################
 # Build Directory Marker

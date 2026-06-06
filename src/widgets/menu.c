@@ -480,11 +480,11 @@ void nocterm_menu_item_array_increase_capacity(nocterm_menu_item_array_t* nocter
     if(nocterm_menu_item_array->size == nocterm_menu_item_array->capacity){
         uint64_t new_capacity = nocterm_menu_item_array->capacity * 2 == 0 ? 1 : nocterm_menu_item_array->capacity * 2;
         if(new_capacity < nocterm_menu_item_array->capacity){
-            exit(EXIT_FAILURE);
+            return;
         }
         nocterm_menu_item_t* new_items = (nocterm_menu_item_t*)malloc(sizeof(nocterm_menu_item_t) * (new_capacity));
         if(new_items == NULL){
-            exit(EXIT_FAILURE);
+            return;
         }        
 
         memset(new_items, 0x0, sizeof(nocterm_menu_item_t) * (new_capacity));
@@ -500,110 +500,110 @@ void nocterm_menu_item_array_increase_capacity(nocterm_menu_item_array_t* nocter
 
 int nocterm_menu_item_array_push_back(nocterm_menu_item_array_t* nocterm_menu_item_array, nocterm_menu_item_t item){
     if(nocterm_menu_item_array == NULL){
-        return EXIT_FAILURE;
+        return NOCTERM_FAILURE;
     }    
     nocterm_menu_item_array_increase_capacity(nocterm_menu_item_array);    
     nocterm_menu_item_array->items[nocterm_menu_item_array->size] = item;
     nocterm_menu_item_array->size++;
-    return EXIT_SUCCESS;
+    return NOCTERM_SUCCESS;
 }
 
 int nocterm_menu_item_array_pop_back(nocterm_menu_item_array_t* nocterm_menu_item_array, nocterm_menu_item_t* item){
     if(nocterm_menu_item_array == NULL){
-        return EXIT_FAILURE;
+        return NOCTERM_FAILURE;
     }    
     if(nocterm_menu_item_array->size == 0){
-        return EXIT_SUCCESS;
+        return NOCTERM_SUCCESS;
     }    
     if(item != NULL){
         *item = nocterm_menu_item_array->items[nocterm_menu_item_array->size-1];
     }
     nocterm_menu_item_array->size--;
-    return EXIT_SUCCESS;
+    return NOCTERM_SUCCESS;
 }
 
 int nocterm_menu_item_array_push_front(nocterm_menu_item_array_t* nocterm_menu_item_array, nocterm_menu_item_t item){
     if(nocterm_menu_item_array == NULL){
-        return EXIT_FAILURE;
+        return NOCTERM_FAILURE;
     }    
     nocterm_menu_item_array_increase_capacity(nocterm_menu_item_array);    
     memmove(&(nocterm_menu_item_array->items[1]), &(nocterm_menu_item_array->items[0]), sizeof(nocterm_menu_item_t) * nocterm_menu_item_array->size);
     memcpy(&(nocterm_menu_item_array->items[0]), &item, sizeof(nocterm_menu_item_t));
     nocterm_menu_item_array->size++;
-    return EXIT_SUCCESS;
+    return NOCTERM_SUCCESS;
 }
 
 int nocterm_menu_item_array_pop_front(nocterm_menu_item_array_t* nocterm_menu_item_array, nocterm_menu_item_t* item){
     if(nocterm_menu_item_array == NULL){
-        return EXIT_FAILURE;
+        return NOCTERM_FAILURE;
     }    
     if(nocterm_menu_item_array->size == 0){
-        return EXIT_SUCCESS;
+        return NOCTERM_SUCCESS;
     }    
     if(item != NULL){
         *item = nocterm_menu_item_array->items[0];
     }
     memmove(&(nocterm_menu_item_array->items[0]), &(nocterm_menu_item_array->items[1]), sizeof(nocterm_menu_item_t) * (nocterm_menu_item_array->size - 1));
     nocterm_menu_item_array->size--;
-    return EXIT_SUCCESS;
+    return NOCTERM_SUCCESS;
 }
 
 int nocterm_menu_item_array_insert(nocterm_menu_item_array_t* nocterm_menu_item_array, nocterm_menu_item_t item, uint64_t index){
     if(nocterm_menu_item_array == NULL){
-        return EXIT_FAILURE;
+        return NOCTERM_FAILURE;
     }
     if(index > nocterm_menu_item_array->size){
-        return EXIT_FAILURE;
+        return NOCTERM_FAILURE;
     }
     nocterm_menu_item_array_increase_capacity(nocterm_menu_item_array);
     memmove(&(nocterm_menu_item_array->items[index+1]), &(nocterm_menu_item_array->items[index]), sizeof(nocterm_menu_item_t) * (nocterm_menu_item_array->size - index) );
     nocterm_menu_item_array->items[index] = item;
     nocterm_menu_item_array->size++;
-    return EXIT_SUCCESS;
+    return NOCTERM_SUCCESS;
 }
 
 int nocterm_menu_item_array_remove(nocterm_menu_item_array_t* nocterm_menu_item_array,  nocterm_menu_item_t* item, uint64_t index){
     if(nocterm_menu_item_array == NULL){
-        return EXIT_FAILURE;
+        return NOCTERM_FAILURE;
     }
     if(nocterm_menu_item_array->size == 0){
-        return EXIT_FAILURE;
+        return NOCTERM_FAILURE;
     }
     if(index >= nocterm_menu_item_array->size){
-        return EXIT_FAILURE;
+        return NOCTERM_FAILURE;
     }
     if(item != NULL){
         *item = nocterm_menu_item_array->items[index];
     }
     memmove(&(nocterm_menu_item_array->items[index]), &(nocterm_menu_item_array->items[index+1]), (nocterm_menu_item_array->size - index - 1) * sizeof(nocterm_menu_item_t));
     nocterm_menu_item_array->size--;
-    return EXIT_SUCCESS;
+    return NOCTERM_SUCCESS;
 }
 
 int nocterm_menu_item_array_clear(nocterm_menu_item_array_t* nocterm_menu_item_array){
     if(nocterm_menu_item_array == NULL){
-        return EXIT_FAILURE;
+        return NOCTERM_FAILURE;
     }
     nocterm_menu_item_array->size = 0;
-    return EXIT_SUCCESS;
+    return NOCTERM_SUCCESS;
 }
 
 int nocterm_menu_item_array_shrink_to_fit(nocterm_menu_item_array_t* nocterm_menu_item_array){
     if(nocterm_menu_item_array == NULL){
-        return EXIT_FAILURE;
+        return NOCTERM_FAILURE;
     }
     if (nocterm_menu_item_array->size == nocterm_menu_item_array->capacity){
-        return EXIT_SUCCESS;
+        return NOCTERM_FAILURE;
     }
 
     nocterm_menu_item_t* new_items = (nocterm_menu_item_t*)malloc(sizeof(nocterm_menu_item_t) * (nocterm_menu_item_array->size));
     if(new_items == NULL){
-        exit(EXIT_FAILURE);
+        return NOCTERM_FAILURE;
     }
     memset(new_items, 0x0, sizeof(nocterm_menu_item_t) * (nocterm_menu_item_array->size));
     memcpy(new_items, nocterm_menu_item_array->items, sizeof(nocterm_menu_item_t) * nocterm_menu_item_array->size);
     free(nocterm_menu_item_array->items);
     nocterm_menu_item_array->items = new_items;
     nocterm_menu_item_array->capacity = nocterm_menu_item_array->size;
-    return EXIT_SUCCESS;
+    return NOCTERM_FAILURE;
 }
