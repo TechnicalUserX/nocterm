@@ -605,5 +605,5 @@ int nocterm_menu_item_array_shrink_to_fit(nocterm_menu_item_array_t* nocterm_men
     free(nocterm_menu_item_array->items);
     nocterm_menu_item_array->items = new_items;
     nocterm_menu_item_array->capacity = nocterm_menu_item_array->size;
-    return NOCTERM_FAILURE;
+    return NOCTERM_SUCCESS;
 }
