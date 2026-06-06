@@ -46,6 +46,7 @@ BUILD_OBJ_DIR = ${BUILD_DIR}/obj
 BUILD_BIN_DIR := ${BUILD_DIR}/bin
 BUILD_LIB_DIR := ${BUILD_DIR}/lib
 BUILD_PKG_DIR := ${BUILD_DIR}/pkg
+BUILD_HDR_DIR := ${BUILD_DIR}/include
 
 ########################################
 # Logging
@@ -60,30 +61,32 @@ IS_SUPERUSER = $(shell [ `id -u` -eq 0 ] && echo 1 || echo 0)
 ########################################
 # Compiler, Preprocessor, Linker
 
-CC := @CC@
-CXX := @CXX@
-CFLAGS := @CFLAGS@
-CXXFLAGS := @CXXFLAGS@
-CPPFLAGS := @CPPFLAGS@
-LDFLAGS := @LDFLAGS@
+CC := $(if $(subst ",,${CONFIG_COMPILER_GLOBAL_CC}),$(subst ",,${CONFIG_COMPILER_GLOBAL_CC}),@CC@) 
+CXX := $(if $(subst ",,${CONFIG_COMPILER_GLOBAL_CXX}),$(subst ",,${CONFIG_COMPILER_GLOBAL_CXX}),@CXX@) 
+CFLAGS := $(if $(subst ",,${CONFIG_COMPILER_GLOBAL_CFLAGS}),$(subst ",,${CONFIG_COMPILER_GLOBAL_CFLAGS}),@CFLAGS@) 
+CXXFLAGS := $(if $(subst ",,${CONFIG_COMPILER_GLOBAL_CXXFLAGS}),$(subst ",,${CONFIG_COMPILER_GLOBAL_CXXFLAGS}),@CXXFLAGS@) 
+CPPFLAGS := $(if $(subst ",,${CONFIG_COMPILER_GLOBAL_CPPFLAGS}),$(subst ",,${CONFIG_COMPILER_GLOBAL_CPPFLAGS}),@CPPFLAGS@) 
+LDFLAGS := $(if $(subst ",,${CONFIG_COMPILER_GLOBAL_LDFLAGS}),$(subst ",,${CONFIG_COMPILER_GLOBAL_LDFLAGS}),@LDFLAGS@)
 
 ########################################
-# Definitions
+# Menuconfig
 
-define build_log
-	@echo "$(shell date "+%d/%m/%Y %X.%06N") $(1)"
-	@echo "$(shell date "+%d/%m/%Y %X.%06N") $(1)" >> ${BUILD_LOG_FILE}
-endef
+MENUCONFIG_EXE := $(shell which kconfig-mconf)
+MENUCONFIG_GEN := $(shell which kconfig-conf)
+MENUCONFIG_AUTOCONF_PATH = ${BUILD_HDR_DIR}/vespercsi/autoconf.h
+
+srctree = ${ROOT_DIR}
+export srctree
+
 
 ########################################
 # Generic Targets
 
-.PHONY: all install uninstall superuser no-superuser clean
+.PHONY: all install uninstall superuser no-superuser clean menuconfig
 
 all: ${TARGETS}
 
 -include ${BUILD_DIR}/sources.mk
--include ${BUILD_DIR}/configs.mk
 
 install: ${TARGETS_INSTALL}
 
@@ -116,6 +119,39 @@ clean:
 	@rm -rf ${BUILD_OBJ_DIR}/*
 	@rm -f ${BUILD_LOG_FILE}
 
+menuconfig:
+	@echo "srctree = $(srctree)"
+	@if [ -z "${MENUCONFIG_EXE}" ] || [ -z "${MENUCONFIG_GEN}" ]; then \
+		echo "ERROR: No menuconfig tool found!"; \
+		echo "Please install kconfiglib (pip install kconfiglib) or kconfig-frontends."; \
+		exit 1; \
+	fi
+	@if [ -f ${ROOT_DIR}/Kconfig ]; then \
+		KCONFIG_CONFIG="${BUILD_DIR}/.config" $(MENUCONFIG_EXE) Kconfig; \
+		if [ -f ${BUILD_DIR}/.config ]; then \
+			${MKDIR_P} $(dir ${MENUCONFIG_AUTOCONF_PATH}); \
+			${MKDIR_P} ${BUILD_HDR_DIR}/config; \
+			cd ${BUILD_DIR}; \
+			KCONFIG_CONFIG=${BUILD_DIR}/.config \
+			KCONFIG_AUTOHEADER=${MENUCONFIG_AUTOCONF_PATH} \
+			${MENUCONFIG_GEN} --silentoldconfig ${ROOT_DIR}/Kconfig; \
+		fi \
+	else \
+		echo "${ROOT_DIR}/Kconfig not found"; \
+	fi
+
+########################################
+# Definitions
+
+define build_log
+	@echo "$(shell date "+%d/%m/%Y %X.%06N") $(1)"
+	@echo "$(shell date "+%d/%m/%Y %X.%06N") $(1)" >> ${BUILD_LOG_FILE}
+endef
+
+define autoconf_include
+$(1): CFLAGS += $$(if $$(wildcard $(MENUCONFIG_AUTOCONF_PATH)),-include $(MENUCONFIG_AUTOCONF_PATH))
+endef
+
 ########################################
 # User-Defined Targets (MODIFY HERE)
 
@@ -139,3 +175,5 @@ nocterm-uninstall: superuser
 nocterm-update: superuser
 	@${MAKE} --no-print-directory nocterm-uninstall
 	@${MAKE} --no-print-directory nocterm-install
+
+$(eval $(call autoconf_include,nocterm))

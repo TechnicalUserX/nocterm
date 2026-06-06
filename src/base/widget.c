@@ -601,17 +601,6 @@ int nocterm_widget_align_update(nocterm_widget_t* widget){
     return NOCTERM_SUCCESS;
 }
 
-int nocterm_widget_flex(nocterm_widget_t* widget){
-
-    return NOCTERM_SUCCESS;
-}
-
-int nocterm_widget_flex_update(nocterm_widget_t* widget){
-    
-    return NOCTERM_SUCCESS;
-
-}
-
 int nocterm_widget_get_visible(nocterm_widget_t* widget, bool* visible){
     if(widget == NULL || visible == NULL){
         errno = EINVAL;

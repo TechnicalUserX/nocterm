@@ -1,5 +1,5 @@
 #!/bin/bash
-# Configuration script for C/C++ (c) 2024-2025 Kaan Baydemir
+# Configuration script for C/C++ (c) 2024-2026 TechnicalUserX
 # Out-of-source build is adopted
 
 # shellcheck disable=SC2034
@@ -554,6 +554,7 @@ function config_builddir_create(){
         mkdir -p "${BUILD_BIN_DIR}"
         mkdir -p "${BUILD_DOC_DIR}"
         mkdir -p "${BUILD_PKG_DIR}"
+        mkdir -p "${BUILD_HDR_DIR}"
     fi
 
     return
@@ -571,7 +572,6 @@ function config_builddir_sanity_check(){
 function config_builddir_clean(){
     # Clean well-known files and directories
     rm -f "${BUILD_DIR:?}/makefile"
-    rm -f "${BUILD_DIR:?}/configs.mk"
     rm -f "${BUILD_DIR:?}/sources.mk"
     rm -f "${BUILD_DIR:?}/makefile.mk"
     rm -f "${BUILD_DIR:?}/config.log"
@@ -581,6 +581,7 @@ function config_builddir_clean(){
     rm -rf "${BUILD_LIB_DIR:?}/*"
     rm -rf "${BUILD_DOC_DIR:?}/*"
     rm -rf "${BUILD_PKG_DIR:?}/*"
+    rm -rf "${BUILD_HDR_DIR:?}/*"
 
 
     # Clean all symbolic links
@@ -591,60 +592,7 @@ function config_builddir_clean(){
     done
 }
 
-function config_kconfig_targets(){
 
-    if test "${OPTION_KCONFIG}" = "false"; then
-        return
-    fi
-
-    source "${BUILD_DIR}/.config" 2>/dev/null
-
-    if test $? = 0; then
-
-        for i in ${TARGETS}; do
-            target_name_sanitized="$(sed s/-/_/g <<< "$(config_uppercase "${i}")")"
-
-            target_kconfig_option_key="CONFIG_TARGET_${target_name_sanitized}_CC"
-            target_kconfig_option_value="${!target_kconfig_option_key}"
-            if test -n "${target_kconfig_option_value}"; then
-                config_file_append "${BUILD_DIR}/configs.mk" <<< "${i}: CC=${target_kconfig_option_value}"
-            fi
-
-            target_kconfig_option_key="CONFIG_TARGET_${target_name_sanitized}_CXX"
-            target_kconfig_option_value="${!target_kconfig_option_key}"
-            if test -n "${target_kconfig_option_value}"; then
-                config_file_append "${BUILD_DIR}/configs.mk" <<< "${i}: CXX=${target_kconfig_option_value}"
-            fi
-
-            target_kconfig_option_key="CONFIG_TARGET_${target_name_sanitized}_CFLAGS"
-            target_kconfig_option_value="${!target_kconfig_option_key}"
-            if test -n "${target_kconfig_option_value}"; then
-                config_file_append "${BUILD_DIR}/configs.mk" <<< "${i}: CFLAGS=${target_kconfig_option_value}"
-            fi
-
-            target_kconfig_option_key="CONFIG_TARGET_${target_name_sanitized}_CPPFLAGS"
-            target_kconfig_option_value="${!target_kconfig_option_key}"
-            if test -n "${target_kconfig_option_value}"; then
-                config_file_append "${BUILD_DIR}/configs.mk" <<< "${i}: CPPFLAGS=${target_kconfig_option_value}"
-            fi
-
-            target_kconfig_option_key="CONFIG_TARGET_${target_name_sanitized}_CXXFLAGS"
-            target_kconfig_option_value="${!target_kconfig_option_key}"
-            if test -n "${target_kconfig_option_value}"; then
-                config_file_append "${BUILD_DIR}/configs.mk" <<< "${i}: CXXFLAGS=${target_kconfig_option_value}"
-            fi
-
-            target_kconfig_option_key="CONFIG_TARGET_${target_name_sanitized}_LDFLAGS"
-            target_kconfig_option_value="${!target_kconfig_option_key}"
-            if test -n "${target_kconfig_option_value}"; then
-                config_file_append "${BUILD_DIR}/configs.mk" <<< "${i}: LDFLAGS=${target_kconfig_option_value}"
-            fi
-        
-        done
-    fi
-
-    return
-}
 
 function config_doxygen(){
 
@@ -669,22 +617,6 @@ function config_doxygen(){
     exit 0
 }
 
-function config_kconfig_menu(){
-
-    if test "${OPTION_KCONFIG_MENU}" = "false"; then
-        return
-    fi
-
-    if test "$(command -v menuconfig)" && test -f "${ROOT_DIR}/Kconfig"; then
-        KCONFIG_CONFIG="${BUILD_DIR}/.config" menuconfig
-        config_log INFO "Kconfig Menu Configuration"
-    else
-        config_log WARN "menuconfig is not found or Kconfig is missing"
-    fi
-
-    exit 0
-}
-
 ########################################
 # Root Directory Detection
 
@@ -695,18 +627,7 @@ if ! test "$ROOT_DIR" = "$PWD"; then
 fi
 
 ########################################
-# Default Compiler, Preprocessor,
-# and Linker Flags
-
-CC="gcc"
-CXX="g++"
-CFLAGS="-Wall -Werror -I\"${ROOT_DIR}/include\""
-CPPFLAGS=""
-CXXFLAGS=""
-LDFLAGS="-static"
-
-########################################
-# Directories
+# Directories (MODIFY HERE)
 
 BUILD_DIR="${ROOT_DIR}/build"
 BUILD_OBJ_DIR="${BUILD_DIR}/obj"
@@ -714,6 +635,18 @@ BUILD_BIN_DIR="${BUILD_DIR}/bin"
 BUILD_LIB_DIR="${BUILD_DIR}/lib"
 BUILD_DOC_DIR="${BUILD_DIR}/docs"
 BUILD_PKG_DIR="${BUILD_DIR}/pkg"
+BUILD_HDR_DIR="${BUILD_DIR}/include"
+
+########################################
+# Default Compiler, Preprocessor, 
+# and Linker Flags (MODIFY HERE)
+
+CC="gcc"
+CXX="g++"
+CFLAGS="-Werror -Wall -I\"${ROOT_DIR}/include\" -I\"${ROOT_DIR}/src\" -I\"${ROOT_DIR}/lib\" -I\"${BUILD_HDR_DIR}\" -I/usr/include/libnl3"
+CPPFLAGS=""
+CXXFLAGS=""
+LDFLAGS="-lnl-genl-3 -lnl-3 -lm -lconfig" 
 
 ########################################
 # Build Directory Marker
@@ -731,7 +664,6 @@ CONFIG_LOG_FILE="${BUILD_DIR}/config.log"
 OPTION_DEBUG=false
 OPTION_SUPRESS_LOGS=false
 OPTION_TARGETS=""
-OPTION_KCONFIG_MENU=false
 OPTION_DOXYGEN=false
 
 # Based on Main Programming Language (MODIFY HERE)
@@ -761,11 +693,6 @@ for opt do
   optarg=$(expr "x$opt" : 'x[^=]*=\(.*\)')
 
   case "$opt" in
-
-    # Opens up the Kconfig Menu and exits
-    --kconfig-menu)
-        OPTION_KCONFIG_MENU=true
-    ;;
 
     # Creates documentation from Doxyfile and exits
     --doxygen)
@@ -874,8 +801,6 @@ fi
 
 config_doxygen
 
-config_kconfig_menu
-
 if test -z "$TARGETS"; then
     config_log WARN "No target specified"
     exit 1
@@ -887,14 +812,13 @@ else
     config_log FAIL "base.mk"
 fi
 
-config_kconfig_targets
 
 ########################################
 # Target Configuration (MODIFY HERE)
 
 for target in ${TARGETS}; do
 
-     case "$target" in
+    case "$target" in
 
         nocterm)
             if config_sources "$target" "src"; then

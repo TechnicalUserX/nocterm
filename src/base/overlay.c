@@ -18,7 +18,7 @@ nocterm_overlay_t* nocterm_overlay_new(){
         return NULL;
     }
     
-    memset(new_overlay, 0x0, sizeof(nocterm_widget_t));
+    memset(new_overlay, 0x0, sizeof(nocterm_overlay_t));
 
     return new_overlay;
 }

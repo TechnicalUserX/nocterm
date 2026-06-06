@@ -274,17 +274,6 @@ int nocterm_loop(void){
 
             nocterm_screen_ownership_reset();
 
-            // Resize events happen first before alignments happen
-
-            // nocterm_widget_resize_update(current_page->root_widget)
-            // if(current_overlay){
-            //     for(uint64_t i = 0; i < NOCTERM_OVERLAY_WIDGET_MAX_SIZE; i++){
-            //         if(current_overlay->widgets[i]){
-            //             nocterm_widget_resize_update(current_overlay->widgets[i]);
-            //         }
-            //     }
-            // }
-
             // We need to traverse over the widgets to reset their positions after resize
             nocterm_widget_align_update(current_page->root_widget);
 

@@ -92,21 +92,6 @@ typedef struct nocterm_widget_align_policy_t{
     nocterm_widget_align_margins_t margins;
 }nocterm_widget_align_policy_t;
 
-typedef struct nocterm_widget_flex_percentages_t{
-    nocterm_percentage_t height;
-    nocterm_percentage_t width;
-}nocterm_widget_flex_percentages_t;
-
-typedef struct nocterm_widget_flex_flags_t{
-    bool height;
-    bool width;
-}nocterm_widget_flex_flags_t;
-
-typedef struct nocterm_widget_flex_policy_t{
-    nocterm_widget_flex_flags_t flags;
-    nocterm_widget_flex_percentages_t percentages;
-}nocterm_widget_flex_policy_t;
-
 typedef struct nocterm_widget_t nocterm_widget_t;
 
 typedef void (*nocterm_widget_key_handler_t)(nocterm_widget_t* self, nocterm_key_t* key);
@@ -143,6 +128,7 @@ typedef struct nocterm_widget_t{
     atomic_bool soft_refresh; // There is a change in the buffer
     atomic_bool hard_refresh; // Complete redraw required
     atomic_bool visible; // No longer drawn if false, all subwdigets also not drawn
+    atomic_bool redraw; // This is different than refresh, it completely redraws
 
     bool is_virtual;
     bool focusable;
@@ -155,7 +141,6 @@ typedef struct nocterm_widget_t{
     bool floating_subwidgets;
 
     nocterm_widget_align_policy_t align_policy;
-    nocterm_widget_flex_policy_t flex_policy;
 
     nocterm_widget_key_handler_t key_handler;
     nocterm_widget_focus_handler_t focus_handler;
