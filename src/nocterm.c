@@ -285,8 +285,6 @@ int nocterm_loop(void){
                 }
             }
 
-
-
         }
 
         // After timer callbacks happened and before the refresh phase,
@@ -323,5 +321,5 @@ int nocterm_loop(void){
     // END PHASE
 
     
-    return EXIT_SUCCESS;
+    return NOCTERM_SUCCESS;
 }

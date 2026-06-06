@@ -109,7 +109,7 @@ int nocterm_entry_delete(nocterm_entry_t* entry){
 
     free(entry);
 
-    return NOCTERM_FAILURE;
+    return NOCTERM_SUCCESS;
 }
 
 int nocterm_entry_cursor_move_left(nocterm_entry_t* entry){

@@ -681,6 +681,11 @@ int nocterm_widget_add_subwidget(nocterm_widget_t* widget, nocterm_widget_t* sub
     nocterm_widget_t** old_subwidgets = widget->subwidgets;
     nocterm_widget_t** new_subwidgets = (nocterm_widget_t**)malloc(sizeof(nocterm_widget_t*)*(widget->subwidgets_size+1));
     
+    if(new_subwidgets == NULL){
+        pthread_mutex_unlock(&widget->lock);
+        return NOCTERM_FAILURE;
+    }
+
     for(uint64_t i = 0; i < widget->subwidgets_size; i++){
         new_subwidgets[i] = old_subwidgets[i];
     }
