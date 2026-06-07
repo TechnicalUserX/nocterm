@@ -2,6 +2,8 @@
 
 NOCTERM_INTERNAL nocterm_timer_t* nocterm_timer_list_head = NULL;
 
+static pthread_mutex_t nocterm_timer_list_lock = PTHREAD_MUTEX_INITIALIZER;
+
 nocterm_timer_t* nocterm_timer_create(nocterm_widget_t* widget, uint64_t interval, nocterm_timer_callback_t callback, void* user_data){
 
     if(widget == NULL || callback == NULL){
@@ -28,9 +30,14 @@ nocterm_timer_t* nocterm_timer_create(nocterm_widget_t* widget, uint64_t interva
 
     t->active = false;
 
+    pthread_mutex_lock(&nocterm_timer_list_lock);
+
     // Insert into global timer list (at head)
     t->next = nocterm_timer_list_head;
     nocterm_timer_list_head = t;
+    
+    pthread_mutex_unlock(&nocterm_timer_list_lock);
+
     return t;
 }
 
@@ -50,11 +57,14 @@ int nocterm_timer_start_all_of_widget(nocterm_widget_t* widget, bool recursive){
         return NOCTERM_FAILURE;
     }
 
+
     if(recursive){
         for(uint64_t i = 0; i <  widget->subwidgets_size; i++){
             nocterm_timer_start_all_of_widget(widget->subwidgets[i], true);
         }
     }
+
+    pthread_mutex_lock(&nocterm_timer_list_lock);
 
     nocterm_timer_t* current = nocterm_timer_list_head;
 
@@ -64,6 +74,8 @@ int nocterm_timer_start_all_of_widget(nocterm_widget_t* widget, bool recursive){
         }
         current = current->next;
     }
+
+    pthread_mutex_unlock(&nocterm_timer_list_lock);
 
     return NOCTERM_SUCCESS;
 
@@ -91,6 +103,8 @@ int nocterm_timer_stop_all_of_widget(nocterm_widget_t* widget, bool recursive){
         }
     }
     
+    pthread_mutex_lock(&nocterm_timer_list_lock);
+
     nocterm_timer_t* current = nocterm_timer_list_head;
 
     while (current) {
@@ -99,6 +113,8 @@ int nocterm_timer_stop_all_of_widget(nocterm_widget_t* widget, bool recursive){
         }
         current = current->next;
     }
+
+    pthread_mutex_unlock(&nocterm_timer_list_lock);
 
     return NOCTERM_SUCCESS;
 
@@ -110,6 +126,8 @@ int nocterm_timer_delete(nocterm_timer_t* timer){
         errno = EINVAL;
         return NOCTERM_FAILURE;
     }
+
+    pthread_mutex_lock(&nocterm_timer_list_lock);
 
     nocterm_timer_t** current = &nocterm_timer_list_head;
 
@@ -123,11 +141,15 @@ int nocterm_timer_delete(nocterm_timer_t* timer){
         current = &(*current)->next;
     }
 
+    pthread_mutex_unlock(&nocterm_timer_list_lock);
+
     return NOCTERM_SUCCESS;
 }
 
 int nocterm_timer_delete_all(void){
     
+    pthread_mutex_lock(&nocterm_timer_list_lock);
+
     nocterm_timer_t** current = &nocterm_timer_list_head;
 
     while(*current){
@@ -137,6 +159,8 @@ int nocterm_timer_delete_all(void){
     }
 
     *current = NULL;
+
+    pthread_mutex_unlock(&nocterm_timer_list_lock);
 
     return NOCTERM_SUCCESS; // Always succeeds
 }
@@ -152,6 +176,9 @@ int nocterm_timer_delete_all_of_widget(nocterm_widget_t* widget){
         nocterm_timer_delete_all_of_widget(widget->subwidgets[i]);
     }
 
+
+    pthread_mutex_lock(&nocterm_timer_list_lock);
+
     nocterm_timer_t** current = &nocterm_timer_list_head;
 
     while (*current) {
@@ -164,21 +191,45 @@ int nocterm_timer_delete_all_of_widget(nocterm_widget_t* widget){
         }
     }
 
+    pthread_mutex_unlock(&nocterm_timer_list_lock);
+
     return NOCTERM_SUCCESS;
 }
 
-NOCTERM_INTERNAL void nocterm_timer_tick(void){
+NOCTERM_INTERNAL
+void nocterm_timer_tick(void){
+
+    nocterm_timer_t* momentary_callbacks[NOCTERM_TIMER_CALLBACK_MOMENTARY_MAX] = {0};
+    uint16_t momentary_callbacks_size = 0;
+
+    pthread_mutex_lock(&nocterm_timer_list_lock);
 
     struct timeval tv = {0};
     gettimeofday(&tv,NULL);
     uint64_t now = (tv.tv_sec * 1000000 + tv.tv_usec)/1000; // current time in ms
 
+
     nocterm_timer_t* t = nocterm_timer_list_head;
     while (t) {
         if (t->active && (now - t->last_call >= t->interval)) {
-            t->callback(t->widget, t->user_data);
+            
+            momentary_callbacks[momentary_callbacks_size] = t;
+            momentary_callbacks_size++;
+            
+            if(momentary_callbacks_size == 64){
+                break;
+            }
+
             t->last_call = now;  // Update last fire time
         }
         t = t->next;
+    
     }
+
+    pthread_mutex_unlock(&nocterm_timer_list_lock);
+    
+    for(uint16_t i = 0; i < momentary_callbacks_size; i++){
+        momentary_callbacks[i]->callback(momentary_callbacks[i]->widget, momentary_callbacks[i]->user_data);
+    }
+
 }

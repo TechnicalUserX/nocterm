@@ -128,9 +128,11 @@ nocterm_char_t nocterm_char_from_ascii(char ch){
 
 nocterm_char_t nocterm_char_from_utf8(wchar_t ch){
     nocterm_char_t result = {0};
+    mbstate_t mbstate = {0};
+
     // Convert wchar_t to UTF-8
     char buffer[4] = {0};
-    int bytes_written = wctomb(buffer, ch);
+    int bytes_written = wcrtomb(buffer, ch, &mbstate);
     if(bytes_written == -1){
         // Conversion failed, return empty char
         return NOCTERM_CHAR_EMPTY;
@@ -143,8 +145,8 @@ nocterm_char_t nocterm_char_from_utf8(wchar_t ch){
 
 bool nocterm_char_is_null(nocterm_char_t ch){
     nocterm_char_t null = nocterm_char_from_ascii('\0');
-    if(memcmp(&ch, &null, sizeof(nocterm_char_t)) == 0){
-        // Null terminator detected
+
+    if(null.bytes_size == ch.bytes_size && ch.is_utf8 == false && ch.bytes[0] == '\0'){
         return true;
     }else{
         return false;

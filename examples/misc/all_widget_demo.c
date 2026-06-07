@@ -109,7 +109,7 @@ int main(){
 
     setlocale(LC_ALL, "en_US.UTF-8");
 
-    nocterm_decorbox_border_shape_t generic_widget_border_shape = nocterm_decorbox_border_shape(NOCTERM_DECORBOX_BORDER_SHAPE_TYPE_UNICODE_ROUND);
+    nocterm_decorbox_border_t generic_widget_border_shape = nocterm_decorbox_border_shape(NOCTERM_DECORBOX_BORDER_SHAPE_UNICODE_ROUND);
 
     nocterm_widget_t* main_widget = nocterm_widget_new(13, 61, NOCTERM_WIDGET_FOCUSABLE_NO, NOCTERM_WIDGET_TYPE_VIRTUAL);
     nocterm_decorbox_t* main_widget_decorbox = nocterm_decorbox_new(main_widget);

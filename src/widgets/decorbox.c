@@ -1,6 +1,6 @@
 #include <nocterm/widgets/decorbox.h>
 
-NOCTERM_INTERNAL int nocterm_decorbox_border_draw(nocterm_decorbox_t* decorbox, nocterm_decorbox_border_shape_t border_shape, nocterm_attribute_t attribute);
+NOCTERM_INTERNAL int nocterm_decorbox_border_draw(nocterm_decorbox_t* decorbox, nocterm_decorbox_border_t border, nocterm_attribute_t attribute);
 
 NOCTERM_INTERNAL NOCTERM_WIDGET_KEY_HANDLER(nocterm_decorbox_key_handler);
 
@@ -95,7 +95,7 @@ int nocterm_decorbox_delete(nocterm_decorbox_t* decorbox){
     return NOCTERM_SUCCESS;
 }
 
-int nocterm_decorbox_set_border(nocterm_decorbox_t* decorbox, nocterm_decorbox_border_shape_t border_shape, nocterm_attribute_t normal, nocterm_attribute_t focused){
+int nocterm_decorbox_set_border(nocterm_decorbox_t* decorbox, nocterm_decorbox_border_t border, nocterm_attribute_t normal, nocterm_attribute_t focused){
 
     if(decorbox == NULL){
         errno = EINVAL;
@@ -104,12 +104,12 @@ int nocterm_decorbox_set_border(nocterm_decorbox_t* decorbox, nocterm_decorbox_b
 
     pthread_mutex_lock(&NOCTERM_WIDGET(decorbox)->lock);
 
-    decorbox->border.shape = border_shape;
-    decorbox->border.enabled = true;
-    decorbox->border.attributes.normal = normal;
-    decorbox->border.attributes.focused = focused;
+    decorbox->border_settings.border = border;
+    decorbox->border_settings.enabled = true;
+    decorbox->border_settings.attributes.normal = normal;
+    decorbox->border_settings.attributes.focused = focused;
 
-    nocterm_decorbox_border_draw(decorbox, border_shape, normal);
+    nocterm_decorbox_border_draw(decorbox, border, normal);
     
     pthread_mutex_unlock(&NOCTERM_WIDGET(decorbox)->lock);
 
@@ -148,11 +148,11 @@ int nocterm_decorbox_set_label(nocterm_decorbox_t* decorbox, const char* label, 
     return NOCTERM_SUCCESS;
 }
 
-nocterm_decorbox_border_shape_t nocterm_decorbox_border_shape(nocterm_decorbox_border_shape_type_t type){
+nocterm_decorbox_border_t nocterm_decorbox_border_shape(nocterm_decorbox_border_shape_t shape){
 
-    switch(type){
+    switch(shape){
         default:
-        case NOCTERM_DECORBOX_BORDER_SHAPE_TYPE_ASCII:{
+        case NOCTERM_DECORBOX_BORDER_SHAPE_ASCII:{
             nocterm_char_t vertical = {
                 .bytes = "|",
                 .bytes_size = 3,
@@ -186,7 +186,7 @@ nocterm_decorbox_border_shape_t nocterm_decorbox_border_shape(nocterm_decorbox_b
                 .is_utf8 = false
             };   
 
-            nocterm_decorbox_border_shape_t border_shape = {
+            nocterm_decorbox_border_t border = {
                 .vertical = vertical,
                 .horizontal = horizontal,
                 .top_left = top_left,
@@ -194,10 +194,10 @@ nocterm_decorbox_border_shape_t nocterm_decorbox_border_shape(nocterm_decorbox_b
                 .bottom_left = bottom_left,
                 .bottom_right = bottom_right
             };
-            return border_shape;
+            return border;
         }break;
 
-        case NOCTERM_DECORBOX_BORDER_SHAPE_TYPE_UNICODE_SHARP:{
+        case NOCTERM_DECORBOX_BORDER_SHAPE_UNICODE_SHARP:{
             nocterm_char_t vertical = {
                 .bytes_size = 3,
                 .is_utf8 = false
@@ -234,7 +234,7 @@ nocterm_decorbox_border_shape_t nocterm_decorbox_border_shape(nocterm_decorbox_b
             };   
             memcpy(bottom_right.bytes, "┘",3);
 
-            nocterm_decorbox_border_shape_t border_shape = {
+            nocterm_decorbox_border_t border = {
                 .vertical = vertical,
                 .horizontal = horizontal,
                 .top_left = top_left,
@@ -242,10 +242,10 @@ nocterm_decorbox_border_shape_t nocterm_decorbox_border_shape(nocterm_decorbox_b
                 .bottom_left = bottom_left,
                 .bottom_right = bottom_right
             };
-            return border_shape;
+            return border;
         }break;
 
-        case NOCTERM_DECORBOX_BORDER_SHAPE_TYPE_UNICODE_ROUND:{
+        case NOCTERM_DECORBOX_BORDER_SHAPE_UNICODE_ROUND:{
             nocterm_char_t vertical = {
                 .bytes_size = 3,
                 .is_utf8 = false
@@ -282,7 +282,7 @@ nocterm_decorbox_border_shape_t nocterm_decorbox_border_shape(nocterm_decorbox_b
             };   
             memcpy(bottom_right.bytes, "╯",3);
 
-            nocterm_decorbox_border_shape_t border_shape = {
+            nocterm_decorbox_border_t border = {
                 .vertical = vertical,
                 .horizontal = horizontal,
                 .top_left = top_left,
@@ -290,13 +290,13 @@ nocterm_decorbox_border_shape_t nocterm_decorbox_border_shape(nocterm_decorbox_b
                 .bottom_left = bottom_left,
                 .bottom_right = bottom_right
             };
-            return border_shape;
+            return border;
         }break;
 
     }
 }
 
-int nocterm_decorbox_border_draw(nocterm_decorbox_t* decorbox, nocterm_decorbox_border_shape_t border_shape, nocterm_attribute_t attribute){
+int nocterm_decorbox_border_draw(nocterm_decorbox_t* decorbox, nocterm_decorbox_border_t border, nocterm_attribute_t attribute){
 
     if(decorbox == NULL){
         errno = EINVAL;
@@ -304,42 +304,42 @@ int nocterm_decorbox_border_draw(nocterm_decorbox_t* decorbox, nocterm_decorbox_
     }
 
     for(nocterm_dimension_size_t i = 1; i < NOCTERM_WIDGET(decorbox)->bounds.height-1; i++){
-        if(nocterm_widget_update(NOCTERM_WIDGET(decorbox),i,0, border_shape.vertical,attribute) == NOCTERM_FAILURE){
+        if(nocterm_widget_update(NOCTERM_WIDGET(decorbox),i,0, border.vertical,attribute) == NOCTERM_FAILURE){
             return NOCTERM_FAILURE;
         }
 
-        if(nocterm_widget_update(NOCTERM_WIDGET(decorbox), i, NOCTERM_WIDGET(decorbox)->bounds.width-1, border_shape.vertical, attribute) == NOCTERM_FAILURE){
+        if(nocterm_widget_update(NOCTERM_WIDGET(decorbox), i, NOCTERM_WIDGET(decorbox)->bounds.width-1, border.vertical, attribute) == NOCTERM_FAILURE){
             return NOCTERM_FAILURE;
         }
 
     }
 
     for(nocterm_dimension_size_t i = 1; i < NOCTERM_WIDGET(decorbox)->bounds.width-1; i++){
-        if(nocterm_widget_update(NOCTERM_WIDGET(decorbox),0,i, border_shape.horizontal, attribute) == NOCTERM_FAILURE){
+        if(nocterm_widget_update(NOCTERM_WIDGET(decorbox),0,i, border.horizontal, attribute) == NOCTERM_FAILURE){
             return NOCTERM_FAILURE;
         }
-        if(nocterm_widget_update(NOCTERM_WIDGET(decorbox),NOCTERM_WIDGET(decorbox)->bounds.height-1, i, border_shape.horizontal, attribute) == NOCTERM_FAILURE){
+        if(nocterm_widget_update(NOCTERM_WIDGET(decorbox),NOCTERM_WIDGET(decorbox)->bounds.height-1, i, border.horizontal, attribute) == NOCTERM_FAILURE){
             return NOCTERM_FAILURE;
         }
     }
 
     // Top left
-    if(nocterm_widget_update(NOCTERM_WIDGET(decorbox), 0,0, border_shape.top_left, attribute) == NOCTERM_FAILURE){
+    if(nocterm_widget_update(NOCTERM_WIDGET(decorbox), 0,0, border.top_left, attribute) == NOCTERM_FAILURE){
         return NOCTERM_FAILURE;
     } 
 
     // Top right
-    if(nocterm_widget_update(NOCTERM_WIDGET(decorbox), 0,NOCTERM_WIDGET(decorbox)->bounds.width-1, border_shape.top_right, attribute) == NOCTERM_FAILURE){
+    if(nocterm_widget_update(NOCTERM_WIDGET(decorbox), 0,NOCTERM_WIDGET(decorbox)->bounds.width-1, border.top_right, attribute) == NOCTERM_FAILURE){
         return NOCTERM_FAILURE;
     } 
 
     // Bottom left
-    if(nocterm_widget_update(NOCTERM_WIDGET(decorbox), NOCTERM_WIDGET(decorbox)->bounds.height-1,0, border_shape.bottom_left, attribute) == NOCTERM_FAILURE){
+    if(nocterm_widget_update(NOCTERM_WIDGET(decorbox), NOCTERM_WIDGET(decorbox)->bounds.height-1,0, border.bottom_left, attribute) == NOCTERM_FAILURE){
         return NOCTERM_FAILURE;
     } 
 
     // Bottom right
-    if(nocterm_widget_update(NOCTERM_WIDGET(decorbox), NOCTERM_WIDGET(decorbox)->bounds.height-1, NOCTERM_WIDGET(decorbox)->bounds.width-1, border_shape.bottom_right, attribute) == NOCTERM_FAILURE){
+    if(nocterm_widget_update(NOCTERM_WIDGET(decorbox), NOCTERM_WIDGET(decorbox)->bounds.height-1, NOCTERM_WIDGET(decorbox)->bounds.width-1, border.bottom_right, attribute) == NOCTERM_FAILURE){
         return NOCTERM_FAILURE;
     } 
 
@@ -358,8 +358,8 @@ NOCTERM_WIDGET_FOCUS_HANDLER(nocterm_decorbox_focus_handler){
         case NOCTERM_WIDGET_FOCUS_ENTER:{
 
 
-            if(NOCTERM_DECORBOX(self)->border.enabled){               
-                nocterm_decorbox_border_draw(NOCTERM_DECORBOX(self),NOCTERM_DECORBOX(self)->border.shape, NOCTERM_DECORBOX(self)->border.attributes.focused);
+            if(NOCTERM_DECORBOX(self)->border_settings.enabled){               
+                nocterm_decorbox_border_draw(NOCTERM_DECORBOX(self),NOCTERM_DECORBOX(self)->border_settings.border, NOCTERM_DECORBOX(self)->border_settings.attributes.focused);
             }
 
             if(NOCTERM_DECORBOX(self)->label.enabled){
@@ -378,8 +378,8 @@ NOCTERM_WIDGET_FOCUS_HANDLER(nocterm_decorbox_focus_handler){
         }break;
         case NOCTERM_WIDGET_FOCUS_LEAVE:{
             
-            if(NOCTERM_DECORBOX(self)->border.enabled){
-                nocterm_decorbox_border_draw(NOCTERM_DECORBOX(self),NOCTERM_DECORBOX(self)->border.shape, NOCTERM_DECORBOX(self)->border.attributes.normal);
+            if(NOCTERM_DECORBOX(self)->border_settings.enabled){
+                nocterm_decorbox_border_draw(NOCTERM_DECORBOX(self),NOCTERM_DECORBOX(self)->border_settings.border, NOCTERM_DECORBOX(self)->border_settings.attributes.normal);
             }
 
             if(NOCTERM_DECORBOX(self)->label.enabled){

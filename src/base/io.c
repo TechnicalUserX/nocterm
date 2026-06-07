@@ -194,10 +194,9 @@ int nocterm_io_write(void* buffer, uint64_t buffer_size){
             return NOCTERM_FAILURE;
         }else if(r == 0){
             // NOT YET IMPLEMENTED
-            if(pthread_mutex_unlock(&nocterm_io_stdin_lock) != 0){
+            if(pthread_mutex_unlock(&nocterm_io_stdout_lock) != 0){
                 return NOCTERM_FAILURE;
             }
-            fsync(STDOUT_FILENO);
             return NOCTERM_SUCCESS;
         }else{
             written += r;
@@ -209,7 +208,6 @@ int nocterm_io_write(void* buffer, uint64_t buffer_size){
     if(pthread_mutex_unlock(&nocterm_io_stdout_lock) != 0){
         return NOCTERM_FAILURE;
     }
-    fsync(STDOUT_FILENO);
     return NOCTERM_SUCCESS;
 }
 

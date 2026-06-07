@@ -327,13 +327,8 @@ int nocterm_widget_align(nocterm_widget_t* widget, nocterm_widget_align_t align)
 
     if(widget->parent == NULL){
         // Terminal is the parent
-        struct winsize w = {0};
-        if(ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) == -1){
-            pthread_mutex_unlock(&widget->lock);
-            return NOCTERM_FAILURE;
-        }
-        parent_height = w.ws_row;
-        parent_width = w.ws_col;        
+        parent_height = nocterm_screen_height;
+        parent_width = nocterm_screen_width;        
     }else{
         // Widget has a legit parent
         if(widget->parent->viewport.height * widget->parent->viewport.width == 0){
@@ -740,6 +735,11 @@ int nocterm_widget_remove_subwidget(nocterm_widget_t* widget, nocterm_widget_t* 
         nocterm_widget_t** old_subwidgets = widget->subwidgets;
         nocterm_widget_t** new_subwidgets = (nocterm_widget_t**)malloc(sizeof(nocterm_widget_t*)*(widget->subwidgets_size-1));
 
+        if(new_subwidgets == NULL){
+            pthread_mutex_unlock(&widget->lock);
+            return NOCTERM_FAILURE;
+        }
+
         for(uint64_t i = 0, j = 0; i < widget->subwidgets_size; i++){
             if(widget->subwidgets[i] != subwidget){
                 new_subwidgets[j] = widget->subwidgets[i];
@@ -910,7 +910,8 @@ int nocterm_widget_clear(nocterm_widget_t* widget){
     return NOCTERM_SUCCESS;
 }
 
-NOCTERM_INTERNAL int nocterm_widget_buffer_resize(nocterm_widget_t* widget, nocterm_dimension_size_t height, nocterm_dimension_size_t width, bool preserve_buffer){
+NOCTERM_INTERNAL
+int nocterm_widget_buffer_resize(nocterm_widget_t* widget, nocterm_dimension_size_t height, nocterm_dimension_size_t width){
     
     if(widget == NULL){
         errno = EINVAL;
@@ -946,13 +947,7 @@ NOCTERM_INTERNAL int nocterm_widget_buffer_resize(nocterm_widget_t* widget, noct
             memset(new_buffer, 0x0, sizeof(nocterm_widget_cell_t) * new_buffer_size);
 
             // Preserve contents as much as possible if said so
-            if(preserve_buffer){
-                if(new_buffer_size > widget->buffer_size){
-                    memcpy(new_buffer, widget->buffer, sizeof(nocterm_widget_cell_t) * widget->buffer_size); // New buffer is larger
-                }else{
-                    memcpy(new_buffer, widget->buffer, sizeof(nocterm_widget_cell_t) * new_buffer_size); // New buffer is smaller
-                }
-            }
+
 
             widget->bounds.height = height;
             widget->bounds.width = width;
@@ -993,7 +988,8 @@ bool nocterm_widget_is_focused(nocterm_widget_t* widget){
     }
 }
 
-NOCTERM_INTERNAL int nocterm_widget_refresh(nocterm_widget_t* widget){
+NOCTERM_INTERNAL
+int nocterm_widget_refresh(nocterm_widget_t* widget){
 
     // POST ORDER TREE TRAVERSAL WITH PRE ORDER LOCKING
 

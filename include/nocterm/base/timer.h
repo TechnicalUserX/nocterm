@@ -13,11 +13,16 @@
 #include <nocterm/common/nocterm.h>
 #include <nocterm/base/widget.h>
 
+#define NOCTERM_TIMER_CALLBACK_MOMENTARY_MAX 64
+
 #define NOCTERM_TIMER_CALLBACK(identifier) void identifier(nocterm_widget_t* widget, void* user_data)
 
 #ifdef __cplusplus
     extern "C" {
 #endif
+
+typedef void (*nocterm_timer_callback_t)(nocterm_widget_t* widget, void* user_data);
+
 
 typedef struct nocterm_timer_t{
     nocterm_widget_t* widget;
@@ -25,11 +30,10 @@ typedef struct nocterm_timer_t{
     uint64_t last_call; // ms
     atomic_bool active;
     void* user_data;
-    void (*callback)(nocterm_widget_t* widget, void* user_data);
+    nocterm_timer_callback_t callback;
     struct nocterm_timer_t* next;
 }nocterm_timer_t;
 
-typedef void (*nocterm_timer_callback_t)(nocterm_widget_t* widget, void* user_data);
 
 /**
  * @brief Creates a new timer.

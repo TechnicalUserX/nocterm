@@ -85,10 +85,10 @@ int main(){
 
     setlocale(LC_ALL, "en_US.UTF-8");
 
-    nocterm_widget_t* my_widget = nocterm_widget_new(10,10, NOCTERM_WIDGET_FOCUSABLE_NO, NOCTERM_WIDGET_TYPE_VIRTUAL);
+    nocterm_widget_t* my_widget = nocterm_widget_new(20,50, NOCTERM_WIDGET_FOCUSABLE_NO, NOCTERM_WIDGET_TYPE_VIRTUAL);
     nocterm_page_t* main_page = nocterm_page_new("Main page", sizeof("Main page"), my_widget);
 
-    nocterm_decorbox_border_shape_t border_shape = nocterm_decorbox_border_shape(NOCTERM_DECORBOX_BORDER_SHAPE_TYPE_UNICODE_SHARP);
+    nocterm_decorbox_border_t border = nocterm_decorbox_border_shape(NOCTERM_DECORBOX_BORDER_SHAPE_UNICODE_SHARP);
 
     nocterm_attribute_t attr = {
         .color.ansi.fg = true,
@@ -97,7 +97,7 @@ int main(){
 
     nocterm_listview_t* my_listview = nocterm_listview_new(5,100,20);
     nocterm_decorbox_t* my_listview_db = nocterm_decorbox_new(NOCTERM_WIDGET(my_listview));
-    nocterm_decorbox_set_border(my_listview_db, border_shape, NOCTERM_ATTRIBUTE_EMPTY, attr);
+    nocterm_decorbox_set_border(my_listview_db, border, NOCTERM_ATTRIBUTE_EMPTY, attr);
     nocterm_widget_add_subwidget(my_widget, NOCTERM_WIDGET(my_listview_db));
     nocterm_widget_set_position(NOCTERM_WIDGET(my_listview_db), 1, 1);
 
@@ -109,7 +109,7 @@ int main(){
     input = nocterm_entry_new(20);
     nocterm_decorbox_t* input_db = nocterm_decorbox_new(NOCTERM_WIDGET(input));
     nocterm_widget_add_subwidget(my_widget, NOCTERM_WIDGET(input_db));
-    nocterm_decorbox_set_border(NOCTERM_DECORBOX(input_db), border_shape, NOCTERM_ATTRIBUTE_EMPTY, attr);
+    nocterm_decorbox_set_border(NOCTERM_DECORBOX(input_db), border, NOCTERM_ATTRIBUTE_EMPTY, attr);
     nocterm_widget_set_position(NOCTERM_WIDGET(input_db), 10,1);
 
     nocterm_label_t* input_label = nocterm_label_new("Input", 6);
@@ -118,7 +118,7 @@ int main(){
 
     list_index = nocterm_entry_new(4);
     nocterm_decorbox_t* list_index_db = nocterm_decorbox_new(NOCTERM_WIDGET(list_index));
-    nocterm_decorbox_set_border(list_index_db, border_shape, NOCTERM_ATTRIBUTE_EMPTY, attr);
+    nocterm_decorbox_set_border(list_index_db, border, NOCTERM_ATTRIBUTE_EMPTY, attr);
     nocterm_widget_add_subwidget(my_widget, NOCTERM_WIDGET(list_index_db));
     nocterm_widget_set_position(NOCTERM_WIDGET(list_index_db), 10, 30);
 

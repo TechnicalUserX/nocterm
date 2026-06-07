@@ -21,20 +21,20 @@
     extern "C" {
 #endif
 
-typedef enum nocterm_decorbox_border_shape_type_t{
-    NOCTERM_DECORBOX_BORDER_SHAPE_TYPE_ASCII,
-    NOCTERM_DECORBOX_BORDER_SHAPE_TYPE_UNICODE_SHARP,
-    NOCTERM_DECORBOX_BORDER_SHAPE_TYPE_UNICODE_ROUND
-}nocterm_decorbox_border_shape_type_t;
+typedef enum nocterm_decorbox_border_shape_t{
+    NOCTERM_DECORBOX_BORDER_SHAPE_ASCII,
+    NOCTERM_DECORBOX_BORDER_SHAPE_UNICODE_SHARP,
+    NOCTERM_DECORBOX_BORDER_SHAPE_UNICODE_ROUND
+}nocterm_decorbox_border_shape_t;
 
-typedef struct nocterm_decorbox_border_shape_t{
+typedef struct nocterm_decorbox_border_t{
     nocterm_char_t horizontal;
     nocterm_char_t vertical;
     nocterm_char_t top_left;
     nocterm_char_t top_right;
     nocterm_char_t bottom_left;
     nocterm_char_t bottom_right;
-}nocterm_decorbox_border_shape_t;
+}nocterm_decorbox_border_t;
 
 typedef struct nocterm_decorbox_t{
     nocterm_widget_t widget;
@@ -42,12 +42,12 @@ typedef struct nocterm_decorbox_t{
 
     struct{
         bool enabled;
-        nocterm_decorbox_border_shape_t shape;
+        nocterm_decorbox_border_t border;
         struct{
             nocterm_attribute_t normal;
             nocterm_attribute_t focused;
         }attributes;
-    }border;
+    }border_settings;
 
     struct{
         bool enabled;
@@ -104,7 +104,7 @@ int nocterm_decorbox_delete(nocterm_decorbox_t* decorbox);
  * @param focused 
  * @return int 
  */
-int nocterm_decorbox_set_border(nocterm_decorbox_t* decorbox, nocterm_decorbox_border_shape_t border_shape, nocterm_attribute_t normal, nocterm_attribute_t focused);
+int nocterm_decorbox_set_border(nocterm_decorbox_t* decorbox, nocterm_decorbox_border_t border, nocterm_attribute_t normal, nocterm_attribute_t focused);
 
 /**
  * @brief Retrieves a predefined border shape for decorbox.
@@ -112,7 +112,7 @@ int nocterm_decorbox_set_border(nocterm_decorbox_t* decorbox, nocterm_decorbox_b
  * @param type 
  * @return nocterm_decorbox_border_shape_t 
  */
-nocterm_decorbox_border_shape_t nocterm_decorbox_border_shape(nocterm_decorbox_border_shape_type_t type);
+nocterm_decorbox_border_t nocterm_decorbox_border_shape(nocterm_decorbox_border_shape_t shape);
 
 /**
  * @brief Enables label feature for decorbox.
