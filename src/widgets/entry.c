@@ -1,5 +1,9 @@
 #include <nocterm/widgets/entry.h>
 
+NOCTERM_INTERNAL NOCTERM_WIDGET_RESIZE_HANDLER(nocterm_entry_internal_resize_handler);
+
+NOCTERM_INTERNAL int nocterm_widget_buffer_resize(nocterm_widget_t* widget, nocterm_dimension_size_t height, nocterm_dimension_size_t width);
+
 NOCTERM_INTERNAL int nocterm_entry_cursor_move_left(nocterm_entry_t* entry);
 
 NOCTERM_INTERNAL int nocterm_entry_cursor_move_right(nocterm_entry_t* entry);
@@ -13,6 +17,14 @@ NOCTERM_INTERNAL int nocterm_entry_cursor_erase_left(nocterm_entry_t* entry); //
 NOCTERM_INTERNAL NOCTERM_WIDGET_KEY_HANDLER(nocterm_entry_key_handler);
 
 NOCTERM_INTERNAL NOCTERM_WIDGET_FOCUS_HANDLER(nocterm_entry_focus_handler);
+
+// Mirrors the typed characters from the widget buffer into text_store so the
+// resize handler can redraw them after buffer_resize zeroes the widget buffer.
+NOCTERM_INTERNAL void nocterm_entry_sync_text_store(nocterm_entry_t* entry){
+    for(uint64_t i = 0; i < entry->current_length; i++){
+        entry->text_store[i] = NOCTERM_WIDGET(entry)->buffer[i].character;
+    }
+}
 
 nocterm_entry_t* nocterm_entry_new(nocterm_dimension_size_t width){
 
@@ -44,6 +56,8 @@ int nocterm_entry_constructor(nocterm_entry_t* entry, nocterm_dimension_size_t w
         return NOCTERM_FAILURE;
     }
 
+    nocterm_widget_size_policy_set_permission(NOCTERM_WIDGET(entry), NOCTERM_WIDGET_SIZE_POLICY_PERMISSION_HORIZONTAL);
+
     entry->normal_attribute = NOCTERM_ATTRIBUTE_EMPTY;
     entry->buffer_position = 0;
     entry->cursor_position = 0;
@@ -74,6 +88,8 @@ int nocterm_entry_constructor(nocterm_entry_t* entry, nocterm_dimension_size_t w
     if(nocterm_widget_add_focus_handler(NOCTERM_WIDGET(entry), nocterm_entry_focus_handler) == NOCTERM_FAILURE){
         return NOCTERM_FAILURE;
     }
+
+    NOCTERM_WIDGET(entry)->internal_resize_handler = nocterm_entry_internal_resize_handler;
 
     nocterm_widget_set_viewport(NOCTERM_WIDGET(entry), (nocterm_dimension_t){0, 0, 1, width});
 
@@ -207,6 +223,7 @@ int nocterm_entry_cursor_insert(nocterm_entry_t* entry, nocterm_char_t input){
         entry->current_length++;
 
         nocterm_entry_cursor_move_right(entry);
+        nocterm_entry_sync_text_store(entry);
     }
 
     // Otherwise, no effect
@@ -248,6 +265,7 @@ int nocterm_entry_cursor_erase_right(nocterm_entry_t* entry){
         nocterm_widget_update(NOCTERM_WIDGET(entry), 0, entry->buffer_position, NOCTERM_WIDGET(entry)->buffer[entry->buffer_position].character, entry->cursor_attribute);
     }
 
+    nocterm_entry_sync_text_store(entry);
     return NOCTERM_SUCCESS;
 }
 
@@ -304,6 +322,7 @@ int nocterm_entry_cursor_erase_left(nocterm_entry_t* entry){
 
         }
 
+        nocterm_entry_sync_text_store(entry);
     }
 
     return NOCTERM_SUCCESS;
@@ -398,6 +417,10 @@ int nocterm_entry_set_text(nocterm_entry_t* entry, char* buffer, uint64_t buffer
     entry->buffer_position = new_entry_text_length;
     entry->current_length = new_entry_text_length;
 
+    for(uint64_t i = 0; i < new_entry_text_length; i++){
+        entry->text_store[i] = new_entry_text[i];
+    }
+
     if(new_entry_text_length <= NOCTERM_WIDGET(entry)->viewport.width - 1){
         entry->cursor_position = new_entry_text_length;
         nocterm_widget_set_viewport(NOCTERM_WIDGET(entry), (nocterm_dimension_t){0, 0, NOCTERM_WIDGET(entry)->viewport.height, NOCTERM_WIDGET(entry)->viewport.width});
@@ -446,7 +469,7 @@ NOCTERM_WIDGET_KEY_HANDLER(nocterm_entry_key_handler){
 }
 
 NOCTERM_WIDGET_FOCUS_HANDLER(nocterm_entry_focus_handler){
-    
+
     switch(focus){
         case NOCTERM_WIDGET_FOCUS_ENTER:{
             nocterm_widget_update(self, 0, NOCTERM_ENTRY(self)->buffer_position, self->buffer[NOCTERM_ENTRY(self)->buffer_position].character, NOCTERM_ENTRY(self)->cursor_attribute);
@@ -456,4 +479,52 @@ NOCTERM_WIDGET_FOCUS_HANDLER(nocterm_entry_focus_handler){
             nocterm_widget_update(self, 0, NOCTERM_ENTRY(self)->buffer_position, self->buffer[NOCTERM_ENTRY(self)->buffer_position].character, NOCTERM_ENTRY(self)->normal_attribute);
         }break;
     }
+}
+
+NOCTERM_WIDGET_RESIZE_HANDLER(nocterm_entry_internal_resize_handler){
+    nocterm_entry_t* entry = NOCTERM_ENTRY(self);
+
+    // bounds.width is the flex target (new display width); clamp to actual buffer capacity.
+    nocterm_dimension_size_t new_vp_width = bounds.width;
+    if(new_vp_width > NOCTERM_ENTRY_BUFFER_MAX_SIZE + 1){
+        new_vp_width = NOCTERM_ENTRY_BUFFER_MAX_SIZE + 1;
+    }
+    if(new_vp_width == 0) return;
+
+    // flex_update resized the buffer to the flex target width, zeroing it.
+    // Restore the fixed internal buffer so text at all 128 positions is addressable.
+    if(self->bounds.width != NOCTERM_ENTRY_BUFFER_MAX_SIZE + 1){
+        nocterm_widget_buffer_resize(self, 1, NOCTERM_ENTRY_BUFFER_MAX_SIZE + 1);
+    }
+
+    // Redraw typed characters from the backing store.
+    for(uint64_t i = 0; i < entry->current_length; i++){
+        nocterm_widget_update(self, 0, (nocterm_dimension_size_t)i,
+            entry->text_store[i], entry->normal_attribute);
+    }
+
+    // Draw the cursor cell with the appropriate attribute.
+    bool focused = nocterm_widget_is_focused(self);
+    nocterm_char_t cursor_ch = (entry->buffer_position == entry->current_length)
+        ? NOCTERM_ENTRY_CURSOR_CHAR
+        : entry->text_store[entry->buffer_position];
+    nocterm_widget_update(self, 0, (nocterm_dimension_size_t)entry->buffer_position,
+        cursor_ch, focused ? entry->cursor_attribute : entry->normal_attribute);
+
+    // Recompute viewport column so the cursor stays inside the visible window.
+    nocterm_dimension_size_t vp_col;
+    if((nocterm_dimension_size_t)entry->buffer_position < new_vp_width){
+        entry->cursor_position = (uint16_t)entry->buffer_position;
+        vp_col = 0;
+    } else {
+        entry->cursor_position = new_vp_width - 1;
+        vp_col = (nocterm_dimension_size_t)(entry->buffer_position - entry->cursor_position);
+    }
+
+    // Update viewport directly — lock is already held by flex_update.
+    self->viewport.row    = 0;
+    self->viewport.col    = vp_col;
+    self->viewport.height = 1;
+    self->viewport.width  = new_vp_width;
+    self->hard_refresh    = true;
 }

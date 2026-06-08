@@ -37,6 +37,7 @@
 #include <nocterm/widgets/pixelgrid.h>
 #include <nocterm/widgets/textview.h>
 #include <nocterm/widgets/levelbar.h>
+#include <nocterm/widgets/textbox.h>
 
 #ifdef __cplusplus
     extern "C" {

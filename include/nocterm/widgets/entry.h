@@ -15,7 +15,7 @@
 
 #define NOCTERM_ENTRY(x) ((nocterm_entry_t*)x)
 
-#define NOCTERM_ENTRY_BUFFER_MAX_SIZE 128
+#define NOCTERM_ENTRY_BUFFER_MAX_SIZE 4096
 
 #define NOCTERM_ENTRY_CURSOR_CHAR nocterm_char_from_ascii(' ')
 
@@ -30,6 +30,7 @@ typedef struct nocterm_entry_t{
     uint16_t cursor_position; // Viewport related
     uint16_t buffer_position; // Widget buffer related
     uint64_t current_length;
+    nocterm_char_t text_store[NOCTERM_ENTRY_BUFFER_MAX_SIZE + 1]; // Backing store — survives flex resizes
 }nocterm_entry_t;
 
 /**

@@ -1,5 +1,9 @@
 #include <nocterm/widgets/menu.h>
 
+NOCTERM_INTERNAL NOCTERM_WIDGET_RESIZE_HANDLER(nocterm_menu_internal_resize_handler);
+
+NOCTERM_INTERNAL int nocterm_widget_buffer_resize(nocterm_widget_t* widget, nocterm_dimension_size_t height, nocterm_dimension_size_t width);
+
 NOCTERM_INTERNAL int nocterm_menu_selection_move_up(nocterm_menu_t* menu);
 
 NOCTERM_INTERNAL int nocterm_menu_selection_move_down(nocterm_menu_t* menu);
@@ -61,6 +65,8 @@ int nocterm_menu_constructor(nocterm_menu_t* menu, nocterm_dimension_size_t item
         return NOCTERM_FAILURE;
     }
 
+    nocterm_widget_size_policy_set_permission(NOCTERM_WIDGET(menu), NOCTERM_WIDGET_SIZE_POLICY_PERMISSION_BOTH);
+
     nocterm_widget_set_viewport(NOCTERM_WIDGET(menu), (nocterm_dimension_t){0, 0, items_displayed, NOCTERM_WIDGET(menu)->bounds.width});
     
     menu->item_array = nocterm_menu_item_array_new();
@@ -70,6 +76,8 @@ int nocterm_menu_constructor(nocterm_menu_t* menu, nocterm_dimension_size_t item
 
     menu->current_item = 0;
     menu->selection_position = 0;
+    menu->visible_rows = items_displayed;
+    menu->items_total  = (nocterm_dimension_size_t)items_total;
     menu->selection_attribute = NOCTERM_ATTRIBUTE_EMPTY;
     menu->selection_attribute.inverse = true;
     menu->onselect_handler = onselect_handler;
@@ -77,6 +85,8 @@ int nocterm_menu_constructor(nocterm_menu_t* menu, nocterm_dimension_size_t item
 
     nocterm_widget_add_key_handler(NOCTERM_WIDGET(menu), nocterm_menu_key_handler);
     nocterm_widget_add_focus_handler(NOCTERM_WIDGET(menu), nocterm_menu_focus_handler);
+
+    NOCTERM_WIDGET(menu)->internal_resize_handler = nocterm_menu_internal_resize_handler;
 
     return NOCTERM_SUCCESS;
 }
@@ -606,4 +616,76 @@ int nocterm_menu_item_array_shrink_to_fit(nocterm_menu_item_array_t* nocterm_men
     nocterm_menu_item_array->items = new_items;
     nocterm_menu_item_array->capacity = nocterm_menu_item_array->size;
     return NOCTERM_SUCCESS;
+}
+
+NOCTERM_WIDGET_RESIZE_HANDLER(nocterm_menu_internal_resize_handler){
+    nocterm_menu_t* menu = NOCTERM_MENU(self);
+
+    nocterm_dimension_size_t items_capacity = menu->items_total;
+    nocterm_dimension_size_t item_count     = (menu->item_array != NULL)
+        ? (nocterm_dimension_size_t)menu->item_array->size : 0;
+    nocterm_dimension_size_t new_width = bounds.width;
+
+    if(items_capacity == 0) return;
+
+    // If vertical flex is active, update visible_rows capped at the original buffer
+    // capacity, not the current item count — otherwise the cap shrinks permanently
+    // whenever the resize fires with fewer items than capacity.
+    if(self->size_policy.vertical_mode != NOCTERM_WIDGET_SIZE_POLICY_FIXED){
+        nocterm_dimension_size_t target = bounds.height;
+        menu->visible_rows = (target < items_capacity) ? target : items_capacity;
+    }
+
+    // Restore the buffer to the original fixed capacity so add_item's cap check
+    // (size == bounds.height) keeps working correctly after the resize.
+    if(self->bounds.height != items_capacity){
+        nocterm_widget_buffer_resize(self, items_capacity, new_width);
+    }
+
+    nocterm_dimension_size_t visible = menu->visible_rows;
+    if(visible == 0 || visible > items_capacity) visible = items_capacity;
+
+    // Recover scroll offset from selection_position; clamp against actual item count.
+    nocterm_dimension_size_t vp_row = 0;
+    if(item_count > 0){
+        if((nocterm_dimension_size_t)menu->current_item >= (nocterm_dimension_size_t)menu->selection_position){
+            vp_row = (nocterm_dimension_size_t)menu->current_item - (nocterm_dimension_size_t)menu->selection_position;
+        }
+        if(vp_row + visible > item_count){
+            vp_row = (item_count >= visible) ? item_count - visible : 0;
+        }
+        if((nocterm_dimension_size_t)menu->current_item < vp_row){
+            vp_row = (nocterm_dimension_size_t)menu->current_item;
+        } else if((nocterm_dimension_size_t)menu->current_item >= vp_row + visible){
+            vp_row = (nocterm_dimension_size_t)menu->current_item - visible + 1;
+        }
+        menu->selection_position = (uint16_t)(menu->current_item - vp_row);
+    }
+
+    // Redraw rows that have items; leave the rest blank.
+    bool focused = nocterm_widget_is_focused(self);
+    for(nocterm_dimension_size_t row = 0; row < items_capacity && row < self->bounds.height; row++){
+        bool is_selected = focused && item_count > 0 && row == (nocterm_dimension_size_t)menu->current_item;
+        nocterm_dimension_size_t item_len = (row < item_count)
+            ? (nocterm_dimension_size_t)menu->item_array->items[row].content_length : 0;
+        for(nocterm_dimension_size_t col = 0; col < new_width; col++){
+            nocterm_char_t ch;
+            nocterm_attribute_t attr;
+            if(row < item_count && col < item_len){
+                ch   = menu->item_array->items[row].content[col].character;
+                attr = is_selected ? menu->selection_attribute
+                                   : menu->item_array->items[row].content[col].attribute;
+            }else{
+                ch   = NOCTERM_CHAR_EMPTY;
+                attr = NOCTERM_ATTRIBUTE_EMPTY;
+            }
+            nocterm_widget_update(self, row, col, ch, attr);
+        }
+    }
+
+    self->viewport.row    = vp_row;
+    self->viewport.col    = 0;
+    self->viewport.height = visible;
+    self->viewport.width  = new_width;
+    self->hard_refresh    = true;
 }

@@ -6,7 +6,6 @@ extern nocterm_screen_ownership_t* nocterm_screen_ownership;
 
 // ====================== Internal Access ====================== //
 
-
 NOCTERM_INTERNAL nocterm_widget_t* nocterm_widget_focused = NULL;
 
 nocterm_widget_t* nocterm_widget_new(nocterm_dimension_size_t height, nocterm_dimension_size_t width, nocterm_widget_focusable_t focusable, nocterm_widget_type_t type){
@@ -91,8 +90,17 @@ int nocterm_widget_constructor(nocterm_widget_t* widget, nocterm_dimension_size_
         widget->buffer = NULL; 
     }
 
+    widget->size_policy_permission = NOCTERM_WIDGET_SIZE_POLICY_PERMISSION_BOTH;
+    widget->size_policy.horizontal_mode = NOCTERM_WIDGET_SIZE_POLICY_FIXED;
+    widget->size_policy.vertical_mode = NOCTERM_WIDGET_SIZE_POLICY_FIXED;
+    widget->size_policy.horizontal_percentage = 0;
+    widget->size_policy.vertical_percentage = 0;
+    widget->size_policy_inner_padding_h = 0;
+    widget->size_policy_inner_padding_w = 0;
+
     widget->key_handler = NULL;
     widget->focus_handler = NULL;
+    widget->internal_resize_handler = NULL;
     widget->resize_handler = NULL;
 
     return NOCTERM_SUCCESS;
@@ -375,26 +383,8 @@ int nocterm_widget_align(nocterm_widget_t* widget, nocterm_widget_align_t align)
 
         case NOCTERM_WIDGET_ALIGN_HORIZONTAL_CENTER:{
 
-            nocterm_dimension_size_t percent_left_size = (parent_width * widget->align_policy.percentages.horizontal)/100;
-            nocterm_dimension_size_t percent_right_size = parent_width - percent_left_size;
-            nocterm_dimension_size_t widget_left_size = widget->viewport.width/2;
-            nocterm_dimension_size_t widget_right_size = widget->viewport.width - widget_left_size;
-
             if(parent_width >= widget->viewport.width){
-                // We can align left because there is enough width
-        
-                if((percent_left_size >= widget_left_size) && (percent_right_size >= widget_right_size)){
-                    // Widgets fits perfectly    
-                    widget->bounds.col = percent_left_size-widget_left_size;   
-                }
-                else if(percent_left_size < percent_right_size && widget_left_size + widget_right_size <= parent_width){
-                    // Left align
-                    widget->bounds.col = 0;
-                }else if(percent_left_size >= percent_right_size && widget_left_size + widget_right_size <= parent_width){
-                    // Right align
-                    widget->bounds.col = parent_width - widget->viewport.width;
-                }
-                // Else no effect
+                widget->bounds.col = (parent_width - widget->viewport.width) / 2;
             }
 
             widget->align_policy.flags.horizontal = true;
@@ -439,26 +429,8 @@ int nocterm_widget_align(nocterm_widget_t* widget, nocterm_widget_align_t align)
 
         case NOCTERM_WIDGET_ALIGN_VERTICAL_CENTER:{
 
-            nocterm_dimension_size_t percent_top_size = (parent_height * widget->align_policy.percentages.vertical)/100;
-            nocterm_dimension_size_t percent_bottom_size = parent_height - percent_top_size;
-            nocterm_dimension_size_t widget_top_size = widget->viewport.height/2;
-            nocterm_dimension_size_t widget_bottom_size = widget->viewport.height - widget_top_size;
-        
             if(parent_height >= widget->viewport.height){
-                // We can align left because there is enough width
-        
-                if((percent_top_size >= widget_top_size) && (percent_bottom_size >= widget_bottom_size)){
-                    // Widgets fits perfectly    
-                    widget->bounds.row = percent_top_size-widget_top_size;   
-                }
-                else if(percent_top_size < percent_bottom_size && widget_top_size + widget_bottom_size <= parent_height){
-                    // Left align
-                    widget->bounds.row = 0 + widget->align_policy.margins.vertical;
-                }else if(percent_top_size >= percent_bottom_size && widget_top_size + widget_bottom_size <= parent_height){
-                    // Right align
-                    widget->bounds.row = parent_height - widget->viewport.height;
-                }
-                // Else no effect
+                widget->bounds.row = (parent_height - widget->viewport.height) / 2;
             }
 
             widget->align_policy.flags.vertical = true;
@@ -986,6 +958,316 @@ bool nocterm_widget_is_focused(nocterm_widget_t* widget){
             return false;
         }
     }
+}
+
+int nocterm_widget_size_policy_set_permission(nocterm_widget_t* widget, nocterm_widget_size_policy_permission_t permission){
+
+    if(widget == NULL){
+        errno = EINVAL;
+        return NOCTERM_FAILURE;
+    }
+
+    widget->size_policy_permission = permission;
+
+    return NOCTERM_SUCCESS;
+}
+
+int nocterm_widget_size_policy_set_fixed(nocterm_widget_t* widget){
+
+    if(widget == NULL){
+        errno = EINVAL;
+        return NOCTERM_FAILURE;
+    }
+
+    pthread_mutex_lock(&widget->lock);
+
+    widget->size_policy.horizontal_mode = NOCTERM_WIDGET_SIZE_POLICY_FIXED;
+    widget->size_policy.vertical_mode = NOCTERM_WIDGET_SIZE_POLICY_FIXED;
+    widget->size_policy.horizontal_percentage = 0;
+    widget->size_policy.vertical_percentage = 0;
+
+    pthread_mutex_unlock(&widget->lock);
+
+    return NOCTERM_SUCCESS;
+}
+
+/* ---- convenience multi-axis setters ---- */
+
+int nocterm_widget_size_policy_set_flex_horizontal(nocterm_widget_t* widget){
+
+    if(widget == NULL){
+        errno = EINVAL;
+        return NOCTERM_FAILURE;
+    }
+
+    if(!(widget->size_policy_permission & NOCTERM_WIDGET_SIZE_POLICY_PERMISSION_HORIZONTAL)){
+        errno = EPERM;
+        return NOCTERM_FAILURE;
+    }
+
+    pthread_mutex_lock(&widget->lock);
+    widget->size_policy.horizontal_mode = NOCTERM_WIDGET_SIZE_POLICY_FLEX;
+    widget->size_policy.horizontal_percentage = 0;
+    pthread_mutex_unlock(&widget->lock);
+
+    return NOCTERM_SUCCESS;
+}
+
+int nocterm_widget_size_policy_set_flex_vertical(nocterm_widget_t* widget){
+
+    if(widget == NULL){
+        errno = EINVAL;
+        return NOCTERM_FAILURE;
+    }
+
+    if(!(widget->size_policy_permission & NOCTERM_WIDGET_SIZE_POLICY_PERMISSION_VERTICAL)){
+        errno = EPERM;
+        return NOCTERM_FAILURE;
+    }
+
+    pthread_mutex_lock(&widget->lock);
+    widget->size_policy.vertical_mode = NOCTERM_WIDGET_SIZE_POLICY_FLEX;
+    widget->size_policy.vertical_percentage = 0;
+    pthread_mutex_unlock(&widget->lock);
+
+    return NOCTERM_SUCCESS;
+}
+
+int nocterm_widget_size_policy_set_flex_both(nocterm_widget_t* widget){
+
+    if(widget == NULL){
+        errno = EINVAL;
+        return NOCTERM_FAILURE;
+    }
+
+    if((widget->size_policy_permission & NOCTERM_WIDGET_SIZE_POLICY_PERMISSION_BOTH) != NOCTERM_WIDGET_SIZE_POLICY_PERMISSION_BOTH){
+        errno = EPERM;
+        return NOCTERM_FAILURE;
+    }
+
+    pthread_mutex_lock(&widget->lock);
+    widget->size_policy.horizontal_mode = NOCTERM_WIDGET_SIZE_POLICY_FLEX;
+    widget->size_policy.vertical_mode = NOCTERM_WIDGET_SIZE_POLICY_FLEX;
+    widget->size_policy.horizontal_percentage = 0;
+    widget->size_policy.vertical_percentage = 0;
+    pthread_mutex_unlock(&widget->lock);
+
+    return NOCTERM_SUCCESS;
+}
+
+int nocterm_widget_size_policy_set_percent_horizontal(nocterm_widget_t* widget, nocterm_percentage_t percentage){
+
+    if(widget == NULL){
+        errno = EINVAL;
+        return NOCTERM_FAILURE;
+    }
+
+    if(!(widget->size_policy_permission & NOCTERM_WIDGET_SIZE_POLICY_PERMISSION_HORIZONTAL)){
+        errno = EPERM;
+        return NOCTERM_FAILURE;
+    }
+
+    pthread_mutex_lock(&widget->lock);
+    widget->size_policy.horizontal_mode = NOCTERM_WIDGET_SIZE_POLICY_PERCENT;
+    widget->size_policy.horizontal_percentage = percentage;
+    pthread_mutex_unlock(&widget->lock);
+
+    return NOCTERM_SUCCESS;
+}
+
+int nocterm_widget_size_policy_set_percent_vertical(nocterm_widget_t* widget, nocterm_percentage_t percentage){
+
+    if(widget == NULL){
+        errno = EINVAL;
+        return NOCTERM_FAILURE;
+    }
+
+    if(!(widget->size_policy_permission & NOCTERM_WIDGET_SIZE_POLICY_PERMISSION_VERTICAL)){
+        errno = EPERM;
+        return NOCTERM_FAILURE;
+    }
+
+    pthread_mutex_lock(&widget->lock);
+    widget->size_policy.vertical_mode = NOCTERM_WIDGET_SIZE_POLICY_PERCENT;
+    widget->size_policy.vertical_percentage = percentage;
+    pthread_mutex_unlock(&widget->lock);
+
+    return NOCTERM_SUCCESS;
+}
+
+/* ---- per-axis setters (touch one axis only) ---- */
+
+int nocterm_widget_size_policy_set_horizontal_fixed(nocterm_widget_t* widget){
+
+    if(widget == NULL){
+        errno = EINVAL;
+        return NOCTERM_FAILURE;
+    }
+
+    pthread_mutex_lock(&widget->lock);
+    widget->size_policy.horizontal_mode = NOCTERM_WIDGET_SIZE_POLICY_FIXED;
+    widget->size_policy.horizontal_percentage = 0;
+    pthread_mutex_unlock(&widget->lock);
+
+    return NOCTERM_SUCCESS;
+}
+
+int nocterm_widget_size_policy_set_horizontal_flex(nocterm_widget_t* widget){
+
+    if(widget == NULL){
+        errno = EINVAL;
+        return NOCTERM_FAILURE;
+    }
+
+    if(!(widget->size_policy_permission & NOCTERM_WIDGET_SIZE_POLICY_PERMISSION_HORIZONTAL)){
+        errno = EPERM;
+        return NOCTERM_FAILURE;
+    }
+
+    pthread_mutex_lock(&widget->lock);
+    widget->size_policy.horizontal_mode = NOCTERM_WIDGET_SIZE_POLICY_FLEX;
+    widget->size_policy.horizontal_percentage = 0;
+    pthread_mutex_unlock(&widget->lock);
+
+    return NOCTERM_SUCCESS;
+}
+
+int nocterm_widget_size_policy_set_horizontal_percent(nocterm_widget_t* widget, nocterm_percentage_t percentage){
+
+    if(widget == NULL){
+        errno = EINVAL;
+        return NOCTERM_FAILURE;
+    }
+
+    if(!(widget->size_policy_permission & NOCTERM_WIDGET_SIZE_POLICY_PERMISSION_HORIZONTAL)){
+        errno = EPERM;
+        return NOCTERM_FAILURE;
+    }
+
+    pthread_mutex_lock(&widget->lock);
+    widget->size_policy.horizontal_mode = NOCTERM_WIDGET_SIZE_POLICY_PERCENT;
+    widget->size_policy.horizontal_percentage = percentage;
+    pthread_mutex_unlock(&widget->lock);
+
+    return NOCTERM_SUCCESS;
+}
+
+int nocterm_widget_size_policy_set_vertical_fixed(nocterm_widget_t* widget){
+
+    if(widget == NULL){
+        errno = EINVAL;
+        return NOCTERM_FAILURE;
+    }
+
+    pthread_mutex_lock(&widget->lock);
+    widget->size_policy.vertical_mode = NOCTERM_WIDGET_SIZE_POLICY_FIXED;
+    widget->size_policy.vertical_percentage = 0;
+    pthread_mutex_unlock(&widget->lock);
+
+    return NOCTERM_SUCCESS;
+}
+
+int nocterm_widget_size_policy_set_vertical_flex(nocterm_widget_t* widget){
+
+    if(widget == NULL){
+        errno = EINVAL;
+        return NOCTERM_FAILURE;
+    }
+
+    if(!(widget->size_policy_permission & NOCTERM_WIDGET_SIZE_POLICY_PERMISSION_VERTICAL)){
+        errno = EPERM;
+        return NOCTERM_FAILURE;
+    }
+
+    pthread_mutex_lock(&widget->lock);
+    widget->size_policy.vertical_mode = NOCTERM_WIDGET_SIZE_POLICY_FLEX;
+    widget->size_policy.vertical_percentage = 0;
+    pthread_mutex_unlock(&widget->lock);
+
+    return NOCTERM_SUCCESS;
+}
+
+int nocterm_widget_size_policy_set_vertical_percent(nocterm_widget_t* widget, nocterm_percentage_t percentage){
+
+    if(widget == NULL){
+        errno = EINVAL;
+        return NOCTERM_FAILURE;
+    }
+
+    if(!(widget->size_policy_permission & NOCTERM_WIDGET_SIZE_POLICY_PERMISSION_VERTICAL)){
+        errno = EPERM;
+        return NOCTERM_FAILURE;
+    }
+
+    pthread_mutex_lock(&widget->lock);
+    widget->size_policy.vertical_mode = NOCTERM_WIDGET_SIZE_POLICY_PERCENT;
+    widget->size_policy.vertical_percentage = percentage;
+    pthread_mutex_unlock(&widget->lock);
+
+    return NOCTERM_SUCCESS;
+}
+
+int nocterm_widget_flex_update(nocterm_widget_t* widget){
+
+    if(widget == NULL){
+        return NOCTERM_SUCCESS;
+    }
+
+    if(widget->size_policy.horizontal_mode != NOCTERM_WIDGET_SIZE_POLICY_FIXED ||
+       widget->size_policy.vertical_mode   != NOCTERM_WIDGET_SIZE_POLICY_FIXED){
+
+        nocterm_dimension_size_t parent_height, parent_width;
+
+        if(widget->parent == NULL){
+            parent_height = nocterm_screen_height;
+            parent_width = nocterm_screen_width;
+        }else{
+            nocterm_dimension_size_t ph = widget->parent->viewport.height;
+            nocterm_dimension_size_t pw = widget->parent->viewport.width;
+            nocterm_dimension_size_t pad_h = 2 * (nocterm_dimension_size_t)widget->parent->size_policy_inner_padding_h;
+            nocterm_dimension_size_t pad_w = 2 * (nocterm_dimension_size_t)widget->parent->size_policy_inner_padding_w;
+            parent_height = (ph > pad_h) ? ph - pad_h : 0;
+            parent_width  = (pw > pad_w) ? pw - pad_w : 0;
+        }
+
+        nocterm_dimension_size_t new_height = widget->bounds.height;
+        nocterm_dimension_size_t new_width  = widget->bounds.width;
+
+        if(widget->size_policy.horizontal_mode == NOCTERM_WIDGET_SIZE_POLICY_FLEX){
+            new_width = parent_width;
+        }else if(widget->size_policy.horizontal_mode == NOCTERM_WIDGET_SIZE_POLICY_PERCENT){
+            new_width = (parent_width * widget->size_policy.horizontal_percentage) / 100;
+        }
+
+        if(widget->size_policy.vertical_mode == NOCTERM_WIDGET_SIZE_POLICY_FLEX){
+            new_height = parent_height;
+        }else if(widget->size_policy.vertical_mode == NOCTERM_WIDGET_SIZE_POLICY_PERCENT){
+            new_height = (parent_height * widget->size_policy.vertical_percentage) / 100;
+        }
+
+        if(new_height != widget->bounds.height || new_width != widget->bounds.width){
+
+            pthread_mutex_lock(&widget->lock);
+
+            nocterm_widget_buffer_resize(widget, new_height, new_width);
+
+            if(widget->internal_resize_handler){
+                widget->internal_resize_handler(widget, widget->bounds, widget->viewport);
+            }
+
+            if(widget->resize_handler){
+                widget->resize_handler(widget, widget->bounds, widget->viewport);
+            }
+
+            pthread_mutex_unlock(&widget->lock);
+        }
+    }
+
+    for(uint64_t i = 0; i < widget->subwidgets_size; i++){
+        nocterm_widget_flex_update(widget->subwidgets[i]);
+    }
+
+    return NOCTERM_SUCCESS;
 }
 
 NOCTERM_INTERNAL

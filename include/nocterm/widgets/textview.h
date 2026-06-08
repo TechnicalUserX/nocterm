@@ -15,6 +15,10 @@
 
 #define NOCTERM_TEXTVIEW(x) ((nocterm_textview_t*)x)
 
+#ifndef NOCTERM_TEXTVIEW_BUFFER_SIZE
+    #define NOCTERM_TEXTVIEW_BUFFER_SIZE 8096
+#endif
+
 #ifdef __cplusplus
     extern "C" {
 #endif
@@ -22,6 +26,9 @@
 typedef struct nocterm_textview_t{
     nocterm_widget_t widget;
     nocterm_attribute_t attribute;
+    nocterm_char_t text_buffer[NOCTERM_TEXTVIEW_BUFFER_SIZE];
+    uint64_t text_length;
+    uint64_t scroll_offset; // first visible wrapped-line index
 }nocterm_textview_t;
 
 /**

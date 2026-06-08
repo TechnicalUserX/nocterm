@@ -33,6 +33,7 @@ int nocterm_label_constructor(nocterm_label_t* label, const char* text, uint64_t
     if(nocterm_widget_constructor(NOCTERM_WIDGET(label), 1, text_size-1, NOCTERM_WIDGET_FOCUSABLE_NO, NOCTERM_WIDGET_TYPE_REAL) == NOCTERM_FAILURE){
         return NOCTERM_FAILURE;
     }
+    nocterm_widget_size_policy_set_permission(NOCTERM_WIDGET(label), NOCTERM_WIDGET_SIZE_POLICY_PERMISSION_NONE);
 
     nocterm_char_t label_string[text_size];
     uint64_t len = nocterm_char_string_from_stream(label_string, text_size, text, text_size);

@@ -30,6 +30,8 @@ void nocterm_timer_tick(void);
 
 int nocterm_widget_refresh(nocterm_widget_t* widget);
 
+int nocterm_widget_flex_update(nocterm_widget_t* widget);
+
 int nocterm_signal_init(void);
 
 // ====================== Internal Access ====================== //
@@ -162,12 +164,15 @@ int nocterm_loop(void){
                         nocterm_widget_focused = NULL;
                     }
 
-                    // Everytime the page changes, alignments are updated,
+                    // Everytime the page changes, flex and alignments are updated,
                     // not waiting a screen resize event
+
+                    nocterm_widget_flex_update(top_page->root_widget);
 
                     if(current_overlay){
                         for(uint64_t i = 0; i < NOCTERM_OVERLAY_WIDGET_MAX_SIZE; i++){
                             if(current_overlay->widgets[i]){
+                                nocterm_widget_flex_update(current_overlay->widgets[i]);
                                 nocterm_widget_align_update(current_overlay->widgets[i]);
                             }
                         }
@@ -274,12 +279,14 @@ int nocterm_loop(void){
 
             nocterm_screen_ownership_reset();
 
-            // We need to traverse over the widgets to reset their positions after resize
+            // Flex update resizes widgets before alignment repositions them
+            nocterm_widget_flex_update(current_page->root_widget);
             nocterm_widget_align_update(current_page->root_widget);
 
             if(current_overlay){
                 for(uint64_t i = 0; i < NOCTERM_OVERLAY_WIDGET_MAX_SIZE; i++){
                     if(current_overlay->widgets[i]){
+                        nocterm_widget_flex_update(current_overlay->widgets[i]);
                         nocterm_widget_align_update(current_overlay->widgets[i]);
                     }
                 }

@@ -32,6 +32,7 @@ int nocterm_checkbox_constructor(nocterm_checkbox_t* checkbox, nocterm_checkbox_
     if(nocterm_widget_constructor(NOCTERM_WIDGET(checkbox), 1, 3, NOCTERM_WIDGET_FOCUSABLE_YES, NOCTERM_WIDGET_TYPE_REAL) == NOCTERM_FAILURE){
         return NOCTERM_FAILURE;
     }
+    nocterm_widget_size_policy_set_permission(NOCTERM_WIDGET(checkbox), NOCTERM_WIDGET_SIZE_POLICY_PERMISSION_NONE);
 
     nocterm_widget_set_click_activation(NOCTERM_WIDGET(checkbox), true);
 

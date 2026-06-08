@@ -47,7 +47,9 @@ typedef struct nocterm_listview_t{
     nocterm_widget_t widget;
     nocterm_listview_item_array_t* item_array;
     nocterm_listview_autoscroll_t autoscroll; // Autoscrolls on push direction
-}nocterm_listview_t; 
+    nocterm_dimension_size_t visible_rows;  // Desired viewport height — preserved across flex resizes
+    nocterm_dimension_size_t items_total;   // Max buffer capacity from constructor
+}nocterm_listview_t;
 
 /**
  * @brief Creates a new listview widget.

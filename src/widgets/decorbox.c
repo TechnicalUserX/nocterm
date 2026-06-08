@@ -6,6 +6,9 @@ NOCTERM_INTERNAL NOCTERM_WIDGET_KEY_HANDLER(nocterm_decorbox_key_handler);
 
 NOCTERM_INTERNAL NOCTERM_WIDGET_FOCUS_HANDLER(nocterm_decorbox_focus_handler);
 
+NOCTERM_INTERNAL NOCTERM_WIDGET_RESIZE_HANDLER(nocterm_decorbox_internal_resize_handler);
+
+
 nocterm_decorbox_t* nocterm_decorbox_new(nocterm_widget_t* contained_widget){
 
     if(contained_widget == NULL){
@@ -43,6 +46,14 @@ int nocterm_decorbox_constructor(nocterm_decorbox_t* decorbox, nocterm_widget_t*
     if(nocterm_widget_constructor(NOCTERM_WIDGET(decorbox), decorbox_height, decorbox_width, NOCTERM_WIDGET_FOCUSABLE_YES, NOCTERM_WIDGET_TYPE_REAL) == NOCTERM_FAILURE){
         return NOCTERM_FAILURE;
     }
+
+    nocterm_widget_size_policy_set_permission(NOCTERM_WIDGET(decorbox), NOCTERM_WIDGET_SIZE_POLICY_PERMISSION_BOTH);
+
+    // One-cell border on every side: tell flex_update to use inner area for children
+    NOCTERM_WIDGET(decorbox)->size_policy_inner_padding_h = 1;
+    NOCTERM_WIDGET(decorbox)->size_policy_inner_padding_w = 1;
+
+    NOCTERM_WIDGET(decorbox)->internal_resize_handler = nocterm_decorbox_internal_resize_handler;
 
     decorbox->contained_widget = contained_widget;
     decorbox->contained_widget->focusable = false; // Now the ownership of the focusability is switched to decorbox
@@ -353,19 +364,19 @@ NOCTERM_WIDGET_KEY_HANDLER(nocterm_decorbox_key_handler){
 }
 
 NOCTERM_WIDGET_FOCUS_HANDLER(nocterm_decorbox_focus_handler){
-    
+
     switch(focus){
         case NOCTERM_WIDGET_FOCUS_ENTER:{
 
 
-            if(NOCTERM_DECORBOX(self)->border_settings.enabled){               
+            if(NOCTERM_DECORBOX(self)->border_settings.enabled){
                 nocterm_decorbox_border_draw(NOCTERM_DECORBOX(self),NOCTERM_DECORBOX(self)->border_settings.border, NOCTERM_DECORBOX(self)->border_settings.attributes.focused);
             }
 
             if(NOCTERM_DECORBOX(self)->label.enabled){
                 for(uint64_t i = 0; i < NOCTERM_DECORBOX(self)->label.content_length; i++){
                     nocterm_widget_update(NOCTERM_WIDGET(self), 0, i + NOCTERM_DECORBOX(self)->label.left_offset, NOCTERM_DECORBOX(self)->label.content[i].character, NOCTERM_DECORBOX(self)->label.content[i].attribute);
-                }                
+                }
             }
 
             if(NOCTERM_DECORBOX(self)->contained_widget && NOCTERM_DECORBOX(self)->contained_widget->focus_handler){
@@ -377,7 +388,7 @@ NOCTERM_WIDGET_FOCUS_HANDLER(nocterm_decorbox_focus_handler){
 
         }break;
         case NOCTERM_WIDGET_FOCUS_LEAVE:{
-            
+
             if(NOCTERM_DECORBOX(self)->border_settings.enabled){
                 nocterm_decorbox_border_draw(NOCTERM_DECORBOX(self),NOCTERM_DECORBOX(self)->border_settings.border, NOCTERM_DECORBOX(self)->border_settings.attributes.normal);
             }
@@ -385,7 +396,7 @@ NOCTERM_WIDGET_FOCUS_HANDLER(nocterm_decorbox_focus_handler){
             if(NOCTERM_DECORBOX(self)->label.enabled){
                 for(uint64_t i = 0; i < NOCTERM_DECORBOX(self)->label.content_length; i++){
                     nocterm_widget_update(NOCTERM_WIDGET(self), 0, i + NOCTERM_DECORBOX(self)->label.left_offset, NOCTERM_DECORBOX(self)->label.content[i].character, NOCTERM_DECORBOX(self)->label.content[i].attribute);
-                }                
+                }
             }
 
             if(NOCTERM_DECORBOX(self)->contained_widget && NOCTERM_DECORBOX(self)->contained_widget->focus_handler){
@@ -393,6 +404,37 @@ NOCTERM_WIDGET_FOCUS_HANDLER(nocterm_decorbox_focus_handler){
             }
         }break;
     }
-    
+
+}
+
+NOCTERM_WIDGET_RESIZE_HANDLER(nocterm_decorbox_internal_resize_handler){
+    nocterm_decorbox_t* decorbox = NOCTERM_DECORBOX(self);
+
+    // Need at least 3 cells in both dimensions for a 1-cell inner area + 2 border cells
+    if(bounds.height < 3 || bounds.width < 3){
+        return;
+    }
+
+    // The contained widget is a subwidget — flex_update recurses into it and
+    // applies its own size policy. We only redraw the border and label here.
+
+    if(decorbox->border_settings.enabled){
+        nocterm_attribute_t attr = nocterm_widget_is_focused(self)
+            ? decorbox->border_settings.attributes.focused
+            : decorbox->border_settings.attributes.normal;
+        nocterm_decorbox_border_draw(decorbox, decorbox->border_settings.border, attr);
+    }
+
+    if(decorbox->label.enabled){
+        for(uint64_t i = 0; i < decorbox->label.content_length; i++){
+            uint64_t col = decorbox->label.left_offset + i;
+            if(col >= (uint64_t)self->bounds.width){
+                break;
+            }
+            nocterm_widget_update(self, 0, col,
+                decorbox->label.content[i].character,
+                decorbox->label.content[i].attribute);
+        }
+    }
 }
 

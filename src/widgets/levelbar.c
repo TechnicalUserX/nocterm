@@ -1,5 +1,7 @@
 #include <nocterm/widgets/levelbar.h>
 
+NOCTERM_INTERNAL NOCTERM_WIDGET_RESIZE_HANDLER(nocterm_levelbar_internal_resize_handler);
+
 nocterm_levelbar_t* nocterm_levelbar_new(uint64_t length, uint64_t min_value, uint64_t max_value, nocterm_levelbar_type_t type, bool flip){
 
     if(length == 0){
@@ -40,6 +42,12 @@ int nocterm_levelbar_constructor(nocterm_levelbar_t* levelbar, uint64_t length, 
         return NOCTERM_FAILURE;
     }
 
+    nocterm_widget_size_policy_permission_t levelbar_permission =
+        (type == NOCTERM_LEVELBAR_TYPE_HORIZONTAL)
+            ? NOCTERM_WIDGET_SIZE_POLICY_PERMISSION_HORIZONTAL
+            : NOCTERM_WIDGET_SIZE_POLICY_PERMISSION_VERTICAL;
+    nocterm_widget_size_policy_set_permission(NOCTERM_WIDGET(levelbar), levelbar_permission);
+
     levelbar->type = type;
     levelbar->flip = flip;
     levelbar->length = length;
@@ -48,6 +56,8 @@ int nocterm_levelbar_constructor(nocterm_levelbar_t* levelbar, uint64_t length, 
     levelbar->current_value = min_value;
 
     levelbar->attribute = NOCTERM_ATTRIBUTE_EMPTY;
+
+    NOCTERM_WIDGET(levelbar)->internal_resize_handler = nocterm_levelbar_internal_resize_handler;
 
     nocterm_char_t levelbar_default_character = {
         .bytes = {'#'},
@@ -189,4 +199,24 @@ int nocterm_levelbar_set_character(nocterm_levelbar_t* levelbar, nocterm_char_t 
     }
 
     return NOCTERM_SUCCESS;
+}
+
+NOCTERM_WIDGET_RESIZE_HANDLER(nocterm_levelbar_internal_resize_handler){
+    nocterm_levelbar_t* levelbar = NOCTERM_LEVELBAR(self);
+
+    // The flex dimension becomes the new bar length — levelbar scales to fill its space.
+    levelbar->length = (levelbar->type == NOCTERM_LEVELBAR_TYPE_HORIZONTAL)
+        ? bounds.width
+        : bounds.height;
+
+    if(levelbar->length == 0 || levelbar->max_value == levelbar->min_value) return;
+
+    nocterm_dimension_size_t mapped = (nocterm_dimension_size_t)(
+        (levelbar->length * (levelbar->current_value - levelbar->min_value))
+        / (levelbar->max_value - levelbar->min_value));
+
+    for(nocterm_dimension_size_t i = 0; i < mapped; i++){
+        nocterm_dimension_size_t pos = levelbar->flip ? (levelbar->length - 1) - i : i;
+        nocterm_widget_update(self, 0, pos, levelbar->character, levelbar->attribute);
+    }
 }

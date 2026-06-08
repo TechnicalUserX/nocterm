@@ -1,5 +1,9 @@
 #include <nocterm/widgets/listview.h>
 
+NOCTERM_INTERNAL NOCTERM_WIDGET_RESIZE_HANDLER(nocterm_listview_internal_resize_handler);
+
+NOCTERM_INTERNAL int nocterm_widget_buffer_resize(nocterm_widget_t* widget, nocterm_dimension_size_t height, nocterm_dimension_size_t width);
+
 NOCTERM_INTERNAL int nocterm_listview_move_up(nocterm_listview_t* listview);
 
 NOCTERM_INTERNAL int nocterm_listview_move_down(nocterm_listview_t* listview);
@@ -63,6 +67,8 @@ int nocterm_listview_constructor(nocterm_listview_t* listview, nocterm_dimension
         return NOCTERM_FAILURE;
     }
 
+    nocterm_widget_size_policy_set_permission(NOCTERM_WIDGET(listview), NOCTERM_WIDGET_SIZE_POLICY_PERMISSION_BOTH);
+
     nocterm_widget_set_viewport(NOCTERM_WIDGET(listview), (nocterm_dimension_t){0, 0, items_displayed, NOCTERM_WIDGET(listview)->bounds.width});
     
     listview->item_array = nocterm_listview_item_array_new();
@@ -70,7 +76,12 @@ int nocterm_listview_constructor(nocterm_listview_t* listview, nocterm_dimension
         return NOCTERM_FAILURE;
     }
 
+    listview->visible_rows = items_displayed;
+    listview->items_total  = (nocterm_dimension_size_t)items_total;
+
     nocterm_widget_add_key_handler(NOCTERM_WIDGET(listview), nocterm_listview_key_handler);
+
+    NOCTERM_WIDGET(listview)->internal_resize_handler = nocterm_listview_internal_resize_handler;
 
     return NOCTERM_SUCCESS;
 }
@@ -697,4 +708,62 @@ NOCTERM_WIDGET_KEY_HANDLER(nocterm_listview_key_handler){
         default:
             break;
     }
+}
+
+NOCTERM_WIDGET_RESIZE_HANDLER(nocterm_listview_internal_resize_handler){
+    nocterm_listview_t* listview = NOCTERM_LISTVIEW(self);
+
+    nocterm_dimension_size_t items_capacity = listview->items_total;
+    nocterm_dimension_size_t item_count     = (listview->item_array != NULL)
+        ? (nocterm_dimension_size_t)listview->item_array->size : 0;
+    nocterm_dimension_size_t new_width = bounds.width;
+
+    if(items_capacity == 0) return;
+
+    // If vertical flex is active, update visible_rows to the new target, capped at
+    // the original buffer capacity (not current item count — that would re-introduce
+    // the bug where the visible window shrinks permanently after items are removed).
+    if(self->size_policy.vertical_mode != NOCTERM_WIDGET_SIZE_POLICY_FIXED){
+        nocterm_dimension_size_t target = bounds.height;
+        listview->visible_rows = (target < items_capacity) ? target : items_capacity;
+    }
+
+    // Restore the buffer to the original fixed capacity.  flex_update resized it to
+    // the flex target, which breaks the push_back cap check (size == bounds.height).
+    if(self->bounds.height != items_capacity){
+        nocterm_widget_buffer_resize(self, items_capacity, new_width);
+    }
+
+    nocterm_dimension_size_t visible = listview->visible_rows;
+    if(visible == 0 || visible > items_capacity) visible = items_capacity;
+
+    // Scroll position: autoscroll DOWN pins to the last actual item; UP/NONE reset to top.
+    nocterm_dimension_size_t vp_row = 0;
+    if(listview->autoscroll == NOCTERM_LISTVIEW_AUTOSCROLL_DOWN && item_count > visible){
+        vp_row = item_count - visible;
+    }
+
+    // Redraw rows that have content; leave the rest blank.
+    for(nocterm_dimension_size_t row = 0; row < items_capacity && row < self->bounds.height; row++){
+        nocterm_dimension_size_t item_len = (row < item_count)
+            ? (nocterm_dimension_size_t)listview->item_array->items[row].content_length : 0;
+        for(nocterm_dimension_size_t col = 0; col < new_width; col++){
+            nocterm_char_t ch;
+            nocterm_attribute_t attr;
+            if(row < item_count && col < item_len){
+                ch   = listview->item_array->items[row].content[col].character;
+                attr = listview->item_array->items[row].content[col].attribute;
+            }else{
+                ch   = NOCTERM_CHAR_EMPTY;
+                attr = NOCTERM_ATTRIBUTE_EMPTY;
+            }
+            nocterm_widget_update(self, row, col, ch, attr);
+        }
+    }
+
+    self->viewport.row    = vp_row;
+    self->viewport.col    = 0;
+    self->viewport.height = visible;
+    self->viewport.width  = new_width;
+    self->hard_refresh    = true;
 }

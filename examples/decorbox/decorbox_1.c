@@ -11,14 +11,14 @@ int main(){
     // Here, we are giving decorbox as the root widget
     nocterm_page_t* main_page = nocterm_page_new("Main page", sizeof("Main page"), NOCTERM_WIDGET(my_decorbox));
  
-    nocterm_decorbox_border_shape_t border_shape = nocterm_decorbox_border_shape(NOCTERM_DECORBOX_BORDER_SHAPE_TYPE_UNICODE_ROUND);
+    nocterm_decorbox_border_t border = nocterm_decorbox_border_shape(NOCTERM_DECORBOX_BORDER_SHAPE_UNICODE_ROUND);
 
     nocterm_attribute_t attr = {
         .color.ansi.fg = true,
         .color.ansi.codes.fg = 5
     };
 
-    nocterm_decorbox_set_border(my_decorbox, border_shape, NOCTERM_ATTRIBUTE_EMPTY, attr);
+    nocterm_decorbox_set_border(my_decorbox, border, NOCTERM_ATTRIBUTE_EMPTY, attr);
 
 
     nocterm_page_stack_push(main_page); 

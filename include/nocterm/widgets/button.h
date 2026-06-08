@@ -15,9 +15,13 @@
 
 #define NOCTERM_BUTTON(x) ((nocterm_button_t*)x)
 
+#ifndef NOCTERM_BUTTON_TEXT_MAX_SIZE
+    #define NOCTERM_BUTTON_TEXT_MAX_SIZE 256
+#endif
+
 /**
  * @brief Macro for creating an "on press" button handler.
- * 
+ *
  */
 #define NOCTERM_BUTTON_ONPRESS_HANDLER(identifier) void identifier(nocterm_widget_t* self, void* user_data)
 
@@ -33,6 +37,8 @@ typedef struct nocterm_button_t{
     nocterm_attribute_t attribute_focused;
     nocterm_button_onpress_handler_t onpress_handler;
     void* user_data;
+    nocterm_char_t text[NOCTERM_BUTTON_TEXT_MAX_SIZE];
+    uint64_t text_length;
 }nocterm_button_t;
 
 /**

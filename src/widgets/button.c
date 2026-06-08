@@ -4,6 +4,8 @@ NOCTERM_INTERNAL NOCTERM_WIDGET_KEY_HANDLER(nocterm_button_key_handler);
 
 NOCTERM_INTERNAL NOCTERM_WIDGET_FOCUS_HANDLER(nocterm_button_focus_handler);
 
+NOCTERM_INTERNAL NOCTERM_WIDGET_RESIZE_HANDLER(nocterm_button_internal_resize_handler);
+
 nocterm_button_t* nocterm_button_new(nocterm_dimension_size_t height, nocterm_dimension_size_t width, nocterm_button_onpress_handler_t onpress_handler, void* user_data){
 
     nocterm_button_t* new_button = (nocterm_button_t*)malloc(sizeof(nocterm_button_t));
@@ -38,6 +40,8 @@ int nocterm_button_constructor(nocterm_button_t* button, nocterm_dimension_size_
         return NOCTERM_FAILURE;
     }
 
+    nocterm_widget_size_policy_set_permission(NOCTERM_WIDGET(button), NOCTERM_WIDGET_SIZE_POLICY_PERMISSION_BOTH);
+
     nocterm_widget_set_click_activation(NOCTERM_WIDGET(button), true);
 
     for(nocterm_dimension_size_t i = 0; i < NOCTERM_WIDGET(button)->buffer_size; i++){
@@ -48,10 +52,13 @@ int nocterm_button_constructor(nocterm_button_t* button, nocterm_dimension_size_
 
     nocterm_widget_add_focus_handler(NOCTERM_WIDGET(button), nocterm_button_focus_handler);
 
-    button->onpress_handler = onpress_handler;    
+    NOCTERM_WIDGET(button)->internal_resize_handler = nocterm_button_internal_resize_handler;
+
+    button->onpress_handler = onpress_handler;
     button->attribute_normal = NOCTERM_ATTRIBUTE_EMPTY;
     button->attribute_focused = NOCTERM_ATTRIBUTE_EMPTY;
     button->attribute_focused.inverse = true;
+    button->text_length = 0;
 
     button->user_data = user_data;
 
@@ -138,6 +145,15 @@ int nocterm_button_set_text(nocterm_button_t* button, const char* text, uint64_t
         nocterm_widget_update(widget, start_row, start_col + i, text_buffer[i], attr);
     }
 
+    // Store the full text so the internal resize handler can redraw it
+    uint64_t store_len = text_size > 0 ? text_size - 1 : 0;
+    if(store_len > NOCTERM_BUTTON_TEXT_MAX_SIZE) store_len = NOCTERM_BUTTON_TEXT_MAX_SIZE;
+    nocterm_char_t full_text_buffer[store_len + 1];
+    uint64_t full_parsed_len = nocterm_char_string_from_stream(full_text_buffer, store_len + 1, text, text_size);
+    if(full_parsed_len > NOCTERM_BUTTON_TEXT_MAX_SIZE) full_parsed_len = NOCTERM_BUTTON_TEXT_MAX_SIZE;
+    memcpy(button->text, full_text_buffer, full_parsed_len * sizeof(nocterm_char_t));
+    button->text_length = full_parsed_len;
+
     pthread_mutex_unlock(&NOCTERM_WIDGET(button)->lock);
 
     return NOCTERM_SUCCESS;
@@ -157,7 +173,7 @@ NOCTERM_WIDGET_KEY_HANDLER(nocterm_button_key_handler){
 
 NOCTERM_WIDGET_FOCUS_HANDLER(nocterm_button_focus_handler){
     switch(focus){
-        
+
         case NOCTERM_WIDGET_FOCUS_ENTER:{
             for(uint64_t i = 0; i < self->buffer_size; i++){
                 nocterm_widget_update(self, 0, i, self->buffer[i].character, NOCTERM_BUTTON(self)->attribute_focused);
@@ -169,5 +185,31 @@ NOCTERM_WIDGET_FOCUS_HANDLER(nocterm_button_focus_handler){
                 nocterm_widget_update(self, 0, i, self->buffer[i].character, NOCTERM_BUTTON(self)->attribute_normal);
             }
         }break;
+    }
+}
+
+NOCTERM_WIDGET_RESIZE_HANDLER(nocterm_button_internal_resize_handler){
+    nocterm_button_t* button = NOCTERM_BUTTON(self);
+    nocterm_attribute_t attr = nocterm_widget_is_focused(self)
+        ? button->attribute_focused
+        : button->attribute_normal;
+
+    // Refill every cell with spaces at the current attribute
+    for(nocterm_dimension_size_t row = 0; row < self->bounds.height; row++){
+        for(nocterm_dimension_size_t col = 0; col < self->bounds.width; col++){
+            nocterm_widget_update(self, row, col, nocterm_char_from_ascii(' '), attr);
+        }
+    }
+
+    // Re-center the stored text
+    if(button->text_length > 0){
+        uint64_t display_len = (button->text_length < self->bounds.width)
+            ? button->text_length
+            : self->bounds.width;
+        uint64_t start_col = (self->bounds.width - display_len) / 2;
+        uint64_t start_row = self->bounds.height / 2;
+        for(uint64_t i = 0; i < display_len; i++){
+            nocterm_widget_update(self, start_row, start_col + i, button->text[i], attr);
+        }
     }
 }

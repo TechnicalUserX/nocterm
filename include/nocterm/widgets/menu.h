@@ -50,6 +50,8 @@ typedef struct nocterm_menu_t{
     nocterm_attribute_t selection_attribute;
     uint16_t current_item; // Index
     uint16_t selection_position; // Fixed inside the range < viewport.height
+    nocterm_dimension_size_t visible_rows;  // Desired viewport height — preserved across flex resizes
+    nocterm_dimension_size_t items_total;   // Max buffer capacity from constructor
     nocterm_menu_item_array_t* item_array;
     nocterm_menu_onselect_handler_t onselect_handler;
     void* user_data;

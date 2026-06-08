@@ -44,6 +44,7 @@ int nocterm_pixelgrid_constructor(nocterm_pixelgrid_t *pixelgrid, uint32_t pixel
     if(nocterm_widget_constructor(NOCTERM_WIDGET(pixelgrid), cell_height, cell_width, NOCTERM_WIDGET_FOCUSABLE_NO, NOCTERM_WIDGET_TYPE_REAL) == NOCTERM_FAILURE){
         return NOCTERM_FAILURE;
     }
+    nocterm_widget_size_policy_set_permission(NOCTERM_WIDGET(pixelgrid), NOCTERM_WIDGET_SIZE_POLICY_PERMISSION_NONE);
 
     return NOCTERM_SUCCESS;
 }
