@@ -23,7 +23,7 @@ int main(){
     nocterm_widget_set_position(NOCTERM_WIDGET(title), 1, 1);
 
     // Editable textbox: 7 rows x 40 cols
-    nocterm_textbox_t* my_textbox = nocterm_textbox_new(7, 40);
+    nocterm_textbox_t* my_textbox = nocterm_textbox_new(7, 10);
     nocterm_widget_set_position(NOCTERM_WIDGET(my_textbox), 2, 2);
 
     // "Get Text" button beneath the textbox

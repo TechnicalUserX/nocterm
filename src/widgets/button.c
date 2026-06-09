@@ -40,7 +40,7 @@ int nocterm_button_constructor(nocterm_button_t* button, nocterm_dimension_size_
         return NOCTERM_FAILURE;
     }
 
-    nocterm_widget_size_policy_set_permission(NOCTERM_WIDGET(button), NOCTERM_WIDGET_SIZE_POLICY_PERMISSION_BOTH);
+    nocterm_widget_flex_policy_set_permission(NOCTERM_WIDGET(button), NOCTERM_WIDGET_FLEX_POLICY_PERMISSION_BOTH);
 
     nocterm_widget_set_click_activation(NOCTERM_WIDGET(button), true);
 

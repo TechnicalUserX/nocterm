@@ -47,11 +47,11 @@ int nocterm_decorbox_constructor(nocterm_decorbox_t* decorbox, nocterm_widget_t*
         return NOCTERM_FAILURE;
     }
 
-    nocterm_widget_size_policy_set_permission(NOCTERM_WIDGET(decorbox), NOCTERM_WIDGET_SIZE_POLICY_PERMISSION_BOTH);
+    nocterm_widget_flex_policy_set_permission(NOCTERM_WIDGET(decorbox), NOCTERM_WIDGET_FLEX_POLICY_PERMISSION_BOTH);
 
     // One-cell border on every side: tell flex_update to use inner area for children
-    NOCTERM_WIDGET(decorbox)->size_policy_inner_padding_h = 1;
-    NOCTERM_WIDGET(decorbox)->size_policy_inner_padding_w = 1;
+    NOCTERM_WIDGET(decorbox)->flex_policy_inner_padding_h = 1;
+    NOCTERM_WIDGET(decorbox)->flex_policy_inner_padding_w = 1;
 
     NOCTERM_WIDGET(decorbox)->internal_resize_handler = nocterm_decorbox_internal_resize_handler;
 

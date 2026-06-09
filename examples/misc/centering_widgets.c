@@ -1,3 +1,4 @@
+#include <nocterm/base/widget.h>
 #include <nocterm/nocterm.h>
 
 
@@ -11,7 +12,7 @@ int main(){
 
     nocterm_widget_add_subwidget(my_widget, NOCTERM_WIDGET(my_label));
  
-    nocterm_decorbox_border_shape_t border_shape = nocterm_decorbox_border_shape(NOCTERM_DECORBOX_BORDER_SHAPE_TYPE_UNICODE_ROUND);
+    nocterm_decorbox_border_t border_shape = nocterm_decorbox_border_shape(NOCTERM_DECORBOX_BORDER_SHAPE_UNICODE_ROUND);
 
     nocterm_attribute_t attr = {
         .color.ansi.fg = true,
@@ -22,17 +23,19 @@ int main(){
     
     nocterm_page_t* main_page = nocterm_page_new("Main page", sizeof("Main page"), NOCTERM_WIDGET(my_decorbox));
 
-    nocterm_widget_align(NOCTERM_WIDGET(my_decorbox), NOCTERM_WIDGET_ALIGN_HORIZONTAL_CENTER);
-    nocterm_widget_align_set_percentage_horizontal(NOCTERM_WIDGET(my_decorbox), 50);
+    nocterm_widget_align(NOCTERM_WIDGET(my_decorbox), NOCTERM_WIDGET_ALIGN_CENTER_HORIZONTAL);
+    nocterm_widget_align(NOCTERM_WIDGET(my_decorbox), NOCTERM_WIDGET_ALIGN_PERCENT_HORIZONTAL, 50);
 
-    nocterm_widget_align(NOCTERM_WIDGET(my_decorbox), NOCTERM_WIDGET_ALIGN_VERTICAL_CENTER);
-    nocterm_widget_align_set_percentage_vertical(NOCTERM_WIDGET(my_decorbox), 50);
 
-    nocterm_widget_align(NOCTERM_WIDGET(my_label), NOCTERM_WIDGET_ALIGN_HORIZONTAL_CENTER);
-    nocterm_widget_align_set_percentage_horizontal(NOCTERM_WIDGET(my_label), 50);
+    nocterm_widget_align(NOCTERM_WIDGET(my_decorbox), NOCTERM_WIDGET_ALIGN_CENTER_VERTICAL);
+    nocterm_widget_align(NOCTERM_WIDGET(my_decorbox), NOCTERM_WIDGET_ALIGN_PERCENT_VERTICAL, 50);
 
-    nocterm_widget_align(NOCTERM_WIDGET(my_label), NOCTERM_WIDGET_ALIGN_VERTICAL_CENTER);
-    nocterm_widget_align_set_percentage_vertical(NOCTERM_WIDGET(my_label), 50);
+
+    nocterm_widget_align(NOCTERM_WIDGET(my_label), NOCTERM_WIDGET_ALIGN_CENTER_HORIZONTAL);
+    nocterm_widget_align(NOCTERM_WIDGET(my_label), NOCTERM_WIDGET_ALIGN_PERCENT_HORIZONTAL, 50);
+
+    nocterm_widget_align(NOCTERM_WIDGET(my_label), NOCTERM_WIDGET_ALIGN_CENTER_VERTICAL);
+    nocterm_widget_align(NOCTERM_WIDGET(my_label), NOCTERM_WIDGET_ALIGN_PERCENT_VERTICAL, 50);
 
     nocterm_page_stack_push(main_page); 
  
@@ -47,3 +50,4 @@ int main(){
  
     return 0;
 }
+

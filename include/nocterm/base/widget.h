@@ -78,12 +78,16 @@ typedef struct nocterm_widget_align_flags_t{
 
 typedef enum nocterm_widget_align_t{
     NOCTERM_WIDGET_ALIGN_NONE,
-    NOCTERM_WIDGET_ALIGN_HORIZONTAL_LEFT,
-    NOCTERM_WIDGET_ALIGN_HORIZONTAL_CENTER,
-    NOCTERM_WIDGET_ALIGN_HORIZONTAL_RIGHT,
-    NOCTERM_WIDGET_ALIGN_VERTICAL_TOP,
-    NOCTERM_WIDGET_ALIGN_VERTICAL_CENTER,
-    NOCTERM_WIDGET_ALIGN_VERTICAL_BOTTOM
+    NOCTERM_WIDGET_ALIGN_LEFT,
+    NOCTERM_WIDGET_ALIGN_RIGHT,
+    NOCTERM_WIDGET_ALIGN_TOP,
+    NOCTERM_WIDGET_ALIGN_BOTTOM,
+    NOCTERM_WIDGET_ALIGN_PERCENT_HORIZONTAL,
+    NOCTERM_WIDGET_ALIGN_PERCENT_VERTICAL,
+    NOCTERM_WIDGET_ALIGN_MARGIN_HORIZONTAL,
+    NOCTERM_WIDGET_ALIGN_MARGIN_VERTICAL,
+    NOCTERM_WIDGET_ALIGN_CENTER_HORIZONTAL,
+    NOCTERM_WIDGET_ALIGN_CENTER_VERTICAL,
 }nocterm_widget_align_t;
 
 typedef struct nocterm_widget_align_policy_t{
@@ -92,25 +96,36 @@ typedef struct nocterm_widget_align_policy_t{
     nocterm_widget_align_margins_t margins;
 }nocterm_widget_align_policy_t;
 
-typedef enum nocterm_widget_size_policy_permission_t{
-    NOCTERM_WIDGET_SIZE_POLICY_PERMISSION_NONE       = 0x00,
-    NOCTERM_WIDGET_SIZE_POLICY_PERMISSION_HORIZONTAL = 0x01,
-    NOCTERM_WIDGET_SIZE_POLICY_PERMISSION_VERTICAL   = 0x02,
-    NOCTERM_WIDGET_SIZE_POLICY_PERMISSION_BOTH       = 0x03
-}nocterm_widget_size_policy_permission_t;
+typedef enum nocterm_widget_flex_t{
+    NOCTERM_WIDGET_FLEX_FIXED_HORIZONTAL,
+    NOCTERM_WIDGET_FLEX_FIXED_VERTICAL,
+    NOCTERM_WIDGET_FLEX_FIXED_BOTH,
+    NOCTERM_WIDGET_FLEX_FILL_HORIZONTAL,
+    NOCTERM_WIDGET_FLEX_FILL_VERTICAL,
+    NOCTERM_WIDGET_FLEX_FILL_BOTH,
+    NOCTERM_WIDGET_FLEX_PERCENT_HORIZONTAL,
+    NOCTERM_WIDGET_FLEX_PERCENT_VERTICAL
+}nocterm_widget_flex_t;
 
-typedef enum nocterm_widget_size_policy_mode_t{
-    NOCTERM_WIDGET_SIZE_POLICY_FIXED   = 0,
-    NOCTERM_WIDGET_SIZE_POLICY_FLEX    = 1,
-    NOCTERM_WIDGET_SIZE_POLICY_PERCENT = 2
-}nocterm_widget_size_policy_mode_t;
+typedef enum nocterm_widget_flex_policy_permission_t{
+    NOCTERM_WIDGET_FLEX_POLICY_PERMISSION_NONE       = 0x00,
+    NOCTERM_WIDGET_FLEX_POLICY_PERMISSION_HORIZONTAL = 0x01,
+    NOCTERM_WIDGET_FLEX_POLICY_PERMISSION_VERTICAL   = 0x02,
+    NOCTERM_WIDGET_FLEX_POLICY_PERMISSION_BOTH       = 0x03
+}nocterm_widget_flex_policy_permission_t;
 
-typedef struct nocterm_widget_size_policy_t{
-    nocterm_widget_size_policy_mode_t horizontal_mode;
-    nocterm_widget_size_policy_mode_t vertical_mode;
+typedef enum nocterm_widget_flex_policy_mode_t{
+    NOCTERM_WIDGET_FLEX_POLICY_MODE_FIXED   = 0,
+    NOCTERM_WIDGET_FLEX_POLICY_MODE_FILL    = 1,
+    NOCTERM_WIDGET_FLEX_POLICY_MODE_PERCENT = 2
+}nocterm_widget_flex_policy_mode_t;
+
+typedef struct nocterm_widget_flex_policy_t{
+    nocterm_widget_flex_policy_mode_t horizontal_mode;
+    nocterm_widget_flex_policy_mode_t vertical_mode;
     nocterm_percentage_t horizontal_percentage;
     nocterm_percentage_t vertical_percentage;
-}nocterm_widget_size_policy_t;
+}nocterm_widget_flex_policy_t;
 
 typedef struct nocterm_widget_t nocterm_widget_t;
 
@@ -162,14 +177,14 @@ typedef struct nocterm_widget_t{
 
     nocterm_widget_align_policy_t align_policy;
 
-    nocterm_widget_size_policy_permission_t size_policy_permission;
-    nocterm_widget_size_policy_t size_policy;
+    nocterm_widget_flex_policy_permission_t flex_policy_permission;
+    nocterm_widget_flex_policy_t flex_policy;
 
     // Per-axis padding (in cells) subtracted from this widget's viewport when
     // computing flex/percent dimensions for direct children.  Decorbox sets
     // these to 1 to represent its single-cell border on every side.
-    uint8_t size_policy_inner_padding_h;
-    uint8_t size_policy_inner_padding_w;
+    uint8_t flex_policy_inner_padding_h;
+    uint8_t flex_policy_inner_padding_w;
 
     nocterm_widget_key_handler_t key_handler;
     nocterm_widget_focus_handler_t focus_handler;
@@ -312,44 +327,7 @@ int nocterm_widget_set_col(nocterm_widget_t* widget, nocterm_dimension_size_t co
  * @param align 
  * @return int 
  */
-int nocterm_widget_align(nocterm_widget_t* widget, nocterm_widget_align_t align);
-
-/**
- * @brief Sets horizontal percentage position for a widget.
- * 
- * @param widget 
- * @param percentage 
- * @return int 
- */
-int nocterm_widget_align_set_percentage_horizontal(nocterm_widget_t* widget, nocterm_percentage_t percentage);
-
-/**
- * @brief Sets vertical percentage position for a widget.
- * 
- * @param widget 
- * @param percentage 
- * @return int 
- */
-int nocterm_widget_align_set_percentage_vertical(nocterm_widget_t* widget, nocterm_percentage_t percentage);
-
-/**
- * @brief Sets horizontal margin for a widget.
- * 
- * @param widget 
- * @param margin 
- * @return int 
- */
-int nocterm_widget_align_set_margin_horizontal(nocterm_widget_t* widget, nocterm_dimension_size_t margin);
-
-/**
- * @brief Sets vertical margin for a widget.
- * 
- * @param widget 
- * @param margin 
- * @return int 
- */
-int nocterm_widget_align_set_margin_vertical(nocterm_widget_t* widget, nocterm_dimension_size_t margin);
-
+int nocterm_widget_align(nocterm_widget_t* widget, nocterm_widget_align_t align, ...);
 
 /**
  * @brief Update positions of widgets if they are centered in any way.
@@ -452,81 +430,40 @@ int nocterm_widget_add_focus_handler(nocterm_widget_t* widget, nocterm_widget_fo
 int nocterm_widget_add_resize_handler(nocterm_widget_t* widget, nocterm_widget_resize_handler_t resize_handler);
 
 /**
- * @brief Sets the resize permission for a widget. Called by widget constructors.
+ * @brief General purpse widget flex maniuplation function.
  *
  * @param widget
- * @param permission
+ * @param nocterm_widget_flex_t
  * @return int
  */
-int nocterm_widget_size_policy_set_permission(nocterm_widget_t* widget, nocterm_widget_size_policy_permission_t permission);
+int nocterm_widget_flex(nocterm_widget_t* widget, nocterm_widget_flex_t flex, ...);
 
-/**
- * @brief Sets the size policy to fixed (no resizing). This is the default.
- *
- * @param widget
- * @return int
- */
-int nocterm_widget_size_policy_set_fixed(nocterm_widget_t* widget);
+NOCTERM_INTERNAL
+int nocterm_widget_flex_policy_set_permission(nocterm_widget_t* widget, nocterm_widget_flex_policy_permission_t permission);
 
-/**
- * @brief Sets the size policy to flex horizontally (width = parent width).
- *
- * @param widget
- * @return int
- */
-int nocterm_widget_size_policy_set_flex_horizontal(nocterm_widget_t* widget);
+NOCTERM_INTERNAL
+int nocterm_widget_flex_policy_set_fixed_horizontal(nocterm_widget_t* widget);
 
-/**
- * @brief Sets the size policy to flex vertically (height = parent height).
- *
- * @param widget
- * @return int
- */
-int nocterm_widget_size_policy_set_flex_vertical(nocterm_widget_t* widget);
+NOCTERM_INTERNAL
+int nocterm_widget_flex_policy_set_fixed_vertical(nocterm_widget_t* widget);
 
-/**
- * @brief Sets the size policy to flex in both directions.
- *
- * @param widget
- * @return int
- */
-int nocterm_widget_size_policy_set_flex_both(nocterm_widget_t* widget);
 
-/**
- * @brief Sets the size policy to span a percentage of the parent's width.
- *
- * @param widget
- * @param percentage
- * @return int
- */
-int nocterm_widget_size_policy_set_percent_horizontal(nocterm_widget_t* widget, nocterm_percentage_t percentage);
+NOCTERM_INTERNAL
+int nocterm_widget_flex_policy_set_fill_horizontal(nocterm_widget_t* widget);
 
-/**
- * @brief Sets the size policy to span a percentage of the parent's height.
- *
- * @param widget
- * @param percentage
- * @return int
- */
-int nocterm_widget_size_policy_set_percent_vertical(nocterm_widget_t* widget, nocterm_percentage_t percentage);
+NOCTERM_INTERNAL
+int nocterm_widget_flex_policy_set_fill_vertical(nocterm_widget_t* widget);
 
-/* Per-axis setters — each function only touches one axis, leaving the other intact.
- * This allows mixing modes, e.g. flex horizontal + percent vertical. */
+NOCTERM_INTERNAL
+int nocterm_widget_flex_policy_set_fill_both(nocterm_widget_t* widget);
 
-int nocterm_widget_size_policy_set_horizontal_fixed(nocterm_widget_t* widget);
-int nocterm_widget_size_policy_set_horizontal_flex(nocterm_widget_t* widget);
-int nocterm_widget_size_policy_set_horizontal_percent(nocterm_widget_t* widget, nocterm_percentage_t percentage);
+NOCTERM_INTERNAL
+int nocterm_widget_flex_policy_set_percent_horizontal(nocterm_widget_t* widget, nocterm_percentage_t percentage);
 
-int nocterm_widget_size_policy_set_vertical_fixed(nocterm_widget_t* widget);
-int nocterm_widget_size_policy_set_vertical_flex(nocterm_widget_t* widget);
-int nocterm_widget_size_policy_set_vertical_percent(nocterm_widget_t* widget, nocterm_percentage_t percentage);
+NOCTERM_INTERNAL
+int nocterm_widget_flex_policy_set_percent_vertical(nocterm_widget_t* widget, nocterm_percentage_t percentage);
 
-/**
- * @brief Applies size policies across the widget tree. Call after terminal resize or page change.
- *
- * @param widget
- * @return int
- */
+NOCTERM_INTERNAL
 int nocterm_widget_flex_update(nocterm_widget_t* widget);
 
 /**

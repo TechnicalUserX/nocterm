@@ -2,7 +2,7 @@
  
 int main(){
  
-    nocterm_widget_t* my_widget = nocterm_widget_new(10,10, NOCTERM_WIDGET_FOCUSABLE_YES, NOCTERM_WIDGET_TYPE_REAL);
+    nocterm_widget_t* my_widget = nocterm_widget_new(10,30, NOCTERM_WIDGET_FOCUSABLE_YES, NOCTERM_WIDGET_TYPE_REAL);
     nocterm_page_t* main_page = nocterm_page_new("Main page", sizeof("Main page"), my_widget);
  
     nocterm_levelbar_t* my_levelbar = nocterm_levelbar_new(20, 0, 20, NOCTERM_LEVELBAR_TYPE_HORIZONTAL, false);

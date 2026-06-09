@@ -56,7 +56,7 @@ int nocterm_entry_constructor(nocterm_entry_t* entry, nocterm_dimension_size_t w
         return NOCTERM_FAILURE;
     }
 
-    nocterm_widget_size_policy_set_permission(NOCTERM_WIDGET(entry), NOCTERM_WIDGET_SIZE_POLICY_PERMISSION_HORIZONTAL);
+    nocterm_widget_flex_policy_set_permission(NOCTERM_WIDGET(entry), NOCTERM_WIDGET_FLEX_POLICY_PERMISSION_HORIZONTAL);
 
     entry->normal_attribute = NOCTERM_ATTRIBUTE_EMPTY;
     entry->buffer_position = 0;

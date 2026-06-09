@@ -42,11 +42,11 @@ int nocterm_levelbar_constructor(nocterm_levelbar_t* levelbar, uint64_t length, 
         return NOCTERM_FAILURE;
     }
 
-    nocterm_widget_size_policy_permission_t levelbar_permission =
+    nocterm_widget_flex_policy_permission_t levelbar_permission =
         (type == NOCTERM_LEVELBAR_TYPE_HORIZONTAL)
-            ? NOCTERM_WIDGET_SIZE_POLICY_PERMISSION_HORIZONTAL
-            : NOCTERM_WIDGET_SIZE_POLICY_PERMISSION_VERTICAL;
-    nocterm_widget_size_policy_set_permission(NOCTERM_WIDGET(levelbar), levelbar_permission);
+            ? NOCTERM_WIDGET_FLEX_POLICY_PERMISSION_HORIZONTAL
+            : NOCTERM_WIDGET_FLEX_POLICY_PERMISSION_VERTICAL;
+    nocterm_widget_flex_policy_set_permission(NOCTERM_WIDGET(levelbar), levelbar_permission);
 
     levelbar->type = type;
     levelbar->flip = flip;

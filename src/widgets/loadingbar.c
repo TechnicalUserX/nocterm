@@ -30,7 +30,7 @@ int nocterm_loadingbar_constructor(nocterm_loadingbar_t* loadingbar, uint64_t in
     if(nocterm_widget_constructor(NOCTERM_WIDGET(loadingbar), 1, 1, false, false) == NOCTERM_FAILURE){
         return NOCTERM_FAILURE;
     }
-    nocterm_widget_size_policy_set_permission(NOCTERM_WIDGET(loadingbar), NOCTERM_WIDGET_SIZE_POLICY_PERMISSION_NONE);
+    nocterm_widget_flex_policy_set_permission(NOCTERM_WIDGET(loadingbar), NOCTERM_WIDGET_FLEX_POLICY_PERMISSION_NONE);
 
     loadingbar->state = 0;
     loadingbar->timer = nocterm_timer_create(NOCTERM_WIDGET(&(loadingbar->widget)), interval, nocterm_loadingbar_timer_callback, NULL);

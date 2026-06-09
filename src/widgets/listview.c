@@ -67,7 +67,7 @@ int nocterm_listview_constructor(nocterm_listview_t* listview, nocterm_dimension
         return NOCTERM_FAILURE;
     }
 
-    nocterm_widget_size_policy_set_permission(NOCTERM_WIDGET(listview), NOCTERM_WIDGET_SIZE_POLICY_PERMISSION_BOTH);
+    nocterm_widget_flex_policy_set_permission(NOCTERM_WIDGET(listview), NOCTERM_WIDGET_FLEX_POLICY_PERMISSION_BOTH);
 
     nocterm_widget_set_viewport(NOCTERM_WIDGET(listview), (nocterm_dimension_t){0, 0, items_displayed, NOCTERM_WIDGET(listview)->bounds.width});
     
@@ -139,9 +139,15 @@ int nocterm_listview_push_back(nocterm_listview_t* listview, nocterm_listview_it
     }
 
     // Widget Update
-    for(uint64_t i = 0; i < listview->widget.bounds.width && i < item.content_length; i++){
-        nocterm_widget_update(NOCTERM_WIDGET(listview), listview->item_array->size-1,i, item.content[i].character, item.content[i].attribute);
+    for(uint64_t i = 0; i < listview->widget.bounds.width; i++){
+        if(i < item.content_length){
+            nocterm_widget_update(NOCTERM_WIDGET(listview), listview->item_array->size-1, i, item.content[i].character, item.content[i].attribute);
+        }else{
+            nocterm_widget_update(NOCTERM_WIDGET(listview), listview->item_array->size-1, i, NOCTERM_CHAR_EMPTY, NOCTERM_ATTRIBUTE_EMPTY);
+        }
     }
+
+    NOCTERM_WIDGET(listview)->hard_refresh = true;
 
     // Autoscroll
     if(listview->item_array->size > NOCTERM_WIDGET(listview)->viewport.height){
@@ -723,7 +729,7 @@ NOCTERM_WIDGET_RESIZE_HANDLER(nocterm_listview_internal_resize_handler){
     // If vertical flex is active, update visible_rows to the new target, capped at
     // the original buffer capacity (not current item count — that would re-introduce
     // the bug where the visible window shrinks permanently after items are removed).
-    if(self->size_policy.vertical_mode != NOCTERM_WIDGET_SIZE_POLICY_FIXED){
+    if(self->flex_policy.vertical_mode != NOCTERM_WIDGET_FLEX_POLICY_MODE_FIXED){
         nocterm_dimension_size_t target = bounds.height;
         listview->visible_rows = (target < items_capacity) ? target : items_capacity;
     }

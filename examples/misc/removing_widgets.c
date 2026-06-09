@@ -1,3 +1,4 @@
+#include <nocterm/base/widget.h>
 #include <nocterm/nocterm.h>
 
 
@@ -10,8 +11,8 @@ NOCTERM_TIMER_CALLBACK(my_callback){
 
         nocterm_widget_add_subwidget(widget, NOCTERM_WIDGET(user_data));
         
-        nocterm_widget_align_center_percent_horizontal(NOCTERM_WIDGET(user_data), 50);
-        nocterm_widget_align_center_percent_vertical(NOCTERM_WIDGET(user_data), 50);        
+        nocterm_widget_align(NOCTERM_WIDGET(user_data), NOCTERM_WIDGET_ALIGN_CENTER_HORIZONTAL);
+        nocterm_widget_align(NOCTERM_WIDGET(user_data), NOCTERM_WIDGET_ALIGN_CENTER_VERTICAL);
 
     }else{
         i = 1;
@@ -30,20 +31,19 @@ int main(){
     nocterm_label_t* my_label = nocterm_label_new("HI", 3);
 
  
-    nocterm_decorbox_border_shape_t border_shape = nocterm_decorbox_border_shape(NOCTERM_DECORBOX_BORDER_SHAPE_TYPE_UNICODE_ROUND);
+    nocterm_decorbox_border_t border = nocterm_decorbox_border_shape(NOCTERM_DECORBOX_BORDER_SHAPE_UNICODE_ROUND);
 
     nocterm_attribute_t attr = {
         .color.ansi.fg = true,
         .color.ansi.codes.fg = 5
     };
 
-    nocterm_decorbox_set_border(my_decorbox, border_shape, NOCTERM_ATTRIBUTE_EMPTY, attr);
+    nocterm_decorbox_set_border(my_decorbox, border, NOCTERM_ATTRIBUTE_EMPTY, attr);
     
     nocterm_page_t* main_page = nocterm_page_new("Main page", sizeof("Main page"), NOCTERM_WIDGET(my_decorbox));
 
-    nocterm_widget_align_center_percent_horizontal(NOCTERM_WIDGET(my_decorbox), 50);
-    nocterm_widget_align_center_percent_vertical(NOCTERM_WIDGET(my_decorbox), 50);
-
+    nocterm_widget_align(NOCTERM_WIDGET(my_decorbox), NOCTERM_WIDGET_ALIGN_CENTER_HORIZONTAL);
+    nocterm_widget_align(NOCTERM_WIDGET(my_decorbox), NOCTERM_WIDGET_ALIGN_CENTER_VERTICAL);
 
     nocterm_timer_t* my_timer = nocterm_timer_create(my_widget, 500, my_callback, my_label);
 

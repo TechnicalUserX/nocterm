@@ -54,7 +54,7 @@ int nocterm_textview_constructor(nocterm_textview_t* textview, nocterm_dimension
         return NOCTERM_FAILURE;
     }
 
-    nocterm_widget_size_policy_set_permission(NOCTERM_WIDGET(textview), NOCTERM_WIDGET_SIZE_POLICY_PERMISSION_BOTH);
+    nocterm_widget_flex_policy_set_permission(NOCTERM_WIDGET(textview), NOCTERM_WIDGET_FLEX_POLICY_PERMISSION_BOTH);
 
     textview->attribute    = NOCTERM_ATTRIBUTE_EMPTY;
     textview->text_length  = 0;

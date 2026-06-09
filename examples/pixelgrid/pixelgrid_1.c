@@ -7,14 +7,14 @@ int main(){
     nocterm_decorbox_t* my_decorbox = nocterm_decorbox_new(NOCTERM_WIDGET(my_pixelgrid));
     nocterm_widget_t* my_widget = nocterm_widget_new(10, 20, NOCTERM_WIDGET_FOCUSABLE_YES, NOCTERM_WIDGET_TYPE_VIRTUAL);
 
-    nocterm_decorbox_border_shape_t border_shape = nocterm_decorbox_border_shape(NOCTERM_DECORBOX_BORDER_SHAPE_TYPE_UNICODE_ROUND);
+    nocterm_decorbox_border_t border = nocterm_decorbox_border_shape(NOCTERM_DECORBOX_BORDER_SHAPE_UNICODE_ROUND);
 
     nocterm_attribute_t attr = {
         .color.ansi.fg = true,
         .color.ansi.codes.fg = 4
     };
 
-    nocterm_decorbox_set_border(my_decorbox, border_shape, NOCTERM_ATTRIBUTE_EMPTY, attr);
+    nocterm_decorbox_set_border(my_decorbox, border, NOCTERM_ATTRIBUTE_EMPTY, attr);
 
     nocterm_page_t* main_page = nocterm_page_new("Main page", sizeof("Main page"), NOCTERM_WIDGET(my_widget));
 

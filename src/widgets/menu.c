@@ -65,7 +65,7 @@ int nocterm_menu_constructor(nocterm_menu_t* menu, nocterm_dimension_size_t item
         return NOCTERM_FAILURE;
     }
 
-    nocterm_widget_size_policy_set_permission(NOCTERM_WIDGET(menu), NOCTERM_WIDGET_SIZE_POLICY_PERMISSION_BOTH);
+    nocterm_widget_flex_policy_set_permission(NOCTERM_WIDGET(menu), NOCTERM_WIDGET_FLEX_POLICY_PERMISSION_BOTH);
 
     nocterm_widget_set_viewport(NOCTERM_WIDGET(menu), (nocterm_dimension_t){0, 0, items_displayed, NOCTERM_WIDGET(menu)->bounds.width});
     
@@ -631,7 +631,7 @@ NOCTERM_WIDGET_RESIZE_HANDLER(nocterm_menu_internal_resize_handler){
     // If vertical flex is active, update visible_rows capped at the original buffer
     // capacity, not the current item count — otherwise the cap shrinks permanently
     // whenever the resize fires with fewer items than capacity.
-    if(self->size_policy.vertical_mode != NOCTERM_WIDGET_SIZE_POLICY_FIXED){
+    if(self->flex_policy.vertical_mode != NOCTERM_WIDGET_FLEX_POLICY_MODE_FIXED){
         nocterm_dimension_size_t target = bounds.height;
         menu->visible_rows = (target < items_capacity) ? target : items_capacity;
     }

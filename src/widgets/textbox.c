@@ -101,7 +101,7 @@ int nocterm_textbox_constructor(nocterm_textbox_t* textbox, nocterm_dimension_si
         return NOCTERM_FAILURE;
     }
 
-    nocterm_widget_size_policy_set_permission(NOCTERM_WIDGET(textbox), NOCTERM_WIDGET_SIZE_POLICY_PERMISSION_BOTH);
+    nocterm_widget_flex_policy_set_permission(NOCTERM_WIDGET(textbox), NOCTERM_WIDGET_FLEX_POLICY_PERMISSION_BOTH);
 
     textbox->normal_attribute    = NOCTERM_ATTRIBUTE_EMPTY;
     textbox->cursor_attribute    = NOCTERM_ATTRIBUTE_EMPTY;
