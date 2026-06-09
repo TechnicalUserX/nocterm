@@ -116,7 +116,8 @@ NOCTERM_INTERNAL nocterm_widget_t* nocterm_page_find_next_focusable_widget(nocte
 
         // Push children onto the stack (reversed so left-to-right traversal)
         for (int64_t i = current->subwidgets_size - 1; i >= 0; i--) {
-            stack[stack_top++] = current->subwidgets[i];
+            if (stack_top < NOCTERM_WIDGET_MAX_DEPTH)
+                stack[stack_top++] = current->subwidgets[i];
         }
     }
 
@@ -158,7 +159,8 @@ NOCTERM_INTERNAL nocterm_widget_t* nocterm_page_find_prev_focusable_widget(nocte
 
         // Push children onto the stack (left-to-right order)
         for (int64_t i = current->subwidgets_size - 1; i >= 0; i--) {
-            stack[stack_top++] = current->subwidgets[i];
+            if (stack_top < NOCTERM_WIDGET_MAX_DEPTH)
+                stack[stack_top++] = current->subwidgets[i];
         }
     }
 
@@ -179,7 +181,8 @@ NOCTERM_INTERNAL nocterm_widget_t* nocterm_page_find_prev_focusable_widget(nocte
         }
 
         for (int64_t i = current->subwidgets_size - 1; i >= 0; i--) {
-            stack[stack_top++] = current->subwidgets[i];
+            if (stack_top < NOCTERM_WIDGET_MAX_DEPTH)
+                stack[stack_top++] = current->subwidgets[i];
         }
     }
 

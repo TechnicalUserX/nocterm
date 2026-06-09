@@ -68,11 +68,15 @@ typedef struct nocterm_widget_align_flags_t{
         bool left:1;
         bool center:1;
         bool right:1;
-    }horizontal_flags;    
+        bool percent:1;  /* ALIGN_PERCENT_HORIZONTAL was set */
+        bool margin:1;   /* ALIGN_MARGIN_HORIZONTAL was set  */
+    }horizontal_flags;
     struct{
         bool top:1;
         bool center:1;
         bool bottom:1;
+        bool percent:1;  /* ALIGN_PERCENT_VERTICAL was set */
+        bool margin:1;   /* ALIGN_MARGIN_VERTICAL was set  */
     }vertical_flags;
 }nocterm_widget_align_flags_t;
 

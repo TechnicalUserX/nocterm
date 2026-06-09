@@ -321,6 +321,70 @@ int nocterm_widget_set_col(nocterm_widget_t* widget, nocterm_dimension_size_t co
     return NOCTERM_SUCCESS;
 }
 
+/* Apply stored horizontal alignment + modifiers to widget->bounds.col.
+   Reads horizontal_flags.{left,center,right,percent,margin} and the stored
+   percentages/margins — does NOT acquire the widget lock.
+   CENTER semantics: percent shifts the widget's center point to p% of
+   parent_width; margin has no effect on centered widgets. */
+static void nocterm_widget_apply_horizontal(nocterm_widget_t* widget,
+                                            nocterm_dimension_size_t parent_width) {
+    nocterm_dimension_size_t pd = widget->align_policy.flags.horizontal_flags.percent
+        ? (parent_width * (nocterm_dimension_size_t)widget->align_policy.percentages.horizontal) / 100
+        : 0;
+    nocterm_dimension_size_t mg = widget->align_policy.flags.horizontal_flags.margin
+        ? widget->align_policy.margins.horizontal
+        : 0;
+
+    if (widget->align_policy.flags.horizontal_flags.left) {
+        if (parent_width >= pd + widget->viewport.width + mg)
+            widget->bounds.col = pd + mg;
+    } else if (widget->align_policy.flags.horizontal_flags.center) {
+        /* Place widget's center at pd (p% of parent) when percent is set,
+           otherwise use the parent's midpoint. Margin is ignored for center. */
+        if (widget->align_policy.flags.horizontal_flags.percent) {
+            if (pd >= widget->viewport.width / 2)
+                widget->bounds.col = pd - widget->viewport.width / 2;
+        } else {
+            if (parent_width >= widget->viewport.width)
+                widget->bounds.col = (parent_width - widget->viewport.width) / 2;
+        }
+    } else if (widget->align_policy.flags.horizontal_flags.right) {
+        if (parent_width >= pd + widget->viewport.width + mg)
+            widget->bounds.col = parent_width - widget->viewport.width - mg - pd;
+    }
+}
+
+/* Apply stored vertical alignment + modifiers to widget->bounds.row.
+   CENTER semantics: percent shifts the widget's center point to p% of
+   parent_height; margin has no effect on centered widgets. */
+static void nocterm_widget_apply_vertical(nocterm_widget_t* widget,
+                                          nocterm_dimension_size_t parent_height) {
+    nocterm_dimension_size_t pd = widget->align_policy.flags.vertical_flags.percent
+        ? (parent_height * (nocterm_dimension_size_t)widget->align_policy.percentages.vertical) / 100
+        : 0;
+    nocterm_dimension_size_t mg = widget->align_policy.flags.vertical_flags.margin
+        ? widget->align_policy.margins.vertical
+        : 0;
+
+    if (widget->align_policy.flags.vertical_flags.top) {
+        if (parent_height >= pd + widget->viewport.height + mg)
+            widget->bounds.row = pd + mg;
+    } else if (widget->align_policy.flags.vertical_flags.center) {
+        /* Place widget's center at pd (p% of parent) when percent is set,
+           otherwise use the parent's midpoint. Margin is ignored for center. */
+        if (widget->align_policy.flags.vertical_flags.percent) {
+            if (pd >= widget->viewport.height / 2)
+                widget->bounds.row = pd - widget->viewport.height / 2;
+        } else {
+            if (parent_height >= widget->viewport.height)
+                widget->bounds.row = (parent_height - widget->viewport.height) / 2;
+        }
+    } else if (widget->align_policy.flags.vertical_flags.bottom) {
+        if (parent_height >= pd + widget->viewport.height + mg)
+            widget->bounds.row = parent_height - widget->viewport.height - mg - pd;
+    }
+}
+
 int nocterm_widget_align(nocterm_widget_t* widget, nocterm_widget_align_t align, ...){
     // Idempotent Function
 
@@ -359,103 +423,75 @@ int nocterm_widget_align(nocterm_widget_t* widget, nocterm_widget_align_t align,
             widget->align_policy.flags.horizontal_flags.left = false;
             widget->align_policy.flags.horizontal_flags.center = false;
             widget->align_policy.flags.horizontal_flags.right = false;
+            widget->align_policy.flags.horizontal_flags.percent = false;
+            widget->align_policy.flags.horizontal_flags.margin = false;
 
             widget->align_policy.flags.vertical = false;
             widget->align_policy.flags.vertical_flags.top = false;
             widget->align_policy.flags.vertical_flags.center = false;
             widget->align_policy.flags.vertical_flags.bottom = false;
+            widget->align_policy.flags.vertical_flags.percent = false;
+            widget->align_policy.flags.vertical_flags.margin = false;
 
         }break;
 
         case NOCTERM_WIDGET_ALIGN_LEFT:{
 
-            nocterm_dimension_size_t percent_distance = (parent_width * widget->align_policy.percentages.horizontal) / 100;
-
-            if(parent_width >= percent_distance + widget->viewport.width + widget->align_policy.margins.horizontal){
-                nocterm_dimension_size_t new_col = percent_distance + widget->align_policy.margins.horizontal;
-                widget->bounds.col = new_col;
-            }
-            
             widget->align_policy.flags.horizontal = true;
             widget->align_policy.flags.horizontal_flags.left = true;
             widget->align_policy.flags.horizontal_flags.center = false;
             widget->align_policy.flags.horizontal_flags.right = false;
+            nocterm_widget_apply_horizontal(widget, parent_width);
 
         }break;
 
         case NOCTERM_WIDGET_ALIGN_CENTER_HORIZONTAL:{
 
-            if(parent_width >= widget->viewport.width){
-                widget->bounds.col = (parent_width - widget->viewport.width) / 2;
-            }
-
             widget->align_policy.flags.horizontal = true;
             widget->align_policy.flags.horizontal_flags.left = false;
             widget->align_policy.flags.horizontal_flags.center = true;
             widget->align_policy.flags.horizontal_flags.right = false;
+            nocterm_widget_apply_horizontal(widget, parent_width);
 
         }break;
 
         case NOCTERM_WIDGET_ALIGN_RIGHT:{
 
-            nocterm_dimension_size_t percent_distance = (parent_width * widget->align_policy.percentages.horizontal) / 100;
-
-            if(parent_width >= percent_distance + widget->viewport.width + widget->align_policy.margins.horizontal){
-                // We can align right because parent has enough width
-                nocterm_dimension_size_t new_col = parent_width - widget->viewport.width - widget->align_policy.margins.horizontal - percent_distance;
-                widget->bounds.col = new_col;
-            }            
-
             widget->align_policy.flags.horizontal = true;
             widget->align_policy.flags.horizontal_flags.left = false;
             widget->align_policy.flags.horizontal_flags.center = false;
             widget->align_policy.flags.horizontal_flags.right = true;
+            nocterm_widget_apply_horizontal(widget, parent_width);
 
         }break;
 
         case NOCTERM_WIDGET_ALIGN_TOP:{
 
-            nocterm_dimension_size_t percent_distance = (parent_height * widget->align_policy.percentages.vertical) / 100;
-
-            if(parent_height >= percent_distance + widget->viewport.height + widget->align_policy.margins.vertical){
-                nocterm_dimension_size_t new_row = percent_distance + widget->align_policy.margins.vertical;
-                widget->bounds.row = new_row;
-            }
-
             widget->align_policy.flags.vertical = true;
             widget->align_policy.flags.vertical_flags.top = true;
             widget->align_policy.flags.vertical_flags.center = false;
             widget->align_policy.flags.vertical_flags.bottom = false;
+            nocterm_widget_apply_vertical(widget, parent_height);
 
         }break;
 
         case NOCTERM_WIDGET_ALIGN_CENTER_VERTICAL:{
 
-            if(parent_height >= widget->viewport.height){
-                widget->bounds.row = (parent_height - widget->viewport.height) / 2;
-            }
-
             widget->align_policy.flags.vertical = true;
             widget->align_policy.flags.vertical_flags.top = false;
             widget->align_policy.flags.vertical_flags.center = true;
             widget->align_policy.flags.vertical_flags.bottom = false;
+            nocterm_widget_apply_vertical(widget, parent_height);
 
         }break;
 
         case NOCTERM_WIDGET_ALIGN_BOTTOM:{
 
-            nocterm_dimension_size_t percent_distance = (parent_height * widget->align_policy.percentages.vertical) / 100;
-
-            if(parent_height >= percent_distance + widget->viewport.height + widget->align_policy.margins.vertical){
-                // We can align left because parent has enough width
-                nocterm_dimension_size_t new_row = parent_height - widget->viewport.height - widget->align_policy.margins.vertical - percent_distance;
-                widget->bounds.row = new_row;
-            }
-
             widget->align_policy.flags.vertical = true;
             widget->align_policy.flags.vertical_flags.top = false;
             widget->align_policy.flags.vertical_flags.center = false;
             widget->align_policy.flags.vertical_flags.bottom = true;
+            nocterm_widget_apply_vertical(widget, parent_height);
 
         }break;
 
@@ -468,6 +504,9 @@ int nocterm_widget_align(nocterm_widget_t* widget, nocterm_widget_align_t align,
 
             if(percentage >= 0 && percentage <= 100){
                 widget->align_policy.percentages.horizontal = percentage;
+                widget->align_policy.flags.horizontal_flags.percent = true;
+                if(widget->align_policy.flags.horizontal)
+                    nocterm_widget_apply_horizontal(widget, parent_width);
             }else{
                 ret = NOCTERM_FAILURE;
             }
@@ -483,9 +522,12 @@ int nocterm_widget_align(nocterm_widget_t* widget, nocterm_widget_align_t align,
 
             if(percentage >= 0 && percentage <= 100){
                 widget->align_policy.percentages.vertical = percentage;
+                widget->align_policy.flags.vertical_flags.percent = true;
+                if(widget->align_policy.flags.vertical)
+                    nocterm_widget_apply_vertical(widget, parent_height);
             }else{
                 ret = NOCTERM_FAILURE;
-            }   
+            }
 
         }break;
 
@@ -498,6 +540,9 @@ int nocterm_widget_align(nocterm_widget_t* widget, nocterm_widget_align_t align,
 
             if(margin >= 0){
                 widget->align_policy.margins.horizontal = margin;
+                widget->align_policy.flags.horizontal_flags.margin = true;
+                if(widget->align_policy.flags.horizontal)
+                    nocterm_widget_apply_horizontal(widget, parent_width);
             }else{
                 ret = NOCTERM_FAILURE;
             }
@@ -513,6 +558,9 @@ int nocterm_widget_align(nocterm_widget_t* widget, nocterm_widget_align_t align,
 
             if(margin >= 0){
                 widget->align_policy.margins.vertical = margin;
+                widget->align_policy.flags.vertical_flags.margin = true;
+                if(widget->align_policy.flags.vertical)
+                    nocterm_widget_apply_vertical(widget, parent_height);
             }else{
                 ret = NOCTERM_FAILURE;
             }
@@ -710,6 +758,7 @@ int nocterm_widget_remove_subwidget(nocterm_widget_t* widget, nocterm_widget_t* 
         nocterm_widget_t** new_subwidgets = (nocterm_widget_t**)malloc(sizeof(nocterm_widget_t*)*(widget->subwidgets_size-1));
 
         if(new_subwidgets == NULL){
+            pthread_mutex_unlock(&subwidget->lock);
             pthread_mutex_unlock(&widget->lock);
             return NOCTERM_FAILURE;
         }

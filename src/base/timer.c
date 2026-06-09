@@ -199,8 +199,9 @@ int nocterm_timer_delete_all_of_widget(nocterm_widget_t* widget){
 NOCTERM_INTERNAL
 void nocterm_timer_tick(void){
 
-    nocterm_timer_t* momentary_callbacks[NOCTERM_TIMER_CALLBACK_MOMENTARY_MAX] = {0};
-    uint16_t momentary_callbacks_size = 0;
+    struct { nocterm_timer_callback_t callback; nocterm_widget_t* widget; void* user_data; }
+        pending[NOCTERM_TIMER_CALLBACK_MOMENTARY_MAX];
+    uint16_t pending_size = 0;
 
     pthread_mutex_lock(&nocterm_timer_list_lock);
 
@@ -208,28 +209,27 @@ void nocterm_timer_tick(void){
     gettimeofday(&tv,NULL);
     uint64_t now = (tv.tv_sec * 1000000 + tv.tv_usec)/1000; // current time in ms
 
-
     nocterm_timer_t* t = nocterm_timer_list_head;
     while (t) {
         if (t->active && (now - t->last_call >= t->interval)) {
-            
-            momentary_callbacks[momentary_callbacks_size] = t;
-            momentary_callbacks_size++;
-            
-            if(momentary_callbacks_size == 64){
+            pending[pending_size].callback  = t->callback;
+            pending[pending_size].widget    = t->widget;
+            pending[pending_size].user_data = t->user_data;
+            pending_size++;
+
+            t->last_call = now;
+
+            if(pending_size == NOCTERM_TIMER_CALLBACK_MOMENTARY_MAX){
                 break;
             }
-
-            t->last_call = now;  // Update last fire time
         }
         t = t->next;
-    
     }
 
     pthread_mutex_unlock(&nocterm_timer_list_lock);
-    
-    for(uint16_t i = 0; i < momentary_callbacks_size; i++){
-        momentary_callbacks[i]->callback(momentary_callbacks[i]->widget, momentary_callbacks[i]->user_data);
+
+    for(uint16_t i = 0; i < pending_size; i++){
+        pending[i].callback(pending[i].widget, pending[i].user_data);
     }
 
 }

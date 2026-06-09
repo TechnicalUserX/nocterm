@@ -239,7 +239,7 @@ int nocterm_listview_pop_back(nocterm_listview_t* listview, nocterm_listview_ite
 
     // Widget Update
     // If there are more items than viewport height, viewport must go one up after deletion and also viewport is at the end
-    for(uint64_t i = 0; i < listview->item_array->items[listview->item_array->size].content_length && i < listview->widget.bounds.width ; i++){
+    for(uint64_t i = 0; i < listview->widget.bounds.width; i++){
         nocterm_widget_update(NOCTERM_WIDGET(listview), listview->item_array->size, i, NOCTERM_CHAR_EMPTY, NOCTERM_ATTRIBUTE_EMPTY);
     }
 
