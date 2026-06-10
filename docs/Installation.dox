@@ -14,8 +14,7 @@ To build and install Nocterm to your Linux system, you need to install the follo
 
 - `make`
 - `gcc`
-- `binutils`
-- `git` (Optional)
+- `git`
 
 To install these requirements:
 
@@ -28,8 +27,6 @@ sudo apt install gcc make git
 ## 2. Building & Installing
 
 To build and install the library, you have to clone the project to your system via `git` first:
-
-> If you don't want to use 
 
 ```shell
 git clone https://github.com/technicaluserx/nocterm.git
