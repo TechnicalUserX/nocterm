@@ -12,7 +12,7 @@ If you have built the project from source and installed by following the given i
 
 Create a file `main.c` in a directory of your desire:
 
-\include Misc/minimal.c
+\include misc/minimal.c
 
 To compile your program with the library linkage:
 

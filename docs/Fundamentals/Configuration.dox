@@ -6,7 +6,7 @@ If the default sizes do not fit the needs of your application (e.g. you need lon
 
 ---
 
-# Using `menuconfig`
+# Using menuconfig
 
 The configuration menu is opened with:
 
@@ -47,6 +47,7 @@ Every overridable limit is defined in its header using the following pattern:
 If `make menuconfig` was never run, or the corresponding `Override ... limits` toggle is disabled, `CONFIG_NOCTERM_EXAMPLE_LIMIT` is never defined and the hardcoded default is used. Otherwise, the value chosen in `menuconfig` takes precedence.
 
 > If you are not building from source with the project's `configure`/`make` workflow (Refer to \ref installation), none of the `CONFIG_NOCTERM_*` macros will be defined, and Nocterm always falls back to its built-in defaults.
+
 
 ---
 
