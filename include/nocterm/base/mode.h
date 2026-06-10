@@ -32,10 +32,10 @@ int nocterm_mode_restore(void);
 
 /**
  * @brief Puts terminal in raw mode.
- * 
- * @return int 
+ *
+ * @return int
  */
-int nocterm_mode_raw(void);
+int nocterm_mode_set_raw(void);
 
 #ifdef __cplusplus
     }

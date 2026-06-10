@@ -1,5 +1,7 @@
 #include <nocterm/widgets/entry.h>
 
+int nocterm_widget_flex_policy_set_permission(nocterm_widget_t* widget, nocterm_widget_flex_policy_permission_t permission);
+
 NOCTERM_INTERNAL NOCTERM_WIDGET_RESIZE_HANDLER(nocterm_entry_internal_resize_handler);
 
 NOCTERM_INTERNAL int nocterm_widget_buffer_resize(nocterm_widget_t* widget, nocterm_dimension_size_t height, nocterm_dimension_size_t width);
@@ -82,10 +84,10 @@ int nocterm_entry_constructor(nocterm_entry_t* entry, nocterm_dimension_size_t w
     // entry->cursor_attribute.color.rgb.codes.fg = entry->normal_attribute.color.rgb.codes.bg;
     // entry->cursor_attribute.color.rgb.codes.bg = entry->normal_attribute.color.rgb.codes.fg;
 
-    if(nocterm_widget_add_key_handler(NOCTERM_WIDGET(entry), nocterm_entry_key_handler) == NOCTERM_FAILURE){
+    if(nocterm_widget_set_key_handler(NOCTERM_WIDGET(entry), nocterm_entry_key_handler) == NOCTERM_FAILURE){
         return NOCTERM_FAILURE;
     }
-    if(nocterm_widget_add_focus_handler(NOCTERM_WIDGET(entry), nocterm_entry_focus_handler) == NOCTERM_FAILURE){
+    if(nocterm_widget_set_focus_handler(NOCTERM_WIDGET(entry), nocterm_entry_focus_handler) == NOCTERM_FAILURE){
         return NOCTERM_FAILURE;
     }
 
@@ -154,7 +156,7 @@ int nocterm_entry_cursor_move_left(nocterm_entry_t* entry){
             nocterm_widget_update(NOCTERM_WIDGET(entry), 0, entry->buffer_position, NOCTERM_WIDGET(entry)->buffer[entry->buffer_position].character, entry->normal_attribute);
             nocterm_widget_update(NOCTERM_WIDGET(entry), 0, entry->buffer_position - 1, NOCTERM_WIDGET(entry)->buffer[entry->buffer_position - 1].character, entry->cursor_attribute);
             entry->buffer_position--;
-            nocterm_widget_set_viewport_left(NOCTERM_WIDGET(entry));
+            nocterm_widget_scroll_viewport_left(NOCTERM_WIDGET(entry));
         }
     }
 
@@ -188,7 +190,7 @@ int nocterm_entry_cursor_move_right(nocterm_entry_t* entry){
         // Now we need to check whether we should move the viewport to right, if the cursor was previously at the very end, then we had to modify viewport
         if(entry->cursor_position == NOCTERM_WIDGET(entry)->viewport.width-1){
             // Cursor at rightmost
-            nocterm_widget_set_viewport_right(NOCTERM_WIDGET(entry));
+            nocterm_widget_scroll_viewport_right(NOCTERM_WIDGET(entry));
         }else{
             entry->cursor_position++;
         }

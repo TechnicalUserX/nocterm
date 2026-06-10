@@ -15,7 +15,11 @@
 
 #define NOCTERM_DECORBOX(x) ((nocterm_decorbox_t*)x)
 
-#define NOCTERM_DECORBOX_LABEL_MAX_SIZE 64
+#ifndef CONFIG_NOCTERM_DECORBOX_LABEL_MAX_SIZE
+    #define NOCTERM_DECORBOX_LABEL_MAX_SIZE 64
+#else
+    #define NOCTERM_DECORBOX_LABEL_MAX_SIZE CONFIG_NOCTERM_DECORBOX_LABEL_MAX_SIZE
+#endif
 
 #ifdef __cplusplus
     extern "C" {
@@ -97,22 +101,22 @@ int nocterm_decorbox_delete(nocterm_decorbox_t* decorbox);
 
 /**
  * @brief Enables border feature for decorbox.
- * 
- * @param decorbox 
- * @param border_shape 
- * @param normal 
- * @param focused 
- * @return int 
+ *
+ * @param decorbox
+ * @param border
+ * @param normal
+ * @param focused
+ * @return int
  */
 int nocterm_decorbox_set_border(nocterm_decorbox_t* decorbox, nocterm_decorbox_border_t border, nocterm_attribute_t normal, nocterm_attribute_t focused);
 
 /**
- * @brief Retrieves a predefined border shape for decorbox.
- * 
- * @param type 
- * @return nocterm_decorbox_border_shape_t 
+ * @brief Retrieves a predefined border for decorbox.
+ *
+ * @param shape
+ * @return nocterm_decorbox_border_t
  */
-nocterm_decorbox_border_t nocterm_decorbox_border_shape(nocterm_decorbox_border_shape_t shape);
+nocterm_decorbox_border_t nocterm_decorbox_border_from_shape(nocterm_decorbox_border_shape_t shape);
 
 /**
  * @brief Enables label feature for decorbox.

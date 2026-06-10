@@ -88,7 +88,7 @@ int main(){
     nocterm_widget_t* my_widget = nocterm_widget_new(20,50, NOCTERM_WIDGET_FOCUSABLE_NO, NOCTERM_WIDGET_TYPE_VIRTUAL);
     nocterm_page_t* main_page = nocterm_page_new("Main page", sizeof("Main page"), my_widget);
 
-    nocterm_decorbox_border_t border = nocterm_decorbox_border_shape(NOCTERM_DECORBOX_BORDER_SHAPE_UNICODE_SHARP);
+    nocterm_decorbox_border_t border = nocterm_decorbox_border_from_shape(NOCTERM_DECORBOX_BORDER_SHAPE_UNICODE_SHARP);
 
     nocterm_attribute_t attr = {
         .color.ansi.fg = true,
@@ -157,7 +157,7 @@ int main(){
 
     nocterm_page_stack_push(main_page); 
  
-    nocterm_mouse_support(NOCTERM_MOUSE_SUPPORT_ADVANCED);
+    nocterm_mouse_set_support(NOCTERM_MOUSE_SUPPORT_ADVANCED);
 
     nocterm_init();
     nocterm_loop(); 

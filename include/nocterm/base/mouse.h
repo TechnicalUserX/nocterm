@@ -68,18 +68,18 @@ typedef enum nocterm_mouse_support_t{
 }nocterm_mouse_support_t;
 
 /**
- * @brief Used to enable mouse support.
- * 
- * @param support 
+ * @brief Sets the current mouse support level.
+ *
+ * @param support
  */
-void nocterm_mouse_support(nocterm_mouse_support_t support);
+void nocterm_mouse_set_support(nocterm_mouse_support_t support);
 
 /**
- * @brief Retruns the internal mouse support flag.
- * 
- * @return nocterm_mouse_support_t 
+ * @brief Gets the current mouse support level.
+ *
+ * @return nocterm_mouse_support_t
  */
-nocterm_mouse_support_t nocterm_mouse_get_support_flag(void);
+nocterm_mouse_support_t nocterm_mouse_get_support(void);
 
 #ifdef __cplusplus
     }

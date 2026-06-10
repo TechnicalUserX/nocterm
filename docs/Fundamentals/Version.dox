@@ -1,0 +1,43 @@
+\page versioning Versioning
+
+Nocterm follows [Semantic Versioning](https://semver.org/) (`MAJOR.MINOR.PATCH[-PRERELEASE]`). The current version of the project is tracked in a single `VERSION` file at the root of the repository.
+
+When the project is configured (Refer to \ref installation), this version is parsed and used to generate a header file `nocterm/version.h`, which is placed alongside the other installed headers.
+
+---
+
+# API Overview
+
+To access version information at compile time, include the generated header:
+
+```c
+#include <nocterm/version.h>
+```
+
+The header defines the following macros:
+
+| Macro                          | Description                                              |
+| ------------------------------- | --------------------------------------------------------- |
+| `NOCTERM_VERSION_MAJOR`          | Major version number                                       |
+| `NOCTERM_VERSION_MINOR`          | Minor version number                                       |
+| `NOCTERM_VERSION_PATCH`          | Patch version number                                       |
+| `NOCTERM_VERSION_PRERELEASE`     | Pre-release identifier (e.g. `alpha.1`), if any            |
+| `NOCTERM_VERSION`                | Full version string (e.g. `"1.0.0-alpha.1"`)               |
+
+`Example`
+
+```c
+#include <nocterm/nocterm.h>
+#include <nocterm/version.h>
+
+int main(){
+
+    nocterm_io_print("Built with Nocterm v%s\n", NOCTERM_VERSION);
+    nocterm_io_print("Major version: %d\n", NOCTERM_VERSION_MAJOR);
+
+    return 0;
+}
+```
+
+> `NOCTERM_VERSION_PRERELEASE` is only meaningful when the project is built from a pre-release `VERSION` (i.e. one containing a `-` suffix). If there is no pre-release suffix, this macro expands to an empty string `""`.
+

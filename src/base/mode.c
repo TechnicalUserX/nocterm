@@ -16,12 +16,12 @@ int nocterm_mode_restore(void){
     return NOCTERM_SUCCESS;
 }
 
-int nocterm_mode_raw(void){
+int nocterm_mode_set_raw(void){
 
-    struct termios nocterm_mode_raw = {0};
-    memcpy(&nocterm_mode_raw, &nocterm_mode_original, sizeof(struct termios));
-    cfmakeraw(&nocterm_mode_raw);
-    if(tcsetattr(STDIN_FILENO, TCSAFLUSH, &nocterm_mode_raw) == -1){
+    struct termios raw_mode = {0};
+    memcpy(&raw_mode, &nocterm_mode_original, sizeof(struct termios));
+    cfmakeraw(&raw_mode);
+    if(tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw_mode) == -1){
         return NOCTERM_FAILURE;
     }
 

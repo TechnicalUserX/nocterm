@@ -1,5 +1,8 @@
 #include <nocterm/widgets/pixelgrid.h>
 
+int nocterm_widget_flex_policy_set_permission(nocterm_widget_t* widget, nocterm_widget_flex_policy_permission_t permission);
+
+
 nocterm_pixelgrid_t *nocterm_pixelgrid_new(uint32_t pixel_height, uint16_t pixel_width){
 
     nocterm_pixelgrid_t *new_pixelgrid = (nocterm_pixelgrid_t *)malloc(sizeof(nocterm_pixelgrid_t));

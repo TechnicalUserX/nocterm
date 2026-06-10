@@ -25,7 +25,7 @@ int main(){
     nocterm_page_stack_push(main_page); 
  
     // Call this function before nocterm_init()
-    nocterm_mouse_support(NOCTERM_MOUSE_SUPPORT_SIMPLE);
+    nocterm_mouse_set_support(NOCTERM_MOUSE_SUPPORT_SIMPLE);
 
     nocterm_init();
     nocterm_loop(); 

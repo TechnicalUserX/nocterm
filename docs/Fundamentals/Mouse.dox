@@ -11,7 +11,7 @@ Below table describes different mouse support modes in the Nocterm library:
 | NOCTERM_MOUSE_SUPPORT_SIMPLE   | Classic mouse actions are allowed   |
 | NOCTERM_MOUSE_SUPPORT_ADVANCED | Classic + advanced features         |
 
-To set the current mouse support, call the `nocterm_mouse_support()` before calling the `nocterm_init()` function. 
+To set the current mouse support, call the `nocterm_mouse_set_support()` before calling the `nocterm_init()` function. 
 
 In the example below, it should be possible to press the button with a mouse click:
 

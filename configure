@@ -821,6 +821,13 @@ for target in ${TARGETS}; do
     case "$target" in
 
         nocterm)
+
+            if config_build_in "templates/version.h.in" "${BUILD_HDR_DIR}/nocterm/version.h"; then
+                config_log PASS "version.h"
+            else
+                config_log FAIL "version.h"
+            fi
+
             if config_sources "$target" "src"; then
                 config_log PASS "${PROJECT} sources"
             else

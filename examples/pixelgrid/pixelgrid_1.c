@@ -7,7 +7,7 @@ int main(){
     nocterm_decorbox_t* my_decorbox = nocterm_decorbox_new(NOCTERM_WIDGET(my_pixelgrid));
     nocterm_widget_t* my_widget = nocterm_widget_new(10, 20, NOCTERM_WIDGET_FOCUSABLE_YES, NOCTERM_WIDGET_TYPE_VIRTUAL);
 
-    nocterm_decorbox_border_t border = nocterm_decorbox_border_shape(NOCTERM_DECORBOX_BORDER_SHAPE_UNICODE_ROUND);
+    nocterm_decorbox_border_t border = nocterm_decorbox_border_from_shape(NOCTERM_DECORBOX_BORDER_SHAPE_UNICODE_ROUND);
 
     nocterm_attribute_t attr = {
         .color.ansi.fg = true,

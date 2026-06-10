@@ -1,0 +1,79 @@
+\page configuration Configuration
+
+Nocterm allocates most of its internal buffers statically (e.g. I/O buffers, key event buffers, widget text buffers). Each of these buffers has a sane default size, defined as a `NOCTERM_*` macro inside the relevant header file.
+
+If the default sizes do not fit the needs of your application (e.g. you need longer button labels, or a deeper widget tree), these limits can be overridden at build time via the project's `Kconfig`-based configuration system, without editing any header file.
+
+---
+
+# Using `menuconfig`
+
+The configuration menu is opened with:
+
+```shell
+make menuconfig
+```
+
+> This requires a Kconfig frontend to be installed, such as `kconfiglib` (`pip install kconfiglib`), which provides the `kconfig-mconf` and `kconfig-conf` tools used by the makefile.
+
+Inside the menu, options are grouped under **Core** and **Widgets** categories. Each group of related limits is hidden behind a `menuconfig` toggle named `Override ... limits`. Enabling such a toggle reveals the individual numeric options belonging to that group.
+
+`Example`
+
+To change the maximum text size of the button widget:
+
+1. Run `make menuconfig`.
+2. Enter the **Widgets** menu.
+3. Enable `Override button limits`.
+4. Set `Maximum button text size (characters)` to the desired value.
+5. Save and exit.
+
+Once saved, an internal configuration header is (re)generated and automatically included for every subsequent `make` invocation. Any limit whose group toggle is left disabled keeps using its built-in default value.
+
+---
+
+# How It Works
+
+Every overridable limit is defined in its header using the following pattern:
+
+```c
+#ifndef CONFIG_NOCTERM_EXAMPLE_LIMIT
+    #define NOCTERM_EXAMPLE_LIMIT 128
+#else
+    #define NOCTERM_EXAMPLE_LIMIT CONFIG_NOCTERM_EXAMPLE_LIMIT
+#endif
+```
+
+If `make menuconfig` was never run, or the corresponding `Override ... limits` toggle is disabled, `CONFIG_NOCTERM_EXAMPLE_LIMIT` is never defined and the hardcoded default is used. Otherwise, the value chosen in `menuconfig` takes precedence.
+
+> If you are not building from source with the project's `configure`/`make` workflow (Refer to \ref installation), none of the `CONFIG_NOCTERM_*` macros will be defined, and Nocterm always falls back to its built-in defaults.
+
+---
+
+# Available Options
+
+## Core
+
+| Configuration                            | Description                                            | Default | Group Toggle                  |
+| ----------------------------------------- | ------------------------------------------------------ | ------- | ------------------------------ |
+| `CONFIG_NOCTERM_WIDGET_MAX_DEPTH`          | Maximum widget tree depth                               | 128     | `NOCTERM_WIDGET_LIMITS`         |
+| `CONFIG_NOCTERM_IO_BUFFER_SIZE`            | I/O buffer size (bytes)                                 | 8192    | `NOCTERM_IO_LIMITS`             |
+| `CONFIG_NOCTERM_KEY_BUFFER_SIZE`           | Key event buffer size (bytes)                           | 256     | `NOCTERM_KEY_LIMITS`            |
+| `CONFIG_NOCTERM_KEY_ESCSEQ_INTERVAL`       | Escape sequence next-character wait interval (ms)       | 50      | `NOCTERM_KEY_LIMITS`            |
+| `CONFIG_NOCTERM_ATTRIBUTE_BUFFER_SIZE`     | Attribute escape sequence buffer size (bytes)           | 512     | `NOCTERM_ATTRIBUTE_LIMITS`      |
+| `CONFIG_NOCTERM_TIMER_CALLBACK_MOMENTARY_MAX` | Maximum momentary timer callbacks                    | 64      | `NOCTERM_TIMER_LIMITS`          |
+| `CONFIG_NOCTERM_OVERLAY_WIDGET_MAX_SIZE`   | Maximum widgets per overlay                             | 16      | `NOCTERM_OVERLAY_LIMITS`        |
+| `CONFIG_NOCTERM_PAGE_TITLE_MAX_SIZE`       | Maximum page title size (characters)                    | 256     | `NOCTERM_PAGE_LIMITS`           |
+| `CONFIG_NOCTERM_PAGE_STACK_MAX_SIZE`       | Maximum page stack size                                 | 128     | `NOCTERM_PAGE_LIMITS`           |
+
+## Widgets
+
+| Configuration                                  | Description                                       | Default | Group Toggle                |
+| ------------------------------------------------ | --------------------------------------------------- | ------- | ----------------------------- |
+| `CONFIG_NOCTERM_BUTTON_TEXT_MAX_SIZE`             | Maximum button text size (characters)                | 256     | `NOCTERM_BUTTON_LIMITS`        |
+| `CONFIG_NOCTERM_DECORBOX_LABEL_MAX_SIZE`          | Maximum decorbox label size (characters)             | 64      | `NOCTERM_DECORBOX_LIMITS`      |
+| `CONFIG_NOCTERM_ENTRY_BUFFER_MAX_SIZE`            | Maximum entry buffer size (characters)               | 4096    | `NOCTERM_ENTRY_LIMITS`         |
+| `CONFIG_NOCTERM_TEXTBOX_BUFFER_MAX_SIZE`          | Maximum textbox buffer size (characters)             | 8192    | `NOCTERM_TEXTBOX_LIMITS`       |
+| `CONFIG_NOCTERM_TEXTVIEW_BUFFER_SIZE`             | Maximum textview buffer size (characters)            | 8096    | `NOCTERM_TEXTVIEW_LIMITS`      |
+| `CONFIG_NOCTERM_LISTVIEW_ITEM_CONTENT_MAX_SIZE`   | Maximum listview item content size (characters)      | 1024    | `NOCTERM_LISTVIEW_LIMITS`      |
+| `CONFIG_NOCTERM_MENU_ITEM_CONTENT_MAX_SIZE`       | Maximum menu item content size (characters)          | 128     | `NOCTERM_MENU_LIMITS`          |

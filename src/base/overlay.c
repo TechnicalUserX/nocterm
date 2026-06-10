@@ -9,7 +9,7 @@ int nocterm_widget_refresh(nocterm_widget_t* widget);
 
 nocterm_overlay_t* nocterm_overlay = {0}; // Global overlay
 
-nocterm_overlay_t* nocterm_overlay_new(){
+nocterm_overlay_t* nocterm_overlay_new(void){
 
     nocterm_overlay_t* new_overlay = (nocterm_overlay_t*)malloc(sizeof(nocterm_overlay_t));
 

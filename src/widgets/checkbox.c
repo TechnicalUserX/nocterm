@@ -1,5 +1,8 @@
 #include <nocterm/widgets/checkbox.h>
 
+int nocterm_widget_flex_policy_set_permission(nocterm_widget_t* widget, nocterm_widget_flex_policy_permission_t permission);
+
+
 NOCTERM_INTERNAL NOCTERM_WIDGET_KEY_HANDLER(nocterm_checkbox_key_handler);
 
 NOCTERM_INTERNAL NOCTERM_WIDGET_FOCUS_HANDLER(nocterm_checkbox_focus_handler);
@@ -73,9 +76,9 @@ int nocterm_checkbox_constructor(nocterm_checkbox_t* checkbox, nocterm_checkbox_
         nocterm_widget_update(NOCTERM_WIDGET(checkbox), 0, 1, nocterm_char_from_ascii(' '), checkbox->main_attribute);
     }
 
-    nocterm_widget_add_key_handler(NOCTERM_WIDGET(checkbox), nocterm_checkbox_key_handler);
+    nocterm_widget_set_key_handler(NOCTERM_WIDGET(checkbox), nocterm_checkbox_key_handler);
 
-    nocterm_widget_add_focus_handler(NOCTERM_WIDGET(checkbox), nocterm_checkbox_focus_handler);
+    nocterm_widget_set_focus_handler(NOCTERM_WIDGET(checkbox), nocterm_checkbox_focus_handler);
 
     return NOCTERM_SUCCESS;
 }

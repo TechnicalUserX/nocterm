@@ -13,7 +13,11 @@
 #include <nocterm/common/nocterm.h>
 #include <nocterm/base/widget.h>
 
-#define NOCTERM_TIMER_CALLBACK_MOMENTARY_MAX 64
+#ifndef CONFIG_NOCTERM_TIMER_CALLBACK_MOMENTARY_MAX
+    #define NOCTERM_TIMER_CALLBACK_MOMENTARY_MAX 64
+#else
+    #define NOCTERM_TIMER_CALLBACK_MOMENTARY_MAX CONFIG_NOCTERM_TIMER_CALLBACK_MOMENTARY_MAX
+#endif
 
 #define NOCTERM_TIMER_CALLBACK(identifier) void identifier(nocterm_widget_t* widget, void* user_data)
 
@@ -82,7 +86,7 @@ int nocterm_timer_stop(nocterm_timer_t* timer);
 int nocterm_timer_stop_all_of_widget(nocterm_widget_t* widget, bool recursive);
 
 /**
- * @brief Delets a timer.
+ * @brief Deletes a timer.
  * 
  * @param timer 
  * @return int 

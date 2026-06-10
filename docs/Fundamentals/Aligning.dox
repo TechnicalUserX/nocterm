@@ -1,0 +1,77 @@
+\page aligning Aligning
+
+Alignment lets a widget position itself relative to its parent (or relative to the terminal screen, if the widget is a root widget), instead of using fixed `row`/`col` coordinates set via `nocterm_widget_set_position()` (Refer to \ref widgets).
+
+An alignment, once set, is **persistent**: it is automatically re-applied whenever the widget's parent is resized, e.g. on terminal resize or when a page becomes the active page (Refer to \ref pagestack).
+
+> Setting an absolute position with `nocterm_widget_set_position()`, `nocterm_widget_set_row()` or `nocterm_widget_set_col()` clears the corresponding horizontal or vertical alignment.
+
+---
+
+# Alignment Types
+
+Alignment is configured with the function `nocterm_widget_align()`:
+
+```c
+int nocterm_widget_align(nocterm_widget_t* widget, nocterm_widget_align_t align, ...);
+```
+
+The possible values of `nocterm_widget_align_t` are listed below:
+
+| Alignment                                | Axis       | Extra Argument        | Description                                              |
+| ------------------------------------------ | ---------- | ---------------------- | ----------------------------------------------------------- |
+| `NOCTERM_WIDGET_ALIGN_NONE`                 | Both       | -                       | Clears any horizontal and vertical alignment               |
+| `NOCTERM_WIDGET_ALIGN_LEFT`                 | Horizontal | -                       | Aligns the widget to the left edge of its parent           |
+| `NOCTERM_WIDGET_ALIGN_RIGHT`                | Horizontal | -                       | Aligns the widget to the right edge of its parent          |
+| `NOCTERM_WIDGET_ALIGN_CENTER_HORIZONTAL`    | Horizontal | -                       | Centers the widget horizontally within its parent          |
+| `NOCTERM_WIDGET_ALIGN_TOP`                  | Vertical   | -                       | Aligns the widget to the top edge of its parent            |
+| `NOCTERM_WIDGET_ALIGN_BOTTOM`               | Vertical   | -                       | Aligns the widget to the bottom edge of its parent         |
+| `NOCTERM_WIDGET_ALIGN_CENTER_VERTICAL`      | Vertical   | -                       | Centers the widget vertically within its parent            |
+| `NOCTERM_WIDGET_ALIGN_PERCENT_HORIZONTAL`   | Horizontal | `int percentage` (0-100) | Shifts the horizontal alignment reference point to `percentage`% of the parent's width |
+| `NOCTERM_WIDGET_ALIGN_PERCENT_VERTICAL`     | Vertical   | `int percentage` (0-100) | Shifts the vertical alignment reference point to `percentage`% of the parent's height  |
+| `NOCTERM_WIDGET_ALIGN_MARGIN_HORIZONTAL`    | Horizontal | `int margin` (>= 0)     | Adds a horizontal margin (in cells) to `LEFT`/`RIGHT` alignment |
+| `NOCTERM_WIDGET_ALIGN_MARGIN_VERTICAL`      | Vertical   | `int margin` (>= 0)     | Adds a vertical margin (in cells) to `TOP`/`BOTTOM` alignment |
+
+> `LEFT`, `RIGHT` and `CENTER_HORIZONTAL` are mutually exclusive on the horizontal axis, just as `TOP`, `BOTTOM` and `CENTER_VERTICAL` are mutually exclusive on the vertical axis. Setting one clears the other on the same axis.
+
+---
+
+# Percent & Margin Modifiers
+
+`PERCENT_*` and `MARGIN_*` do not align a widget by themselves; they modify the currently set `LEFT`/`RIGHT`/`TOP`/`BOTTOM`/`CENTER_*` alignment of the same axis:
+
+- For `LEFT`/`TOP`, the margin is added **after** the percent offset, pushing the widget further away from its respective edge.
+- For `RIGHT`/`BOTTOM`, the margin and percent offset are subtracted from the parent's edge.
+- For `CENTER_HORIZONTAL`/`CENTER_VERTICAL`, the percent offset moves the widget's *center point* to that percentage of the parent's dimension instead of the parent's midpoint. The margin modifier has **no effect** on centered widgets.
+
+> If the resulting position together with the widget's size would not fit inside the parent, the alignment is silently skipped and the widget keeps its previous position.
+
+---
+
+# API Overview
+
+Below example centers a widget horizontally and aligns it to the bottom of its parent with a vertical margin of 2 cells:
+
+```c
+#include <nocterm/nocterm.h>
+
+int main(){
+
+    nocterm_widget_t* my_widget = nocterm_widget_new(5, 20, NOCTERM_WIDGET_FOCUSABLE_NO, NOCTERM_WIDGET_TYPE_REAL);
+
+    nocterm_widget_align(my_widget, NOCTERM_WIDGET_ALIGN_CENTER_HORIZONTAL);
+    nocterm_widget_align(my_widget, NOCTERM_WIDGET_ALIGN_BOTTOM);
+    nocterm_widget_align(my_widget, NOCTERM_WIDGET_ALIGN_MARGIN_VERTICAL, 2);
+
+    nocterm_widget_delete(my_widget);
+
+    return 0;
+}
+```
+
+To remove every alignment from a widget, restoring it to manual positioning:
+
+```c
+nocterm_widget_align(my_widget, NOCTERM_WIDGET_ALIGN_NONE);
+```
+

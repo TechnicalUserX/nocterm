@@ -1,5 +1,7 @@
 #include <nocterm/widgets/decorbox.h>
 
+int nocterm_widget_flex_policy_set_permission(nocterm_widget_t* widget, nocterm_widget_flex_policy_permission_t permission);
+
 NOCTERM_INTERNAL int nocterm_decorbox_border_draw(nocterm_decorbox_t* decorbox, nocterm_decorbox_border_t border, nocterm_attribute_t attribute);
 
 NOCTERM_INTERNAL NOCTERM_WIDGET_KEY_HANDLER(nocterm_decorbox_key_handler);
@@ -66,11 +68,11 @@ int nocterm_decorbox_constructor(nocterm_decorbox_t* decorbox, nocterm_widget_t*
 
     nocterm_widget_add_subwidget(NOCTERM_WIDGET(decorbox), contained_widget);
 
-    if(nocterm_widget_add_focus_handler(NOCTERM_WIDGET(decorbox), nocterm_decorbox_focus_handler) == NOCTERM_FAILURE){
+    if(nocterm_widget_set_focus_handler(NOCTERM_WIDGET(decorbox), nocterm_decorbox_focus_handler) == NOCTERM_FAILURE){
         return NOCTERM_FAILURE;
     }
 
-    if(nocterm_widget_add_key_handler(NOCTERM_WIDGET(decorbox), nocterm_decorbox_key_handler) == NOCTERM_FAILURE){
+    if(nocterm_widget_set_key_handler(NOCTERM_WIDGET(decorbox), nocterm_decorbox_key_handler) == NOCTERM_FAILURE){
         return NOCTERM_FAILURE;
     }
 
@@ -159,7 +161,7 @@ int nocterm_decorbox_set_label(nocterm_decorbox_t* decorbox, const char* label, 
     return NOCTERM_SUCCESS;
 }
 
-nocterm_decorbox_border_t nocterm_decorbox_border_shape(nocterm_decorbox_border_shape_t shape){
+nocterm_decorbox_border_t nocterm_decorbox_border_from_shape(nocterm_decorbox_border_shape_t shape){
 
     switch(shape){
         default:

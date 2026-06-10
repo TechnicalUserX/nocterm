@@ -22,15 +22,17 @@ typedef enum nocterm_encoding_t{
     NOCTERM_ENCODING_UTF8
 }nocterm_encoding_t;
 
-#ifdef __cplusplus
-    }
-#endif
-
 /**
  * @brief Returns current terminal's character encoding.
  * 
  * @return nocterm_encoding_t 
  */
 nocterm_encoding_t nocterm_encoding_get(void);
+
+#ifdef __cplusplus
+    }
+#endif
+
+
 
 #endif

@@ -533,7 +533,7 @@ static nocterm_decorbox_t *make_decorbox(nocterm_widget_t *inner,
 {
     nocterm_decorbox_t *db = nocterm_decorbox_new(inner);
     nocterm_decorbox_set_border(db,
-        nocterm_decorbox_border_shape(NOCTERM_DECORBOX_BORDER_SHAPE_UNICODE_ROUND),
+        nocterm_decorbox_border_from_shape(NOCTERM_DECORBOX_BORDER_SHAPE_UNICODE_ROUND),
         normal, focused);
     if (lbl)
         nocterm_decorbox_set_label(db, lbl, strlen(lbl) + 1,
@@ -675,7 +675,7 @@ static nocterm_page_t *build_setup_page(
     nocterm_entry_t *ip_e = nocterm_entry_new(28);
     nocterm_entry_set_attribute(ip_e, en, ec);
     nocterm_entry_set_text(ip_e, (char *)ip_default, strlen(ip_default) + 1);
-    nocterm_widget_add_key_handler(NOCTERM_WIDGET(ip_e), setup_entry_kh);
+    nocterm_widget_set_key_handler(NOCTERM_WIDGET(ip_e), setup_entry_kh);
     nocterm_decorbox_t *ip_db = make_decorbox(NOCTERM_WIDGET(ip_e), en, ef, NULL, 0);
     nocterm_widget_flex(NOCTERM_WIDGET(ip_db), NOCTERM_WIDGET_FLEX_PERCENT_HORIZONTAL, 45);
     nocterm_widget_add_subwidget(root, NOCTERM_WIDGET(ip_db));
@@ -696,7 +696,7 @@ static nocterm_page_t *build_setup_page(
     nocterm_entry_t *port_e = nocterm_entry_new(10);
     nocterm_entry_set_attribute(port_e, en, ec);
     nocterm_entry_set_text(port_e, (char *)port_default, strlen(port_default) + 1);
-    nocterm_widget_add_key_handler(NOCTERM_WIDGET(port_e), setup_entry_kh);
+    nocterm_widget_set_key_handler(NOCTERM_WIDGET(port_e), setup_entry_kh);
     nocterm_decorbox_t *port_db = make_decorbox(NOCTERM_WIDGET(port_e), en, ef, NULL, 0);
     nocterm_widget_add_subwidget(root, NOCTERM_WIDGET(port_db));
     nocterm_widget_align(NOCTERM_WIDGET(port_db), NOCTERM_WIDGET_ALIGN_CENTER_HORIZONTAL);
@@ -855,7 +855,7 @@ static nocterm_page_t *build_chat_page(void)
     /* message entry: bottom-left, 75% wide */
     g_msg_entry = nocterm_entry_new(64);
     nocterm_entry_set_attribute(g_msg_entry, en, ec);
-    nocterm_widget_add_key_handler(NOCTERM_WIDGET(g_msg_entry), chat_entry_kh);
+    nocterm_widget_set_key_handler(NOCTERM_WIDGET(g_msg_entry), chat_entry_kh);
     nocterm_decorbox_t *entry_box = make_decorbox(
         NOCTERM_WIDGET(g_msg_entry), en, ef, " Message ", 2);
     nocterm_widget_add_subwidget(root, NOCTERM_WIDGET(entry_box));
@@ -926,7 +926,7 @@ int main(void)
     g_conn_timer = nocterm_timer_create(
         g_cli_setup_pg->root_widget, 200, conn_poll_cb, NULL);
 
-    nocterm_mouse_support(NOCTERM_MOUSE_SUPPORT_ADVANCED);
+    nocterm_mouse_set_support(NOCTERM_MOUSE_SUPPORT_ADVANCED);
     nocterm_page_stack_push(g_greeting_pg);
 
     nocterm_init();

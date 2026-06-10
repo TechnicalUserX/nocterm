@@ -12,7 +12,7 @@ int main(){
 
     nocterm_widget_add_subwidget(my_widget, NOCTERM_WIDGET(my_label));
  
-    nocterm_decorbox_border_t border_shape = nocterm_decorbox_border_shape(NOCTERM_DECORBOX_BORDER_SHAPE_UNICODE_ROUND);
+    nocterm_decorbox_border_t border_shape = nocterm_decorbox_border_from_shape(NOCTERM_DECORBOX_BORDER_SHAPE_UNICODE_ROUND);
 
     nocterm_attribute_t attr = {
         .color.ansi.fg = true,

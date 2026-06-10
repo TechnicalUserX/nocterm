@@ -1,5 +1,7 @@
 #include <nocterm/widgets/textview.h>
 
+int nocterm_widget_flex_policy_set_permission(nocterm_widget_t* widget, nocterm_widget_flex_policy_permission_t permission);
+
 NOCTERM_INTERNAL NOCTERM_WIDGET_RESIZE_HANDLER(nocterm_textview_internal_resize_handler);
 
 NOCTERM_INTERNAL NOCTERM_WIDGET_KEY_HANDLER(nocterm_textview_key_handler);
@@ -60,7 +62,7 @@ int nocterm_textview_constructor(nocterm_textview_t* textview, nocterm_dimension
     textview->text_length  = 0;
     textview->scroll_offset = 0;
 
-    nocterm_widget_add_key_handler(NOCTERM_WIDGET(textview), nocterm_textview_key_handler);
+    nocterm_widget_set_key_handler(NOCTERM_WIDGET(textview), nocterm_textview_key_handler);
 
     NOCTERM_WIDGET(textview)->internal_resize_handler = nocterm_textview_internal_resize_handler;
 

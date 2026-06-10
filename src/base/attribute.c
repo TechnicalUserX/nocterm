@@ -1,6 +1,6 @@
 #include <nocterm/base/attribute.h>
 
-int nocterm_attribute_set(nocterm_attribute_t attribute){
+int nocterm_attribute_apply(nocterm_attribute_t attribute){
     // Requires write()
      
     char attribute_buffer[NOCTERM_ATTRIBUTE_BUFFER_SIZE] = {0};
@@ -160,5 +160,5 @@ int nocterm_attribute_set(nocterm_attribute_t attribute){
 
 int nocterm_attribute_clear(void){
     nocterm_attribute_t attr = {.clear = true};
-    return nocterm_attribute_set(attr);
+    return nocterm_attribute_apply(attr);
 }

@@ -7,7 +7,11 @@ The Nocterm project is built on top of following fundamental components:
 - \subpage key
 - \subpage attributes
 - \subpage widgets
+- \subpage aligning
+- \subpage flexing
 - \subpage pagestack
 - \subpage mainloop
 - \subpage timers
 - \subpage mouse
+- \subpage configuration
+- \subpage versioning

@@ -126,7 +126,7 @@ nocterm_char_t nocterm_char_from_ascii(char ch){
     return result;
 }
 
-nocterm_char_t nocterm_char_from_utf8(wchar_t ch){
+nocterm_char_t nocterm_char_from_wchar(wchar_t ch){
     nocterm_char_t result = {0};
     mbstate_t mbstate = {0};
 

@@ -34,6 +34,9 @@ int nocterm_widget_flex_update(nocterm_widget_t* widget);
 
 int nocterm_signal_init(void);
 
+
+extern nocterm_widget_t* nocterm_widget_focused;
+
 // ====================== Internal Access ====================== //
 
 
@@ -51,15 +54,15 @@ int nocterm_init(void){
         return NOCTERM_FAILURE;
     }    
 
-    if(nocterm_io_cursor_visible(false) == NOCTERM_FAILURE){
+    if(nocterm_io_set_cursor_visible(false) == NOCTERM_FAILURE){
         return NOCTERM_FAILURE;
     }
 
-    if(nocterm_mode_raw() == NOCTERM_FAILURE){
+    if(nocterm_mode_set_raw() == NOCTERM_FAILURE){
         return NOCTERM_FAILURE;
     }
 
-    if(nocterm_mouse_get_support_flag() != NOCTERM_MOUSE_SUPPORT_NONE){
+    if(nocterm_mouse_get_support() != NOCTERM_MOUSE_SUPPORT_NONE){
         if(nocterm_mouse_enable() == NOCTERM_FAILURE){
             return NOCTERM_FAILURE;
         }
@@ -90,7 +93,7 @@ int nocterm_init(void){
 
 int nocterm_end(void){
 
-    if(nocterm_io_cursor_visible(true) == NOCTERM_FAILURE){
+    if(nocterm_io_set_cursor_visible(true) == NOCTERM_FAILURE){
         return NOCTERM_FAILURE;
     }
 
@@ -102,7 +105,7 @@ int nocterm_end(void){
         return NOCTERM_FAILURE;
     }
 
-    if(nocterm_mouse_get_support_flag() != NOCTERM_MOUSE_SUPPORT_NONE){
+    if(nocterm_mouse_get_support() != NOCTERM_MOUSE_SUPPORT_NONE){
         if(nocterm_mouse_disable() == NOCTERM_FAILURE){
             return NOCTERM_FAILURE;
         }
@@ -253,13 +256,13 @@ int nocterm_loop(void){
         nocterm_timer_tick();
 
         // Resize control
-        if(nocterm_signal_flags.nocterm_signal_sigwinch){
+        if(nocterm_signal_flags.sigwinch){
 
             current_page->root_widget->hard_refresh = true;
             if(current_overlay){
                 current_overlay->hard_refresh = true;
             }
-            nocterm_signal_flags.nocterm_signal_sigwinch = false;
+            nocterm_signal_flags.sigwinch = false;
 
             struct winsize w = {0};
 

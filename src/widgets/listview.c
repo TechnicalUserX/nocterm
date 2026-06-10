@@ -1,5 +1,8 @@
 #include <nocterm/widgets/listview.h>
 
+int nocterm_widget_flex_policy_set_permission(nocterm_widget_t* widget, nocterm_widget_flex_policy_permission_t permission);
+
+
 NOCTERM_INTERNAL NOCTERM_WIDGET_RESIZE_HANDLER(nocterm_listview_internal_resize_handler);
 
 NOCTERM_INTERNAL int nocterm_widget_buffer_resize(nocterm_widget_t* widget, nocterm_dimension_size_t height, nocterm_dimension_size_t width);
@@ -79,7 +82,7 @@ int nocterm_listview_constructor(nocterm_listview_t* listview, nocterm_dimension
     listview->visible_rows = items_displayed;
     listview->items_total  = (nocterm_dimension_size_t)items_total;
 
-    nocterm_widget_add_key_handler(NOCTERM_WIDGET(listview), nocterm_listview_key_handler);
+    nocterm_widget_set_key_handler(NOCTERM_WIDGET(listview), nocterm_listview_key_handler);
 
     NOCTERM_WIDGET(listview)->internal_resize_handler = nocterm_listview_internal_resize_handler;
 
@@ -248,7 +251,7 @@ int nocterm_listview_pop_back(nocterm_listview_t* listview, nocterm_listview_ite
 
         if(listview->item_array->size > NOCTERM_WIDGET(listview)->viewport.height){
             // There are items at the top
-            nocterm_widget_set_viewport_up(NOCTERM_WIDGET(listview));
+            nocterm_widget_scroll_viewport_up(NOCTERM_WIDGET(listview));
         }
     }
 
@@ -299,7 +302,7 @@ int nocterm_listview_pop_front(nocterm_listview_t* listview, nocterm_listview_it
         // We are at most bottom edge
         if(NOCTERM_WIDGET(listview)->viewport.row > 0 ){
             // There are items at the top
-            nocterm_widget_set_viewport_up(NOCTERM_WIDGET(listview));
+            nocterm_widget_scroll_viewport_up(NOCTERM_WIDGET(listview));
         }
     }
 
@@ -466,7 +469,7 @@ int nocterm_listview_move_up(nocterm_listview_t* listview){
 
     pthread_mutex_lock(&NOCTERM_WIDGET(listview)->lock);
 
-    nocterm_widget_set_viewport_up(NOCTERM_WIDGET(listview));          
+    nocterm_widget_scroll_viewport_up(NOCTERM_WIDGET(listview));          
 
     pthread_mutex_unlock(&NOCTERM_WIDGET(listview)->lock);
 
@@ -483,7 +486,7 @@ int nocterm_listview_move_down(nocterm_listview_t* listview){
     pthread_mutex_lock(&NOCTERM_WIDGET(listview)->lock);
 
     if(NOCTERM_WIDGET(listview)->viewport.row + NOCTERM_WIDGET(listview)->viewport.height < NOCTERM_LISTVIEW(listview)->item_array->size){
-        nocterm_widget_set_viewport_down(NOCTERM_WIDGET(listview));
+        nocterm_widget_scroll_viewport_down(NOCTERM_WIDGET(listview));
     }
 
     pthread_mutex_unlock(&NOCTERM_WIDGET(listview)->lock);

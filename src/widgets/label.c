@@ -1,5 +1,8 @@
 #include <nocterm/widgets/label.h>
 
+int nocterm_widget_flex_policy_set_permission(nocterm_widget_t* widget, nocterm_widget_flex_policy_permission_t permission);
+
+
 nocterm_label_t* nocterm_label_new(const char* text, uint64_t text_size){
 
     if(text == NULL || text_size == 0){

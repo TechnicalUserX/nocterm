@@ -11,7 +11,7 @@ NOCTERM_INTERNAL nocterm_mouse_support_t nocterm_mouse_support_flag = NOCTERM_MO
 
 NOCTERM_INTERNAL nocterm_dimension_size_t nocterm_mouse_row = 0, nocterm_mouse_col = 0;
 
-void nocterm_mouse_support(nocterm_mouse_support_t support){
+void nocterm_mouse_set_support(nocterm_mouse_support_t support){
     nocterm_mouse_support_flag = support;
 }
 
@@ -313,6 +313,6 @@ int nocterm_mouse_controller(nocterm_key_t* key){
     return NOCTERM_SUCCESS;
 }
 
-nocterm_mouse_support_t nocterm_mouse_get_support_flag(void){
+nocterm_mouse_support_t nocterm_mouse_get_support(void){
     return nocterm_mouse_support_flag;
 }

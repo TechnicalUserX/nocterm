@@ -14,25 +14,11 @@
 #include <nocterm/common/include.h>
 
 #ifdef __cplusplus
-    #define nocterm_thread_local_t thread_local
-#else
-    #define nocterm_thread_local_t _Thread_local
+    #define atomic_bool std::atomic_bool
 #endif
 
 #define NOCTERM_SUCCESS 0
 #define NOCTERM_FAILURE 1
-
-#ifndef bool
-    #define bool uint8_t
-#endif
-
-#ifndef true
-    #define true 1
-#endif
-
-#ifndef false
-    #define false 0
-#endif
 
 #ifdef __cplusplus
     extern "C" {

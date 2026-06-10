@@ -166,6 +166,7 @@ nocterm-install: superuser
 	@$(call build_log, "Installing...")
 	@install --target-directory ${DESTDIR}${PREFIX}/lib ${BUILD_LIB_DIR}/libnocterm.a
 	@cp -r ${HDR_DIR}/nocterm ${DESTDIR}${PREFIX}/include
+	@cp -r ${BUILD_HDR_DIR}/nocterm ${DESTDIR}${PREFIX}/include
 
 nocterm-uninstall: superuser
 	@$(call build_log, "Uninstalling...")

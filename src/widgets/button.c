@@ -1,5 +1,7 @@
 #include <nocterm/widgets/button.h>
 
+int nocterm_widget_flex_policy_set_permission(nocterm_widget_t* widget, nocterm_widget_flex_policy_permission_t permission);
+
 NOCTERM_INTERNAL NOCTERM_WIDGET_KEY_HANDLER(nocterm_button_key_handler);
 
 NOCTERM_INTERNAL NOCTERM_WIDGET_FOCUS_HANDLER(nocterm_button_focus_handler);
@@ -48,9 +50,9 @@ int nocterm_button_constructor(nocterm_button_t* button, nocterm_dimension_size_
         nocterm_widget_update(NOCTERM_WIDGET(button), 0, i, nocterm_char_from_ascii(' '), NOCTERM_ATTRIBUTE_EMPTY);
     }
 
-    nocterm_widget_add_key_handler(NOCTERM_WIDGET(button), nocterm_button_key_handler);
+    nocterm_widget_set_key_handler(NOCTERM_WIDGET(button), nocterm_button_key_handler);
 
-    nocterm_widget_add_focus_handler(NOCTERM_WIDGET(button), nocterm_button_focus_handler);
+    nocterm_widget_set_focus_handler(NOCTERM_WIDGET(button), nocterm_button_focus_handler);
 
     NOCTERM_WIDGET(button)->internal_resize_handler = nocterm_button_internal_resize_handler;
 

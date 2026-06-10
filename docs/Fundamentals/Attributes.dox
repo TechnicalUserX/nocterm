@@ -73,14 +73,14 @@ attr.clear = true;
 
 ---
 
-The function `nocterm_attribute_set()` is used internally by Nocterm to apply attributes to the current terminal.
+The function `nocterm_attribute_apply()` is used internally by Nocterm to apply attributes to the current terminal.
 
 ```c
 nocterm_attribute_t attr = {
 	.bold = true;
 };
 
-nocterm_attribute_set(attr);
+nocterm_attribute_apply(attr);
 ```
 
 ---
@@ -88,6 +88,6 @@ nocterm_attribute_set(attr);
 There is a predefined constant named `NOCTERM_ATTRIBUTE_EMPTY` that can be used when you don't want to set any attribute for anything.
 
 ```c
-nocterm_attribute_set(NOCTERM_ATTRIBUTE_EMPTY);
+nocterm_attribute_apply(NOCTERM_ATTRIBUTE_EMPTY);
 ```
 

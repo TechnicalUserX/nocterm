@@ -18,8 +18,10 @@
 #include <nocterm/base/encoding.h>
 #include <nocterm/base/screen.h>
 
-#ifndef NOCTERM_WIDGET_MAX_DEPTH
+#ifndef CONFIG_NOCTERM_WIDGET_MAX_DEPTH
     #define NOCTERM_WIDGET_MAX_DEPTH 128
+#else
+    #define NOCTERM_WIDGET_MAX_DEPTH CONFIG_NOCTERM_WIDGET_MAX_DEPTH    
 #endif
 
 #define NOCTERM_WIDGET(x) ((nocterm_widget_t*)x)
@@ -198,14 +200,6 @@ typedef struct nocterm_widget_t{
 }nocterm_widget_t;
 
 
-
-/**
- * @brief Keeps track of the currently focused widget, globally.
- * 
- */
-NOCTERM_INTERNAL
-extern nocterm_widget_t* nocterm_widget_focused;
-
 /**
  * @brief Creates a new widget.
  * 
@@ -246,45 +240,54 @@ int nocterm_widget_destructor(nocterm_widget_t* widget);
 int nocterm_widget_delete(nocterm_widget_t* widget);
 
 /**
+ * @brief Gets the viewport of a widget.
+ *
+ * @param widget
+ * @param viewport
+ * @return int
+ */
+int nocterm_widget_get_viewport(nocterm_widget_t* widget, nocterm_dimension_t* viewport);
+
+/**
  * @brief Changes viewport of a widget.
- * 
- * @param widget 
- * @param viewport 
- * @return int 
+ *
+ * @param widget
+ * @param viewport
+ * @return int
  */
 int nocterm_widget_set_viewport(nocterm_widget_t* widget, nocterm_dimension_t viewport);
 
 /**
- * @brief Moves up the viewport of a widget.
- * 
- * @param widget 
- * @return int 
+ * @brief Scrolls the viewport of a widget up by one row.
+ *
+ * @param widget
+ * @return int
  */
-int nocterm_widget_set_viewport_up(nocterm_widget_t* widget);
+int nocterm_widget_scroll_viewport_up(nocterm_widget_t* widget);
 
 /**
- * @brief Moves down the viewport of a widget.
- * 
- * @param widget 
- * @return int 
+ * @brief Scrolls the viewport of a widget down by one row.
+ *
+ * @param widget
+ * @return int
  */
-int nocterm_widget_set_viewport_down(nocterm_widget_t* widget);
+int nocterm_widget_scroll_viewport_down(nocterm_widget_t* widget);
 
 /**
- * @brief Moves right the viewport of a widget.
- * 
- * @param widget 
- * @return int 
+ * @brief Scrolls the viewport of a widget right by one column.
+ *
+ * @param widget
+ * @return int
  */
-int nocterm_widget_set_viewport_right(nocterm_widget_t* widget);
+int nocterm_widget_scroll_viewport_right(nocterm_widget_t* widget);
 
 /**
- * @brief Moves left the viewport of a widget.
- * 
- * @param widget 
- * @return int 
+ * @brief Scrolls the viewport of a widget left by one column.
+ *
+ * @param widget
+ * @return int
  */
-int nocterm_widget_set_viewport_left(nocterm_widget_t* widget);
+int nocterm_widget_scroll_viewport_left(nocterm_widget_t* widget);
 
 /**
  * @brief Retrieves the row and column position of a widget.
@@ -334,7 +337,7 @@ int nocterm_widget_set_col(nocterm_widget_t* widget, nocterm_dimension_size_t co
 int nocterm_widget_align(nocterm_widget_t* widget, nocterm_widget_align_t align, ...);
 
 /**
- * @brief Update positions of widgets if they are centered in any way.
+ * @brief Applies a widget's configured alignment policy to update its position.
  * 
  * @param widget 
  * @return int 
@@ -413,7 +416,7 @@ int nocterm_widget_set_floating_subwidgets(nocterm_widget_t* widget, bool floati
  * @param key_handler 
  * @return int 
  */
-int nocterm_widget_add_key_handler(nocterm_widget_t* widget, nocterm_widget_key_handler_t key_handler);
+int nocterm_widget_set_key_handler(nocterm_widget_t* widget, nocterm_widget_key_handler_t key_handler);
 
 /**
  * @brief Assigns a focus handler callback to a widget.
@@ -422,7 +425,7 @@ int nocterm_widget_add_key_handler(nocterm_widget_t* widget, nocterm_widget_key_
  * @param focus_handler 
  * @return int 
  */
-int nocterm_widget_add_focus_handler(nocterm_widget_t* widget, nocterm_widget_focus_handler_t focus_handler);
+int nocterm_widget_set_focus_handler(nocterm_widget_t* widget, nocterm_widget_focus_handler_t focus_handler);
 
 /**
  * @brief Assigns a resize handler callback to a widget.
@@ -431,44 +434,17 @@ int nocterm_widget_add_focus_handler(nocterm_widget_t* widget, nocterm_widget_fo
  * @param resize_handler
  * @return int
  */
-int nocterm_widget_add_resize_handler(nocterm_widget_t* widget, nocterm_widget_resize_handler_t resize_handler);
+int nocterm_widget_set_resize_handler(nocterm_widget_t* widget, nocterm_widget_resize_handler_t resize_handler);
 
 /**
- * @brief General purpse widget flex maniuplation function.
+ * @brief General purpose widget flex manipulation function.
  *
  * @param widget
- * @param nocterm_widget_flex_t
+ * @param flex
  * @return int
  */
 int nocterm_widget_flex(nocterm_widget_t* widget, nocterm_widget_flex_t flex, ...);
 
-NOCTERM_INTERNAL
-int nocterm_widget_flex_policy_set_permission(nocterm_widget_t* widget, nocterm_widget_flex_policy_permission_t permission);
-
-NOCTERM_INTERNAL
-int nocterm_widget_flex_policy_set_fixed_horizontal(nocterm_widget_t* widget);
-
-NOCTERM_INTERNAL
-int nocterm_widget_flex_policy_set_fixed_vertical(nocterm_widget_t* widget);
-
-
-NOCTERM_INTERNAL
-int nocterm_widget_flex_policy_set_fill_horizontal(nocterm_widget_t* widget);
-
-NOCTERM_INTERNAL
-int nocterm_widget_flex_policy_set_fill_vertical(nocterm_widget_t* widget);
-
-NOCTERM_INTERNAL
-int nocterm_widget_flex_policy_set_fill_both(nocterm_widget_t* widget);
-
-NOCTERM_INTERNAL
-int nocterm_widget_flex_policy_set_percent_horizontal(nocterm_widget_t* widget, nocterm_percentage_t percentage);
-
-NOCTERM_INTERNAL
-int nocterm_widget_flex_policy_set_percent_vertical(nocterm_widget_t* widget, nocterm_percentage_t percentage);
-
-NOCTERM_INTERNAL
-int nocterm_widget_flex_update(nocterm_widget_t* widget);
 
 /**
  * @brief Updates a single cell in the widget cell buffer.
@@ -483,12 +459,12 @@ int nocterm_widget_flex_update(nocterm_widget_t* widget);
 int nocterm_widget_update(nocterm_widget_t* widget, nocterm_dimension_size_t row, nocterm_dimension_size_t col, nocterm_char_t ch, nocterm_attribute_t attr);
 
 /**
- * @brief Enforces root to be refreshed.
- * 
- * @param widget 
- * @return int 
+ * @brief Requests the root widget to be refreshed.
+ *
+ * @param widget
+ * @return int
  */
-int nocterm_widget_enforce_root_refresh(nocterm_widget_t* widget);
+int nocterm_widget_request_root_refresh(nocterm_widget_t* widget);
 
 /**
  * @brief Clears the cell buffer of a widget.

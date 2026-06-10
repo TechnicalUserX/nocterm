@@ -202,7 +202,7 @@ int main(){
 
 	nocterm_widget_t* my_widget = nocterm_widget_new((nocterm_dimension_t){row, col, height, width}, focusable, type);
 
-	nocterm_widget_add_focus_handler(my_widget, my_widget_focus_handler);
+	nocterm_widget_set_focus_handler(my_widget, my_widget_focus_handler);
 
 	nocterm_widget_delete(my_widget);
 	
@@ -238,7 +238,7 @@ int main(){
 
 	nocterm_widget_t* my_widget = nocterm_widget_new((nocterm_dimension_t){row, col, height, width}, focusable, type);
 
-	nocterm_widget_add_key_handler(my_widget, my_widget_key_handler);
+	nocterm_widget_set_key_handler(my_widget, my_widget_key_handler);
 
 	nocterm_widget_delete(my_widget);
 	

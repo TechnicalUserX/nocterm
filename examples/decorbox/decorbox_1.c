@@ -11,7 +11,7 @@ int main(){
     // Here, we are giving decorbox as the root widget
     nocterm_page_t* main_page = nocterm_page_new("Main page", sizeof("Main page"), NOCTERM_WIDGET(my_decorbox));
  
-    nocterm_decorbox_border_t border = nocterm_decorbox_border_shape(NOCTERM_DECORBOX_BORDER_SHAPE_UNICODE_ROUND);
+    nocterm_decorbox_border_t border = nocterm_decorbox_border_from_shape(NOCTERM_DECORBOX_BORDER_SHAPE_UNICODE_ROUND);
 
     nocterm_attribute_t attr = {
         .color.ansi.fg = true,

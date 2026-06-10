@@ -1,0 +1,83 @@
+\page flexing Flexing
+
+Flexing lets a widget's **size** automatically adapt to the size of its parent (or to the terminal screen, if the widget is a root widget), instead of keeping the fixed `height`/`width` it was created with.
+
+Just like alignment (Refer to \ref aligning), a flex policy is **persistent**: the widget is automatically resized whenever its parent is resized, e.g. on terminal resize or when a page becomes the active page (Refer to \ref pagestack).
+
+> Flex updates are applied **before** alignment updates, so a widget can both fill/percent-resize itself and then align the resulting box within its parent.
+
+
+---
+
+# Flex Types
+
+A widget's flex policy is configured with the function `nocterm_widget_flex()`:
+
+```c
+int nocterm_widget_flex(nocterm_widget_t* widget, nocterm_widget_flex_t flex, ...);
+```
+
+The possible values of `nocterm_widget_flex_t` are listed below:
+
+| Flex                                    | Axis       | Extra Argument          | Description                                              |
+| ------------------------------------------ | ---------- | ------------------------- | ----------------------------------------------------------- |
+| `NOCTERM_WIDGET_FLEX_FIXED_HORIZONTAL`      | Horizontal | -                          | Restores fixed width (default)                             |
+| `NOCTERM_WIDGET_FLEX_FIXED_VERTICAL`        | Vertical   | -                          | Restores fixed height (default)                            |
+| `NOCTERM_WIDGET_FLEX_FIXED_BOTH`            | Both       | -                          | Restores fixed width and height (default)                  |
+| `NOCTERM_WIDGET_FLEX_FILL_HORIZONTAL`       | Horizontal | -                          | Width always matches the parent's available width          |
+| `NOCTERM_WIDGET_FLEX_FILL_VERTICAL`         | Vertical   | -                          | Height always matches the parent's available height        |
+| `NOCTERM_WIDGET_FLEX_FILL_BOTH`             | Both       | -                          | Width and height always match the parent's available size  |
+| `NOCTERM_WIDGET_FLEX_PERCENT_HORIZONTAL`    | Horizontal | `int percentage` (0-100)   | Width is set to `percentage`% of the parent's available width  |
+| `NOCTERM_WIDGET_FLEX_PERCENT_VERTICAL`      | Vertical   | `int percentage` (0-100)   | Height is set to `percentage`% of the parent's available height |
+
+A widget's horizontal and vertical axes have independent flex modes, so e.g. a widget can `FILL_HORIZONTAL` while keeping a `FIXED` height.
+
+> By default, every newly created widget allows flexing on both axes. `nocterm_widget_flex()` returns `NOCTERM_FAILURE` (with `errno` set to `EPERM`) if a `FILL`/`PERCENT` flex is requested on an axis that the widget does not permit.
+
+
+---
+
+# Parent's Available Size
+
+The "available size" of a parent is its **viewport** size (Refer to \ref widgets), reduced by the parent's inner padding on each axis, if any. Some widgets, such as `decorbox`, reserve a 1-cell border on every side and report this as inner padding so that their flexing/percent-sized children do not overlap the border.
+
+If a flexing widget has no parent (i.e. it is a page's root widget), its available size is the terminal screen's size.
+
+---
+
+# API Overview
+
+Below example creates a root widget that always fills the entire terminal, and a child widget whose width always matches its parent while keeping a fixed height of 5 rows:
+
+```c
+#include <nocterm/nocterm.h>
+
+int main(){
+
+    nocterm_widget_t* my_widget = nocterm_widget_new(0, 0, NOCTERM_WIDGET_FOCUSABLE_NO, NOCTERM_WIDGET_TYPE_VIRTUAL);
+    nocterm_widget_flex(my_widget, NOCTERM_WIDGET_FLEX_FILL_BOTH);
+
+    nocterm_widget_t* my_subwidget = nocterm_widget_new(5, 0, NOCTERM_WIDGET_FOCUSABLE_NO, NOCTERM_WIDGET_TYPE_REAL);
+    nocterm_widget_flex(my_subwidget, NOCTERM_WIDGET_FLEX_FILL_HORIZONTAL);
+
+    nocterm_widget_add_subwidget(my_widget, my_subwidget);
+
+    nocterm_widget_delete(my_subwidget);
+    nocterm_widget_delete(my_widget);
+
+    return 0;
+}
+```
+
+To make a widget take up exactly 30% of its parent's width while keeping its existing height:
+
+```c
+nocterm_widget_flex(my_subwidget, NOCTERM_WIDGET_FLEX_PERCENT_HORIZONTAL, 30);
+```
+
+To restore a widget back to its fixed size on both axes:
+
+```c
+nocterm_widget_flex(my_subwidget, NOCTERM_WIDGET_FLEX_FIXED_BOTH);
+```
+

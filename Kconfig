@@ -1,0 +1,145 @@
+mainmenu "Nocterm Configuration"
+
+    menu "Core"
+
+        menuconfig NOCTERM_WIDGET_LIMITS
+            bool "Override widget core limits"
+            default n
+
+            config NOCTERM_WIDGET_MAX_DEPTH
+                int "Maximum widget tree depth"
+                default 128
+                depends on NOCTERM_WIDGET_LIMITS
+
+        menuconfig NOCTERM_IO_LIMITS
+            bool "Override I/O limits"
+            default n
+
+            config NOCTERM_IO_BUFFER_SIZE
+                int "I/O buffer size (bytes)"
+                default 8192
+                depends on NOCTERM_IO_LIMITS
+
+        menuconfig NOCTERM_KEY_LIMITS
+            bool "Override key input limits"
+            default n
+
+            config NOCTERM_KEY_BUFFER_SIZE
+                int "Key event buffer size (bytes)"
+                default 256
+                depends on NOCTERM_KEY_LIMITS
+
+            config NOCTERM_KEY_ESCSEQ_INTERVAL
+                int "Escape sequence next-character wait interval (ms)"
+                default 50
+                depends on NOCTERM_KEY_LIMITS
+
+        menuconfig NOCTERM_ATTRIBUTE_LIMITS
+            bool "Override attribute limits"
+            default n
+
+            config NOCTERM_ATTRIBUTE_BUFFER_SIZE
+                int "Attribute escape sequence buffer size (bytes)"
+                default 512
+                depends on NOCTERM_ATTRIBUTE_LIMITS
+
+        menuconfig NOCTERM_TIMER_LIMITS
+            bool "Override timer limits"
+            default n
+
+            config NOCTERM_TIMER_CALLBACK_MOMENTARY_MAX
+                int "Maximum momentary timer callbacks"
+                default 64
+                depends on NOCTERM_TIMER_LIMITS
+
+        menuconfig NOCTERM_OVERLAY_LIMITS
+            bool "Override overlay limits"
+            default n
+
+            config NOCTERM_OVERLAY_WIDGET_MAX_SIZE
+                int "Maximum widgets per overlay"
+                default 16
+                depends on NOCTERM_OVERLAY_LIMITS
+
+        menuconfig NOCTERM_PAGE_LIMITS
+            bool "Override page limits"
+            default n
+
+            config NOCTERM_PAGE_TITLE_MAX_SIZE
+                int "Maximum page title size (characters)"
+                default 256
+                depends on NOCTERM_PAGE_LIMITS
+
+            config NOCTERM_PAGE_STACK_MAX_SIZE
+                int "Maximum page stack size"
+                default 128
+                depends on NOCTERM_PAGE_LIMITS
+
+    endmenu
+
+    menu Widgets
+
+        menuconfig NOCTERM_BUTTON_LIMITS
+            bool "Override button limits"
+            default n
+
+            config NOCTERM_BUTTON_TEXT_MAX_SIZE
+                int "Maximum button text size (characters)"
+                default 256
+                depends on NOCTERM_BUTTON_LIMITS
+
+        menuconfig NOCTERM_DECORBOX_LIMITS
+            bool "Override decorbox limits"
+            default n
+
+            config NOCTERM_DECORBOX_LABEL_MAX_SIZE
+                int "Maximum decorbox label size (characters)"
+                default 64
+                depends on NOCTERM_DECORBOX_LIMITS
+
+        menuconfig NOCTERM_ENTRY_LIMITS
+            bool "Override entry limits"
+            default n
+
+            config NOCTERM_ENTRY_BUFFER_MAX_SIZE
+                int "Maximum entry buffer size (characters)"
+                default 4096
+                depends on NOCTERM_ENTRY_LIMITS
+
+        menuconfig NOCTERM_TEXTBOX_LIMITS
+            bool "Override textbox limits"
+            default n
+
+            config NOCTERM_TEXTBOX_BUFFER_MAX_SIZE
+                int "Maximum textbox buffer size (characters)"
+                default 8192
+                depends on NOCTERM_TEXTBOX_LIMITS
+
+        menuconfig NOCTERM_TEXTVIEW_LIMITS
+            bool "Override textview limits"
+            default n
+
+            config NOCTERM_TEXTVIEW_BUFFER_SIZE
+                int "Maximum textview buffer size (characters)"
+                default 8096
+                depends on NOCTERM_TEXTVIEW_LIMITS
+
+        menuconfig NOCTERM_LISTVIEW_LIMITS
+            bool "Override listview limits"
+            default n
+
+            config NOCTERM_LISTVIEW_ITEM_CONTENT_MAX_SIZE
+                int "Maximum listview item content size (characters)"
+                default 1024
+                depends on NOCTERM_LISTVIEW_LIMITS
+
+        menuconfig NOCTERM_MENU_LIMITS
+            bool "Override menu limits"
+            default n
+
+            config NOCTERM_MENU_ITEM_CONTENT_MAX_SIZE
+                int "Maximum menu item content size (characters)"
+                default 128
+                depends on NOCTERM_MENU_LIMITS
+
+    endmenu

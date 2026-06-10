@@ -73,7 +73,7 @@ int nocterm_page_stack_push(nocterm_page_t* page){
 
 }
 
-int nocterm_page_stack_pop(){
+int nocterm_page_stack_pop(void){
     
     if(nocterm_page_stack_size > 0){
         

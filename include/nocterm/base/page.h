@@ -14,12 +14,16 @@
 #include <nocterm/base/widget.h>
 #include <nocterm/base/timer.h>
 
-#ifndef NOCTERM_PAGE_TITLE_MAX_SIZE
+#ifndef CONFIG_NOCTERM_PAGE_TITLE_MAX_SIZE
     #define NOCTERM_PAGE_TITLE_MAX_SIZE 256
+#else
+    #define NOCTERM_PAGE_TITLE_MAX_SIZE CONFIG_NOCTERM_PAGE_TITLE_MAX_SIZE    
 #endif
 
-#ifndef NOCTERM_PAGE_STACK_MAX_SIZE
+#ifndef CONFIG_NOCTERM_PAGE_STACK_MAX_SIZE
     #define NOCTERM_PAGE_STACK_MAX_SIZE 128
+#else
+    #define NOCTERM_PAGE_STACK_MAX_SIZE CONFIG_NOCTERM_PAGE_STACK_MAX_SIZE
 #endif
 
 #ifdef __cplusplus
@@ -72,7 +76,7 @@ int nocterm_page_stack_push(nocterm_page_t* page);
  * 
  * @return int 
  */
-int nocterm_page_stack_pop();
+int nocterm_page_stack_pop(void);
 
 #ifdef __cplusplus
     }

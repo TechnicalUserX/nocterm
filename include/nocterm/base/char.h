@@ -62,7 +62,7 @@ nocterm_char_t nocterm_char_from_ascii(char ch);
  * @param ch 
  * @return nocterm_char_t 
  */
-nocterm_char_t nocterm_char_from_utf8(wchar_t ch);
+nocterm_char_t nocterm_char_from_wchar(wchar_t ch);
 
 /**
  * @brief Checks whether a noctemr_char_t is equivalent to C null terminator char.

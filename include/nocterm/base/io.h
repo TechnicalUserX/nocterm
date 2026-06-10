@@ -13,8 +13,10 @@
 #include <nocterm/common/nocterm.h>
 #include <nocterm/base/char.h>
 
-#ifndef NOCTERM_IO_BUFFER_SIZE
+#ifndef CONFIG_NOCTERM_IO_BUFFER_SIZE
     #define NOCTERM_IO_BUFFER_SIZE 8192
+#else
+    #define NOCTERM_IO_BUFFER_SIZE CONFIG_NOCTERM_IO_BUFFER_SIZE
 #endif
 
 #ifdef __cplusplus
@@ -152,7 +154,7 @@ int nocterm_io_erase_char_at(nocterm_dimension_size_t row, nocterm_dimension_siz
  * @param visible 
  * @return int 
  */
-int nocterm_io_cursor_visible(bool visible);
+int nocterm_io_set_cursor_visible(bool visible);
 
 /**
  * @brief Moves cursor to a specified position.

@@ -232,7 +232,7 @@ int main(void) {
 
     nocterm_decorbox_t* box = nocterm_decorbox_new(NOCTERM_WIDGET(game.grid));
     nocterm_decorbox_set_border(box,
-        nocterm_decorbox_border_shape(NOCTERM_DECORBOX_BORDER_SHAPE_UNICODE_ROUND),
+        nocterm_decorbox_border_from_shape(NOCTERM_DECORBOX_BORDER_SHAPE_UNICODE_ROUND),
         NOCTERM_ATTRIBUTE_EMPTY, NOCTERM_ATTRIBUTE_EMPTY);
 
     game.hud = nocterm_widget_new(1, 80, NOCTERM_WIDGET_FOCUSABLE_NO, NOCTERM_WIDGET_TYPE_REAL);
@@ -244,7 +244,7 @@ int main(void) {
     nocterm_widget_add_subwidget(root, game.hud);
     nocterm_widget_set_position(NOCTERM_WIDGET(box), 1, 2);
     nocterm_widget_set_position(game.hud, GRID_H/2 + 3, 2);
-    nocterm_widget_add_key_handler(root, handle_key);
+    nocterm_widget_set_key_handler(root, handle_key);
 
     nocterm_page_t* page = nocterm_page_new("Turbo Racer", 10, root);
     nocterm_page_stack_push(page);

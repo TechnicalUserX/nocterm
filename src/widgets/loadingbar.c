@@ -1,5 +1,8 @@
 #include <nocterm/widgets/loadingbar.h>
 
+int nocterm_widget_flex_policy_set_permission(nocterm_widget_t* widget, nocterm_widget_flex_policy_permission_t permission);
+
+
 NOCTERM_INTERNAL NOCTERM_TIMER_CALLBACK(nocterm_loadingbar_timer_callback);
 
 nocterm_loadingbar_t* nocterm_loadingbar_new(uint64_t interval){

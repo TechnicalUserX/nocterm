@@ -31,7 +31,7 @@ int main(){
     nocterm_label_t* my_label = nocterm_label_new("HI", 3);
 
  
-    nocterm_decorbox_border_t border = nocterm_decorbox_border_shape(NOCTERM_DECORBOX_BORDER_SHAPE_UNICODE_ROUND);
+    nocterm_decorbox_border_t border = nocterm_decorbox_border_from_shape(NOCTERM_DECORBOX_BORDER_SHAPE_UNICODE_ROUND);
 
     nocterm_attribute_t attr = {
         .color.ansi.fg = true,

@@ -1,5 +1,8 @@
 #include <nocterm/widgets/levelbar.h>
 
+int nocterm_widget_flex_policy_set_permission(nocterm_widget_t* widget, nocterm_widget_flex_policy_permission_t permission);
+
+
 NOCTERM_INTERNAL NOCTERM_WIDGET_RESIZE_HANDLER(nocterm_levelbar_internal_resize_handler);
 
 nocterm_levelbar_t* nocterm_levelbar_new(uint64_t length, uint64_t min_value, uint64_t max_value, nocterm_levelbar_type_t type, bool flip){

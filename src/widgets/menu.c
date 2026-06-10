@@ -1,5 +1,8 @@
 #include <nocterm/widgets/menu.h>
 
+int nocterm_widget_flex_policy_set_permission(nocterm_widget_t* widget, nocterm_widget_flex_policy_permission_t permission);
+
+
 NOCTERM_INTERNAL NOCTERM_WIDGET_RESIZE_HANDLER(nocterm_menu_internal_resize_handler);
 
 NOCTERM_INTERNAL int nocterm_widget_buffer_resize(nocterm_widget_t* widget, nocterm_dimension_size_t height, nocterm_dimension_size_t width);
@@ -83,8 +86,8 @@ int nocterm_menu_constructor(nocterm_menu_t* menu, nocterm_dimension_size_t item
     menu->onselect_handler = onselect_handler;
     menu->user_data = user_data;
 
-    nocterm_widget_add_key_handler(NOCTERM_WIDGET(menu), nocterm_menu_key_handler);
-    nocterm_widget_add_focus_handler(NOCTERM_WIDGET(menu), nocterm_menu_focus_handler);
+    nocterm_widget_set_key_handler(NOCTERM_WIDGET(menu), nocterm_menu_key_handler);
+    nocterm_widget_set_focus_handler(NOCTERM_WIDGET(menu), nocterm_menu_focus_handler);
 
     NOCTERM_WIDGET(menu)->internal_resize_handler = nocterm_menu_internal_resize_handler;
 
@@ -297,7 +300,7 @@ int nocterm_menu_selection_move_up(nocterm_menu_t* menu){
                 nocterm_widget_update(NOCTERM_WIDGET(menu), menu->current_item-1, i, menu->item_array->items[menu->current_item-1].content[i].character , menu->selection_attribute);
             }
             menu->current_item--;
-            nocterm_widget_set_viewport_up(NOCTERM_WIDGET(menu));
+            nocterm_widget_scroll_viewport_up(NOCTERM_WIDGET(menu));
 
         }
 
@@ -328,7 +331,7 @@ int nocterm_menu_selection_move_down(nocterm_menu_t* menu){
         }
 
         if(menu->selection_position == NOCTERM_WIDGET(menu)->viewport.height - 1){
-            nocterm_widget_set_viewport_down(NOCTERM_WIDGET(menu));
+            nocterm_widget_scroll_viewport_down(NOCTERM_WIDGET(menu));
 
         }else{
             menu->selection_position++;

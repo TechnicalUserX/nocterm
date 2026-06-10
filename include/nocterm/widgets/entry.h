@@ -15,7 +15,11 @@
 
 #define NOCTERM_ENTRY(x) ((nocterm_entry_t*)x)
 
-#define NOCTERM_ENTRY_BUFFER_MAX_SIZE 4096
+#ifndef CONFIG_NOCTERM_ENTRY_BUFFER_MAX_SIZE
+    #define NOCTERM_ENTRY_BUFFER_MAX_SIZE 4096
+#else
+    #define NOCTERM_ENTRY_BUFFER_MAX_SIZE CONFIG_NOCTERM_ENTRY_BUFFER_MAX_SIZE
+#endif
 
 #define NOCTERM_ENTRY_CURSOR_CHAR nocterm_char_from_ascii(' ')
 

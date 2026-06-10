@@ -1,5 +1,8 @@
 #include <nocterm/widgets/textbox.h>
 
+int nocterm_widget_flex_policy_set_permission(nocterm_widget_t* widget, nocterm_widget_flex_policy_permission_t permission);
+
+
 NOCTERM_INTERNAL NOCTERM_WIDGET_RESIZE_HANDLER(nocterm_textbox_internal_resize_handler);
 
 NOCTERM_INTERNAL NOCTERM_WIDGET_KEY_HANDLER(nocterm_textbox_key_handler);
@@ -110,10 +113,10 @@ int nocterm_textbox_constructor(nocterm_textbox_t* textbox, nocterm_dimension_si
     textbox->buffer_position     = 0;
     textbox->scroll_offset       = 0;
 
-    if(nocterm_widget_add_key_handler(NOCTERM_WIDGET(textbox), nocterm_textbox_key_handler) == NOCTERM_FAILURE){
+    if(nocterm_widget_set_key_handler(NOCTERM_WIDGET(textbox), nocterm_textbox_key_handler) == NOCTERM_FAILURE){
         return NOCTERM_FAILURE;
     }
-    if(nocterm_widget_add_focus_handler(NOCTERM_WIDGET(textbox), nocterm_textbox_focus_handler) == NOCTERM_FAILURE){
+    if(nocterm_widget_set_focus_handler(NOCTERM_WIDGET(textbox), nocterm_textbox_focus_handler) == NOCTERM_FAILURE){
         return NOCTERM_FAILURE;
     }
 

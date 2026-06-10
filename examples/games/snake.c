@@ -176,7 +176,7 @@ int main() {
 
     game.grid = nocterm_pixelgrid_new(GRID_HEIGHT, GRID_WIDTH);
     nocterm_decorbox_t* box = nocterm_decorbox_new(NOCTERM_WIDGET(game.grid));
-    nocterm_decorbox_set_border(box, nocterm_decorbox_border_shape(NOCTERM_DECORBOX_BORDER_SHAPE_UNICODE_ROUND), NOCTERM_ATTRIBUTE_EMPTY, NOCTERM_ATTRIBUTE_EMPTY);
+    nocterm_decorbox_set_border(box, nocterm_decorbox_border_from_shape(NOCTERM_DECORBOX_BORDER_SHAPE_UNICODE_ROUND), NOCTERM_ATTRIBUTE_EMPTY, NOCTERM_ATTRIBUTE_EMPTY);
 
     game.score_widget = nocterm_widget_new(1, 80, NOCTERM_WIDGET_FOCUSABLE_NO, NOCTERM_WIDGET_TYPE_REAL);
 
@@ -187,7 +187,7 @@ int main() {
     nocterm_widget_set_position(NOCTERM_WIDGET(box), 1, 2);
     nocterm_widget_set_position(NOCTERM_WIDGET(game.score_widget), GRID_HEIGHT/2 + 3, 2);
 
-    nocterm_widget_add_key_handler(container, handle_key);
+    nocterm_widget_set_key_handler(container, handle_key);
 
     nocterm_page_t* page = nocterm_page_new("Snake Game", 10, container);
     nocterm_page_stack_push(page);

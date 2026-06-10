@@ -11,7 +11,7 @@ int main(){
     nocterm_decorbox_t* my_levelbar_dbox = nocterm_decorbox_new(NOCTERM_WIDGET(my_levelbar));
     nocterm_widget_set_position(NOCTERM_WIDGET(my_levelbar_dbox), 1, 1);
 
-    nocterm_decorbox_border_t border = nocterm_decorbox_border_shape(NOCTERM_DECORBOX_BORDER_SHAPE_UNICODE_ROUND);
+    nocterm_decorbox_border_t border = nocterm_decorbox_border_from_shape(NOCTERM_DECORBOX_BORDER_SHAPE_UNICODE_ROUND);
 
     nocterm_decorbox_set_border(my_levelbar_dbox, border, NOCTERM_ATTRIBUTE_EMPTY, NOCTERM_ATTRIBUTE_EMPTY);
 

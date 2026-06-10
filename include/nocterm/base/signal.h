@@ -18,7 +18,7 @@
 #endif
 
 typedef struct nocterm_signal_flags_t{
-    uint8_t nocterm_signal_sigwinch: 1;
+    uint8_t sigwinch: 1;
 }nocterm_signal_flags_t;
 
 #ifdef __cplusplus

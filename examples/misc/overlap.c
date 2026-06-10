@@ -78,7 +78,7 @@ int main(){
     setlocale(LC_ALL, "");
 
     nocterm_widget_t* my_widget = nocterm_widget_new(10,50, NOCTERM_WIDGET_FOCUSABLE_YES, NOCTERM_WIDGET_TYPE_VIRTUAL);
-    nocterm_widget_add_key_handler(my_widget, handler);
+    nocterm_widget_set_key_handler(my_widget, handler);
     nocterm_page_t* main_page = nocterm_page_new("Main page", sizeof("Main page"), my_widget);
     
 
@@ -117,7 +117,7 @@ int main(){
     d2 = nocterm_decorbox_new(NOCTERM_WIDGET(my_textview));
     nocterm_widget_set_position(NOCTERM_WIDGET(d2), 2, 9);
 
-    nocterm_decorbox_border_t border = nocterm_decorbox_border_shape(NOCTERM_DECORBOX_BORDER_SHAPE_UNICODE_ROUND);
+    nocterm_decorbox_border_t border = nocterm_decorbox_border_from_shape(NOCTERM_DECORBOX_BORDER_SHAPE_UNICODE_ROUND);
 
     nocterm_decorbox_set_border(d1, border, NOCTERM_ATTRIBUTE_EMPTY, attr);
     nocterm_decorbox_set_border(d2, border, NOCTERM_ATTRIBUTE_EMPTY, attr2);

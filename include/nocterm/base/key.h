@@ -10,15 +10,19 @@
 #ifndef NOCTERM_KEY_H
 #define NOCTERM_KEY_H
 
-#ifndef NOCTERM_KEY_BUFFER_SIZE
+#ifndef CONFIG_NOCTERM_KEY_BUFFER_SIZE
     #define NOCTERM_KEY_BUFFER_SIZE 256
+#else
+    #define NOCTERM_KEY_BUFFER_SIZE CONFIG_NOCTERM_KEY_BUFFER_SIZE
 #endif
 
 // Escape sequence next character
 // wait interval in milliseconds
 
-#ifndef NOCTERM_KEY_ESCSEQ_INTERVAL
+#ifndef CONFIG_NOCTERM_KEY_ESCSEQ_INTERVAL
     #define NOCTERM_KEY_ESCSEQ_INTERVAL 50
+#else
+    #define NOCTERM_KEY_ESCSEQ_INTERVAL CONFIG_NOCTERM_KEY_ESCSEQ_INTERVAL
 #endif
 
 #include <nocterm/common/nocterm.h>

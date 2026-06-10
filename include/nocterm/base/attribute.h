@@ -15,7 +15,11 @@
 
 #define NOCTERM_ATTRIBUTE_EMPTY (nocterm_attribute_t){0}
 
-#define NOCTERM_ATTRIBUTE_BUFFER_SIZE 512
+#ifndef CONFIG_NOCTERM_ATTRIBUTE_BUFFER_SIZE
+    #define NOCTERM_ATTRIBUTE_BUFFER_SIZE 512
+#else
+    #define NOCTERM_ATTRIBUTE_BUFFER_SIZE CONFIG_NOCTERM_ATTRIBUTE_BUFFER_SIZE
+#endif
 
 #define NOCTERM_ATTRIBUTE_BOLD           "\033[1m"
 #define NOCTERM_ATTRIBUTE_DIM            "\033[2m"
@@ -123,12 +127,12 @@ typedef struct nocterm_attribute_t{
 
 
 /**
- * @brief Sets attributes of the current terminal.
- * 
- * @param attribute 
- * @return int 
+ * @brief Applies attributes to the current terminal.
+ *
+ * @param attribute
+ * @return int
  */
-int nocterm_attribute_set(nocterm_attribute_t attribute);
+int nocterm_attribute_apply(nocterm_attribute_t attribute);
 
 /**
  * @brief Clears the attributes of the terminal.

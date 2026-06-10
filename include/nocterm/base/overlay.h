@@ -17,8 +17,10 @@
     extern "C" {
 #endif
 
-#ifndef NOCTERM_OVERLAY_WIDGET_MAX_SIZE
+#ifndef CONFIG_NOCTERM_OVERLAY_WIDGET_MAX_SIZE
     #define NOCTERM_OVERLAY_WIDGET_MAX_SIZE 16
+#else
+    #define NOCTERM_OVERLAY_WIDGET_MAX_SIZE CONFIG_NOCTERM_OVERLAY_WIDGET_MAX_SIZE
 #endif
 
 typedef struct nocterm_overlay_t{
@@ -34,7 +36,7 @@ extern nocterm_overlay_t* nocterm_overlay; // Global overlay
  * 
  * @return nocterm_overlay_t* 
  */
-nocterm_overlay_t* nocterm_overlay_new();
+nocterm_overlay_t* nocterm_overlay_new(void);
 
 /**
  * @brief Deletes an overlay.

@@ -254,7 +254,7 @@ int nocterm_io_erase_char_at(nocterm_dimension_size_t row, nocterm_dimension_siz
     return nocterm_io_write_at(row,col," ", 1);
 }
 
-int nocterm_io_cursor_visible(bool visible){
+int nocterm_io_set_cursor_visible(bool visible){
     if(visible){
         return nocterm_io_write("\033[?25h",6);
     }else{
