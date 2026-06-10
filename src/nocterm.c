@@ -148,6 +148,12 @@ int nocterm_loop(void){
             if(current_page != nocterm_page_stack[nocterm_page_stack_size-1]){
                 // This runs everytime the page changes
                 // Including initial opening
+
+                // Notify the widget focused on the page we are leaving (push or pop)
+                if(current_page && current_page->focused_widget && current_page->focused_widget->focus_handler){
+                    current_page->focused_widget->focus_handler(current_page->focused_widget, NOCTERM_WIDGET_FOCUS_LEAVE);
+                }
+
                 top_page = nocterm_page_stack[nocterm_page_stack_size-1];
 
                 if(top_page->root_widget){
