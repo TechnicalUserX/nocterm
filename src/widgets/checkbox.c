@@ -115,8 +115,8 @@ int nocterm_checkbox_set_attribute(nocterm_checkbox_t* checkbox, nocterm_attribu
 
     if(nocterm_widget_is_focused(NOCTERM_WIDGET(checkbox))){
 
-        nocterm_widget_update(NOCTERM_WIDGET(checkbox), 0,0, NOCTERM_WIDGET(checkbox)->buffer[0].character, checkbox->main_attribute);
-        nocterm_widget_update(NOCTERM_WIDGET(checkbox), 0, 2, NOCTERM_WIDGET(checkbox)->buffer[1].character, checkbox->cursor_attribute);
+        nocterm_widget_update(NOCTERM_WIDGET(checkbox), 0, 0, NOCTERM_WIDGET(checkbox)->buffer[0].character, checkbox->main_attribute);
+        nocterm_widget_update(NOCTERM_WIDGET(checkbox), 0, 1, NOCTERM_WIDGET(checkbox)->buffer[1].character, checkbox->cursor_attribute);
         nocterm_widget_update(NOCTERM_WIDGET(checkbox), 0, 2, NOCTERM_WIDGET(checkbox)->buffer[2].character, checkbox->main_attribute);
 
     }else{

@@ -690,7 +690,7 @@ int nocterm_widget_add_subwidget(nocterm_widget_t* widget, nocterm_widget_t* sub
 
     if(subwidget->parent != NULL){
         errno = EINVAL;
-        return NOCTERM_SUCCESS;
+        return NOCTERM_FAILURE;
     }
 
     pthread_mutex_lock(&widget->lock);
@@ -1348,7 +1348,7 @@ int nocterm_widget_refresh(nocterm_widget_t* widget){
         for(nocterm_dimension_size_t row = 0; row < widget->viewport.height; row++ ){
             for(nocterm_dimension_size_t col = 0; col < widget->viewport.width; col++){
                 
-                uint16_t buffer_index = (widget->viewport.row + row) * widget->bounds.width + (widget->viewport.col + col);
+                nocterm_widget_buffer_size_t buffer_index = (nocterm_widget_buffer_size_t)(widget->viewport.row + row) * widget->bounds.width + (widget->viewport.col + col);
 
                 if(widget->hard_refresh || widget->buffer[buffer_index].refresh){
                     

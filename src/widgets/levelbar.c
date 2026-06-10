@@ -172,6 +172,8 @@ int nocterm_levelbar_set_attribute(nocterm_levelbar_t* levelbar, nocterm_attribu
         return NOCTERM_FAILURE;
     }
 
+    pthread_mutex_lock(&NOCTERM_WIDGET(levelbar)->lock);
+
     nocterm_dimension_size_t mapped_magnitude = (levelbar->length * (levelbar->current_value - levelbar->min_value) ) / (levelbar->max_value - levelbar->min_value);
 
     levelbar->attribute = attribute;
@@ -179,6 +181,8 @@ int nocterm_levelbar_set_attribute(nocterm_levelbar_t* levelbar, nocterm_attribu
     for(nocterm_dimension_size_t i = 0; i < mapped_magnitude; i++){
         nocterm_widget_update(NOCTERM_WIDGET(levelbar), 0, i, NOCTERM_WIDGET(levelbar)->buffer[i].character, attribute);
     }
+
+    pthread_mutex_unlock(&NOCTERM_WIDGET(levelbar)->lock);
 
     return NOCTERM_SUCCESS;
 }
@@ -190,6 +194,8 @@ int nocterm_levelbar_set_character(nocterm_levelbar_t* levelbar, nocterm_char_t 
         return NOCTERM_FAILURE;
     }
 
+    pthread_mutex_lock(&NOCTERM_WIDGET(levelbar)->lock);
+
     levelbar->character = character;
 
     nocterm_dimension_size_t mapped_magnitude = (levelbar->length * (levelbar->current_value - levelbar->min_value) ) / (levelbar->max_value - levelbar->min_value);
@@ -197,6 +203,8 @@ int nocterm_levelbar_set_character(nocterm_levelbar_t* levelbar, nocterm_char_t 
     for(nocterm_dimension_size_t i = 0; i < mapped_magnitude; i++){
         nocterm_widget_update(NOCTERM_WIDGET(levelbar), 0, i, character, NOCTERM_WIDGET(levelbar)->buffer[i].attribute);
     }
+
+    pthread_mutex_unlock(&NOCTERM_WIDGET(levelbar)->lock);
 
     return NOCTERM_SUCCESS;
 }

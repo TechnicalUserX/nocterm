@@ -66,7 +66,7 @@ NOCTERM_INTERNAL void nocterm_textbox_render(nocterm_textbox_t* textbox){
         }
 
         // Flat indexing mirrors how textview renders into the widget buffer.
-        nocterm_widget_update(w, 0, (nocterm_dimension_size_t)i, ch, attr);
+        nocterm_widget_update(w, (nocterm_dimension_size_t)(i / width), (nocterm_dimension_size_t)(i % width), ch, attr);
     }
 
     w->hard_refresh = true;

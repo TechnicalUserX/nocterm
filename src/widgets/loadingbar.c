@@ -36,8 +36,7 @@ int nocterm_loadingbar_constructor(nocterm_loadingbar_t* loadingbar, uint64_t in
     loadingbar->timer = nocterm_timer_create(NOCTERM_WIDGET(&(loadingbar->widget)), interval, nocterm_loadingbar_timer_callback, NULL);
     loadingbar->attribute = NOCTERM_ATTRIBUTE_EMPTY;
 
-    nocterm_char_t ch = {.bytes = {0}, .bytes_size = 3, .is_utf8 = true};
-    memcpy(ch.bytes, "|", 1);
+    nocterm_char_t ch = {.bytes = {'|'}, .bytes_size = 1, .is_utf8 = false};
 
     if(loadingbar->timer == NULL){
         return NOCTERM_FAILURE;
@@ -111,27 +110,9 @@ NOCTERM_TIMER_CALLBACK(nocterm_loadingbar_timer_callback){
 
     nocterm_loadingbar_t* loadingbar = NOCTERM_LOADINGBAR(widget);
 
-    nocterm_char_t ch = {0};
-    ch.bytes_size = 3;
-    ch.is_utf8 = true;
-
-    switch(loadingbar->state){
-        case 0:{
-            memcpy(ch.bytes, "|", 1);
-        }break;
-
-        case 1:{
-            memcpy(ch.bytes, "/", 1);
-        }break;
-
-        case 2:{
-            memcpy(ch.bytes, "-", 1);
-        }break;
-
-        case 3:{
-            memcpy(ch.bytes, "\\", 1);
-        }break;
-    }
+    static const char frames[4] = {'|', '/', '-', '\\'};
+    nocterm_char_t ch = {.bytes = {0}, .bytes_size = 1, .is_utf8 = false};
+    ch.bytes[0] = frames[loadingbar->state];
     
     nocterm_widget_update(widget, 0, 0, ch, loadingbar->attribute);
     loadingbar->state = (loadingbar->state + 1) % 4;

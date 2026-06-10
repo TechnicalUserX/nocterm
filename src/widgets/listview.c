@@ -369,12 +369,6 @@ int nocterm_listview_remove(nocterm_listview_t* listview, nocterm_listview_item_
 
     pthread_mutex_lock(&NOCTERM_WIDGET(listview)->lock);
 
-    if(listview->item_array->size == listview->widget.bounds.height){
-        errno = ENOMEM;
-        pthread_mutex_unlock(&NOCTERM_WIDGET(listview)->lock);
-        return NOCTERM_FAILURE;
-    }
-
     if(nocterm_listview_item_array_remove(listview->item_array, item, index) == NOCTERM_FAILURE){
         pthread_mutex_unlock(&NOCTERM_WIDGET(listview)->lock);
         return NOCTERM_FAILURE;

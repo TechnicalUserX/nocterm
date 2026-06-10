@@ -204,7 +204,7 @@ nocterm_key_event_t nocterm_key_translate(nocterm_key_t* key){
 
     if(key == NULL){
         errno = EINVAL;
-        return NOCTERM_FAILURE;
+        return NOCTERM_KEY_EVENT_UNDEFINED;
     }
 
     if(key->type == NOCTERM_KEY_TYPE_PRINTABLE){

@@ -144,13 +144,8 @@ int nocterm_menu_add_item(nocterm_menu_t* menu, nocterm_menu_item_t item){
     }
 
     // Widget Update
-    if(menu->item_array->size < menu->widget.viewport.width){
-        // Add items to the buffer only if the displayed viewport height is enough to cover it
-        // Otherwise, the user is obliged to change the viewport by arrow keys
-        for(uint64_t i = 0; i < menu->widget.bounds.width && i < item.content_length; i++){
-            nocterm_widget_update(NOCTERM_WIDGET(menu), menu->item_array->size-1,i, item.content[i].character, item.content[i].attribute);
-        }
-
+    for(uint64_t i = 0; i < menu->widget.bounds.width && i < item.content_length; i++){
+        nocterm_widget_update(NOCTERM_WIDGET(menu), menu->item_array->size-1,i, item.content[i].character, item.content[i].attribute);
     }
 
     pthread_mutex_unlock(&NOCTERM_WIDGET(menu)->lock);

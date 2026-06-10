@@ -19,7 +19,7 @@ NOCTERM_INTERNAL void nocterm_textview_render(nocterm_textview_t* textview){
         nocterm_char_t ch = (src < textview->text_length)
             ? textview->text_buffer[src]
             : NOCTERM_CHAR_EMPTY;
-        nocterm_widget_update(w, 0, (nocterm_dimension_size_t)i, ch, textview->attribute);
+        nocterm_widget_update(w, (nocterm_dimension_size_t)(i / width), (nocterm_dimension_size_t)(i % width), ch, textview->attribute);
     }
 
     w->hard_refresh = true;

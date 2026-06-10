@@ -166,34 +166,34 @@ nocterm_decorbox_border_t nocterm_decorbox_border_shape(nocterm_decorbox_border_
         case NOCTERM_DECORBOX_BORDER_SHAPE_ASCII:{
             nocterm_char_t vertical = {
                 .bytes = "|",
-                .bytes_size = 3,
+                .bytes_size = 1,
                 .is_utf8 = false
             };
 
             nocterm_char_t horizontal = {
                 .bytes = "-",
-                .bytes_size = 3,
+                .bytes_size = 1,
                 .is_utf8 = false
-            };        
+            };
 
             nocterm_char_t top_left = {
                 .bytes = "+",
-                .bytes_size = 3,
+                .bytes_size = 1,
                 .is_utf8 = false
-            };   
+            };
             nocterm_char_t top_right = {
                 .bytes = "+",
-                .bytes_size = 3,
+                .bytes_size = 1,
                 .is_utf8 = false
-            };           
+            };
             nocterm_char_t bottom_left = {
                 .bytes = "+",
-                .bytes_size = 3,
+                .bytes_size = 1,
                 .is_utf8 = false
-            };   
+            };
             nocterm_char_t bottom_right = {
                 .bytes = "+",
-                .bytes_size = 3,
+                .bytes_size = 1,
                 .is_utf8 = false
             };   
 

@@ -436,12 +436,14 @@ int nocterm_entry_set_text(nocterm_entry_t* entry, char* buffer, uint64_t buffer
 
 NOCTERM_WIDGET_KEY_HANDLER(nocterm_entry_key_handler){
 
+    pthread_mutex_lock(&self->lock);
+
     switch(nocterm_key_translate(key)){
 
         case NOCTERM_KEY_EVENT_RIGHT:{
             nocterm_entry_cursor_move_right(NOCTERM_ENTRY(self));
         }break;
-        
+
         case NOCTERM_KEY_EVENT_LEFT:{
             nocterm_entry_cursor_move_left(NOCTERM_ENTRY(self));
         }break;
@@ -466,6 +468,8 @@ NOCTERM_WIDGET_KEY_HANDLER(nocterm_entry_key_handler){
         default:
             break;
     }
+
+    pthread_mutex_unlock(&self->lock);
 }
 
 NOCTERM_WIDGET_FOCUS_HANDLER(nocterm_entry_focus_handler){
