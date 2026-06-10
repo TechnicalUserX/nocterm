@@ -6,6 +6,7 @@ An alignment, once set, is **persistent**: it is automatically re-applied whenev
 
 > Setting an absolute position with `nocterm_widget_set_position()`, `nocterm_widget_set_row()` or `nocterm_widget_set_col()` clears the corresponding horizontal or vertical alignment.
 
+
 ---
 
 # Alignment Types
@@ -34,6 +35,7 @@ The possible values of `nocterm_widget_align_t` are listed below:
 
 > `LEFT`, `RIGHT` and `CENTER_HORIZONTAL` are mutually exclusive on the horizontal axis, just as `TOP`, `BOTTOM` and `CENTER_VERTICAL` are mutually exclusive on the vertical axis. Setting one clears the other on the same axis.
 
+
 ---
 
 # Percent & Margin Modifiers
@@ -45,6 +47,7 @@ The possible values of `nocterm_widget_align_t` are listed below:
 - For `CENTER_HORIZONTAL`/`CENTER_VERTICAL`, the percent offset moves the widget's *center point* to that percentage of the parent's dimension instead of the parent's midpoint. The margin modifier has **no effect** on centered widgets.
 
 > If the resulting position together with the widget's size would not fit inside the parent, the alignment is silently skipped and the widget keeps its previous position.
+
 
 ---
 
