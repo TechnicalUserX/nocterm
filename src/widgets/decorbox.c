@@ -59,6 +59,13 @@ int nocterm_decorbox_constructor(nocterm_decorbox_t* decorbox, nocterm_widget_t*
 
     decorbox->contained_widget = contained_widget;
     decorbox->contained_widget->focusable = false; // Now the ownership of the focusability is switched to decorbox
+
+    // Flexing the decorbox now also flexes the contained widget: a flexible
+    // axis on the box turns into a FILL axis on the content, sized against the
+    // box's inner area (see flex_policy_inner_padding_* below).  Ensure the
+    // content can be filled on either axis regardless of its own constructor.
+    NOCTERM_WIDGET(decorbox)->flex_content = contained_widget;
+    nocterm_widget_flex_policy_set_permission(contained_widget, NOCTERM_WIDGET_FLEX_POLICY_PERMISSION_BOTH);
     decorbox->contained_widget->bounds.row = 1; // Relative position just beneath the border 
     decorbox->contained_widget->bounds.col = 1; // Relative position just next to the border
     decorbox->contained_widget->owner = NOCTERM_WIDGET(decorbox);

@@ -124,6 +124,7 @@ int nocterm_widget_constructor(nocterm_widget_t* widget, nocterm_dimension_size_
     widget->flex_policy.vertical_percentage = 0;
     widget->flex_policy_inner_padding_h = 0;
     widget->flex_policy_inner_padding_w = 0;
+    widget->flex_content = NULL;
 
     widget->key_handler = NULL;
     widget->focus_handler = NULL;
@@ -1021,8 +1022,14 @@ int nocterm_widget_buffer_resize(nocterm_widget_t* widget, nocterm_dimension_siz
             widget->buffer = new_buffer;
 
         }else{
-            widget->bounds.width = 0;
-            widget->bounds.height = 0;
+            // Zero-area resize (one dimension is 0).  Keep the requested
+            // dimensions rather than clobbering both to 0: a widget flexed on
+            // one axis only (e.g. FILL/PERCENT horizontal) keeps a FIXED height
+            // computed from bounds.height, so losing it here would leave the
+            // widget at 0 area permanently and it could never regrow — it would
+            // stay invisible even after the terminal is widened again.
+            widget->bounds.width = width;
+            widget->bounds.height = height;
             widget->buffer_size = 0;
             free(widget->buffer);
             widget->buffer = NULL;
@@ -1279,37 +1286,73 @@ int nocterm_widget_flex_update(nocterm_widget_t* widget){
     return NOCTERM_SUCCESS;
 }
 
+// Mirror a flex applied to a wrapper widget onto its flex_content child.  A
+// flexible axis (FILL or PERCENT) on the wrapper becomes FILL on the child so
+// the child tracks the wrapper's inner area; a fixed axis stays fixed.  The
+// child's percentage is never used: its size is resolved against the wrapper's
+// (already-sized) viewport by nocterm_widget_flex_update().
+NOCTERM_INTERNAL int nocterm_widget_flex_mirror_content(nocterm_widget_t* content, nocterm_widget_flex_t flex){
+
+    switch(flex){
+
+        case NOCTERM_WIDGET_FLEX_FIXED_BOTH:
+            return nocterm_widget_flex_policy_set_fixed_both(content);
+
+        case NOCTERM_WIDGET_FLEX_FIXED_HORIZONTAL:
+            return nocterm_widget_flex_policy_set_fixed_horizontal(content);
+
+        case NOCTERM_WIDGET_FLEX_FIXED_VERTICAL:
+            return nocterm_widget_flex_policy_set_fixed_vertical(content);
+
+        case NOCTERM_WIDGET_FLEX_FILL_HORIZONTAL:
+        case NOCTERM_WIDGET_FLEX_PERCENT_HORIZONTAL:
+            return nocterm_widget_flex_policy_set_fill_horizontal(content);
+
+        case NOCTERM_WIDGET_FLEX_FILL_VERTICAL:
+        case NOCTERM_WIDGET_FLEX_PERCENT_VERTICAL:
+            return nocterm_widget_flex_policy_set_fill_vertical(content);
+
+        case NOCTERM_WIDGET_FLEX_FILL_BOTH:
+            return nocterm_widget_flex_policy_set_fill_both(content);
+
+        default:
+            return NOCTERM_FAILURE;
+    }
+}
+
 int nocterm_widget_flex(nocterm_widget_t* widget, nocterm_widget_flex_t flex, ...){
-    
+
     if(widget == NULL){
         errno = EINVAL;
         return NOCTERM_FAILURE;
     }
 
+    int result = NOCTERM_FAILURE;
+
     switch(flex){
 
         case NOCTERM_WIDGET_FLEX_FIXED_BOTH:{
-            return nocterm_widget_flex_policy_set_fixed_both(widget);
+            result = nocterm_widget_flex_policy_set_fixed_both(widget);
         }break;
 
         case NOCTERM_WIDGET_FLEX_FIXED_HORIZONTAL:{
-            return nocterm_widget_flex_policy_set_fixed_horizontal(widget);
+            result = nocterm_widget_flex_policy_set_fixed_horizontal(widget);
         }break;
 
         case NOCTERM_WIDGET_FLEX_FIXED_VERTICAL:{
-            return nocterm_widget_flex_policy_set_fixed_vertical(widget);
+            result = nocterm_widget_flex_policy_set_fixed_vertical(widget);
         }break;
-        
+
         case NOCTERM_WIDGET_FLEX_FILL_HORIZONTAL:{
-            return nocterm_widget_flex_policy_set_fill_horizontal(widget);
+            result = nocterm_widget_flex_policy_set_fill_horizontal(widget);
         }break;
-   
+
         case NOCTERM_WIDGET_FLEX_FILL_VERTICAL:{
-            return nocterm_widget_flex_policy_set_fill_vertical(widget);
+            result = nocterm_widget_flex_policy_set_fill_vertical(widget);
         }break;
 
         case NOCTERM_WIDGET_FLEX_FILL_BOTH:{
-            return nocterm_widget_flex_policy_set_fill_both(widget);
+            result = nocterm_widget_flex_policy_set_fill_both(widget);
         }break;
 
         case NOCTERM_WIDGET_FLEX_PERCENT_HORIZONTAL:{
@@ -1319,7 +1362,7 @@ int nocterm_widget_flex(nocterm_widget_t* widget, nocterm_widget_flex_t flex, ..
             va_end(vl);
 
             if(percentage >= 0 && percentage <= 100){
-                return nocterm_widget_flex_policy_set_percent_horizontal(widget, percentage);
+                result = nocterm_widget_flex_policy_set_percent_horizontal(widget, percentage);
             }else{
                 return NOCTERM_FAILURE;
             }
@@ -1333,7 +1376,7 @@ int nocterm_widget_flex(nocterm_widget_t* widget, nocterm_widget_flex_t flex, ..
             va_end(vl);
 
             if(percentage >= 0 && percentage <= 100){
-                return nocterm_widget_flex_policy_set_percent_vertical(widget, percentage);
+                result = nocterm_widget_flex_policy_set_percent_vertical(widget, percentage);
             }else{
                 return NOCTERM_FAILURE;
             }
@@ -1342,8 +1385,17 @@ int nocterm_widget_flex(nocterm_widget_t* widget, nocterm_widget_flex_t flex, ..
         default:{
             return NOCTERM_FAILURE;
         }break;
-        
+
     }
+
+    // Propagate the flex onto a wrapped child (e.g. decorbox's contained
+    // widget) so flexing the wrapper also flexes its content into the inner
+    // area.  A failure to mirror does not undo the wrapper's policy.
+    if(result == NOCTERM_SUCCESS && widget->flex_content != NULL){
+        nocterm_widget_flex_mirror_content(widget->flex_content, flex);
+    }
+
+    return result;
 }
 
 NOCTERM_INTERNAL

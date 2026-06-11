@@ -192,6 +192,14 @@ typedef struct nocterm_widget_t{
     uint8_t flex_policy_inner_padding_h;
     uint8_t flex_policy_inner_padding_w;
 
+    // Optional child whose flex policy is mirrored whenever this widget is
+    // flexed via nocterm_widget_flex().  A flexible axis on this widget becomes
+    // a FILL axis on the child, so the child tracks this widget's inner area;
+    // a fixed axis stays fixed.  Decorations that wrap a single widget (e.g.
+    // decorbox) point this at their contained widget so flexing the wrapper
+    // also flexes the content.
+    struct nocterm_widget_t* flex_content;
+
     nocterm_widget_key_handler_t key_handler;
     nocterm_widget_focus_handler_t focus_handler;
     nocterm_widget_resize_handler_t internal_resize_handler;

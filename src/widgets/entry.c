@@ -476,6 +476,12 @@ NOCTERM_WIDGET_KEY_HANDLER(nocterm_entry_key_handler){
 
 NOCTERM_WIDGET_FOCUS_HANDLER(nocterm_entry_focus_handler){
 
+    // The buffer can be NULL while the entry is collapsed to zero width by a
+    // flex; bail out rather than dereferencing it on a hover/focus transition.
+    if(self->buffer == NULL || NOCTERM_ENTRY(self)->buffer_position >= self->buffer_size){
+        return;
+    }
+
     switch(focus){
         case NOCTERM_WIDGET_FOCUS_ENTER:{
             nocterm_widget_update(self, 0, NOCTERM_ENTRY(self)->buffer_position, self->buffer[NOCTERM_ENTRY(self)->buffer_position].character, NOCTERM_ENTRY(self)->cursor_attribute);
@@ -495,12 +501,24 @@ NOCTERM_WIDGET_RESIZE_HANDLER(nocterm_entry_internal_resize_handler){
     if(new_vp_width > NOCTERM_ENTRY_BUFFER_MAX_SIZE + 1){
         new_vp_width = NOCTERM_ENTRY_BUFFER_MAX_SIZE + 1;
     }
-    if(new_vp_width == 0) return;
 
-    // flex_update resized the buffer to the flex target width, zeroing it.
-    // Restore the fixed internal buffer so text at all 128 positions is addressable.
-    if(self->bounds.width != NOCTERM_ENTRY_BUFFER_MAX_SIZE + 1){
+    // flex_update resized the buffer to the flex target width, zeroing it.  When
+    // that target reaches 0 the buffer is freed and bounds collapse to 0x0, so
+    // always restore the fixed internal buffer here — both so text at all 128
+    // positions stays addressable and so the entry can recover from a zero-width
+    // flex (otherwise its height stays 0 and FILL_HORIZONTAL never revives it).
+    if(self->bounds.width != NOCTERM_ENTRY_BUFFER_MAX_SIZE + 1 || self->bounds.height != 1){
         nocterm_widget_buffer_resize(self, 1, NOCTERM_ENTRY_BUFFER_MAX_SIZE + 1);
+    }
+
+    // No visible columns: keep the restored buffer but display nothing.
+    if(new_vp_width == 0){
+        self->viewport.row    = 0;
+        self->viewport.col    = 0;
+        self->viewport.height = 1;
+        self->viewport.width  = 0;
+        self->hard_refresh    = true;
+        return;
     }
 
     // Redraw typed characters from the backing store.

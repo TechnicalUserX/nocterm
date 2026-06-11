@@ -228,6 +228,12 @@ NOCTERM_WIDGET_KEY_HANDLER(nocterm_checkbox_key_handler){
 
 NOCTERM_WIDGET_FOCUS_HANDLER(nocterm_checkbox_focus_handler){
 
+    // The buffer can be NULL / shrunk below the cursor cell when a flex
+    // collapses the checkbox width; don't dereference it on a focus transition.
+    if(self->buffer == NULL || self->buffer_size <= 1){
+        return;
+    }
+
     switch(focus){
         case NOCTERM_WIDGET_FOCUS_ENTER:{
             nocterm_widget_update(self, 0,1, self->buffer[1].character, NOCTERM_CHECKBOX(self)->cursor_attribute);
