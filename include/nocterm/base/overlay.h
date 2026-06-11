@@ -55,6 +55,27 @@ int nocterm_overlay_delete(nocterm_overlay_t* overlay);
 int nocterm_overlay_set(nocterm_overlay_t* overlay);
 
 /**
+ * @brief Unsets the current overlay.
+ * 
+ * @param overlay 
+ * @return int 
+ */
+int nocterm_overlay_unset(void);
+
+/**
+ * @brief Marks the overlay dirty so it is fully recomposited next frame.
+ *
+ * Call this after changing an overlay widget at runtime (toggling its
+ * visibility or moving it) so the overlay can reclaim or release the screen
+ * cells it covers; without it the page may keep ownership of those cells and
+ * the change will not appear until the next hard refresh.
+ *
+ * @param overlay
+ * @return int
+ */
+int nocterm_overlay_invalidate(nocterm_overlay_t* overlay);
+
+/**
  * @brief Adds a widget to an overlay.
  * 
  * @param overlay 

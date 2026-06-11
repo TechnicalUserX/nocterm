@@ -1,4 +1,5 @@
 #include <nocterm/widgets/button.h>
+#include <nocterm/base/mouse.h>
 
 int nocterm_widget_flex_policy_set_permission(nocterm_widget_t* widget, nocterm_widget_flex_policy_permission_t permission);
 
@@ -163,11 +164,18 @@ int nocterm_button_set_text(nocterm_button_t* button, const char* text, uint64_t
 
 NOCTERM_WIDGET_KEY_HANDLER(nocterm_button_key_handler){
     switch(nocterm_key_translate(key)){
+        // A click is delivered as a raw mouse event now that the mouse
+        // controller no longer synthesizes an ENTER key on activation.
+        case NOCTERM_KEY_EVENT_MOUSE:
+            if(nocterm_mouse_translate(key).button != NOCTERM_MOUSE_BUTTON_LMB){
+                break;
+            }
         case NOCTERM_KEY_EVENT_ENTER:{
             if(NOCTERM_BUTTON(self)->onpress_handler){
                 NOCTERM_BUTTON(self)->onpress_handler(self, NOCTERM_BUTTON(self)->user_data);
             }
         }break;
+
         default:
             break;
     }

@@ -7,12 +7,12 @@
  *
  *   - A custom focusable widget that owns the whole UI and receives every
  *     keystroke through a single key handler (no per-button focus dance).
- *   - Manual rendering into a real widget's cell buffer with per-cell colour
- *     and a highlighted selection bar (the listview widget is display-only and
- *     has no selection cursor, so we draw our own).
- *   - A flex layout (two side-by-side decorbox panes plus full-width title and
- *     status bars) that re-flows on terminal resize, with a resize handler that
- *     recomputes the panes' vertical extent dynamically.
+ *   - Manual rendering into a real widget's cell buffer with per-cell colour,
+ *     Unicode type glyphs and a highlighted selection bar (the listview widget
+ *     is display-only and has no selection cursor, so we draw our own).
+ *   - A flex layout (a full-width file-list decorbox pane between a one-row
+ *     title bar and a one-row status bar) that re-flows on terminal resize,
+ *     with a resize handler that recomputes the pane's vertical extent.
  *   - A repaint timer driven by a dirty flag, so the screen is only re-rendered
  *     when something actually changed.
  *   - A second page (the help overlay) pushed onto the page stack.
@@ -20,11 +20,11 @@
  * Layout:
  *
  *   ┌ path bar ─────────────────────────────────────────────┐  (title, row 0)
- *   │ ╭ Files ──────────────╮ ╭ Preview ──────────────────╮ │
- *   │ │ ..                  │ │ Name:  report.txt         │ │
- *   │ │ src/                │ │ Type:  regular file       │ │
- *   │ │▸report.txt          │ │ Size:  2.3 K              │ │
- *   │ ╰─────────────────────╯ ╰───────────────────────────╯ │
+ *   │ ╭ Files ──────────────────────────────────────────────╮│
+ *   │ │   ↑ ..                                               ││
+ *   │ │   ◆ src/                                             ││
+ *   │ │ ▶ • report.txt                                       ││
+ *   │ ╰──────────────────────────────────────────────────────╯│
  *   └ status / key hints ───────────────────────────────────┘  (status, last)
  *
  * Compile from the repo root:
@@ -45,10 +45,8 @@
 
 #include <dirent.h>
 #include <errno.h>
-#include <grp.h>
 #include <limits.h>
 #include <locale.h>
-#include <pwd.h>
 #include <stdatomic.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -60,6 +58,7 @@
 #include <sys/types.h>
 #include <time.h>
 #include <unistd.h>
+#include <wchar.h>
 
 /* ════════════════════════════════════════════════════════════ MODEL ══ */
 
@@ -91,12 +90,10 @@ static int         g_list_rows = 1;        /* visible rows in the list pane     
 /* ═══════════════════════════════════════════════════════ WIDGET REFS ══ */
 
 static nocterm_widget_t *g_app      = NULL;  /* focusable virtual root            */
-static nocterm_widget_t *g_list     = NULL;  /* left pane (we render into this)   */
-static nocterm_widget_t *g_preview  = NULL;  /* right pane                        */
+static nocterm_widget_t *g_list     = NULL;  /* file list (we render into this)   */
 static nocterm_widget_t *g_title    = NULL;  /* top path bar                      */
 static nocterm_widget_t *g_status   = NULL;  /* bottom hint bar                   */
 static nocterm_decorbox_t *g_list_box    = NULL;
-static nocterm_decorbox_t *g_preview_box = NULL;
 
 static nocterm_page_t *g_main_page = NULL;
 static nocterm_page_t *g_help_page = NULL;
@@ -172,32 +169,6 @@ static void clear_widget(nocterm_widget_t *w, nocterm_attribute_t a)
 {
     for (int r = 0; r < cell_h(w); r++)
         fill_row(w, r, 0, a);
-}
-
-/* ════════════════════════════════════════════════════ FORMAT HELPERS ══ */
-
-static void human_size(off_t n, char *out, size_t out_sz)
-{
-    const char *unit[] = { "B", "K", "M", "G", "T", "P" };
-    double d = (double)n;
-    int i = 0;
-    while (d >= 1024.0 && i < 5) { d /= 1024.0; i++; }
-    if (i == 0) snprintf(out, out_sz, "%lld B", (long long)n);
-    else        snprintf(out, out_sz, "%.1f %s", d, unit[i]);
-}
-
-static void mode_string(mode_t m, char *out /* >= 11 */)
-{
-    out[0] = S_ISDIR(m)  ? 'd' :
-             S_ISLNK(m)  ? 'l' :
-             S_ISCHR(m)  ? 'c' :
-             S_ISBLK(m)  ? 'b' :
-             S_ISFIFO(m) ? 'p' :
-             S_ISSOCK(m) ? 's' : '-';
-    const char *rwx = "rwxrwxrwx";
-    for (int i = 0; i < 9; i++)
-        out[1 + i] = (m & (0400 >> i)) ? rwx[i] : '-';
-    out[10] = '\0';
 }
 
 /* ════════════════════════════════════════════════════ DIRECTORY MODEL ══ */
@@ -301,7 +272,7 @@ static void enter_selected(void)
     fe_entry_t *s = &g_entries[g_sel];
     if (!s->is_dir) {
         snprintf(g_message, sizeof g_message,
-                 "'%.200s' is not a directory (preview shown on the right)", s->name);
+                 "'%.200s' is not a directory", s->name);
         return;
     }
     char name[FE_NAME_MAX];
@@ -360,14 +331,17 @@ static void render_list(void)
         }
 
         fe_entry_t *e = &g_entries[idx];
+        bool is_parent = (strcmp(e->name, "..") == 0);
 
-        int  color = COL_PLAIN;
-        bool bold  = false;
-        char suffix = ' ';
-        if      (e->is_dir)  { color = COL_DIR;  bold = true; suffix = '/'; }
-        else if (e->is_link) { color = COL_LINK;              suffix = '@'; }
-        else if (e->is_exec) { color = COL_EXEC; bold = true; suffix = '*'; }
-        if (e->name[0] == '.' && strcmp(e->name, "..") != 0)
+        int     color  = COL_PLAIN;
+        bool    bold   = false;
+        wchar_t glyph  = L'•';     /* type icon: regular file */
+        wchar_t suffix = L'\0';
+        if      (is_parent)  { color = COL_DIR;  bold = true; glyph = L'↑'; }
+        else if (e->is_dir)  { color = COL_DIR;  bold = true; glyph = L'◆'; suffix = L'/'; }
+        else if (e->is_link) { color = COL_LINK;              glyph = L'↪'; suffix = L'@'; }
+        else if (e->is_exec) { color = COL_EXEC; bold = true; glyph = L'★'; suffix = L'*'; }
+        if (e->name[0] == '.' && !is_parent)
             color = COL_DIM;                       /* dim hidden entries */
 
         nocterm_attribute_t attr = selected ? a_fg_bg(0, COL_ACCENT, true)
@@ -376,141 +350,16 @@ static void render_list(void)
         /* paint the whole row first (so the highlight spans full width) */
         fill_row(w, r, 0, attr);
 
-        /* marker column: '>' on the selected row, ' ' otherwise */
         int col = 0;
-        cell_put(w, r, col++, nocterm_char_from_ascii(selected ? '>' : ' '), attr);
+        /* selection pointer, then the type glyph, then the name */
+        cell_put(w, r, col++, nocterm_char_from_wchar(selected ? L'▶' : L' '), attr);
+        cell_put(w, r, col++, nocterm_char_from_ascii(' '), attr);
+        cell_put(w, r, col++, nocterm_char_from_wchar(glyph), attr);
+        cell_put(w, r, col++, nocterm_char_from_ascii(' '), attr);
 
-        char label[FE_NAME_MAX + 2];
-        snprintf(label, sizeof label, "%s%c", e->name,
-                 suffix == ' ' ? '\0' : suffix);
-        draw_str(w, r, col, label, attr);
-    }
-}
-
-/* Decide whether a buffer looks like text (no NULs, mostly printable). */
-static bool looks_textual(const unsigned char *buf, size_t n)
-{
-    size_t suspicious = 0;
-    for (size_t i = 0; i < n; i++) {
-        unsigned char c = buf[i];
-        if (c == 0) return false;
-        if (c < 0x09 || (c > 0x0d && c < 0x20)) suspicious++;
-    }
-    return n == 0 || (suspicious * 100 / n) < 10;
-}
-
-static void render_preview(void)
-{
-    nocterm_widget_t *w = g_preview;
-    int H = cell_h(w), W = cell_w(w);
-    if (H <= 0 || W <= 0) return;
-
-    nocterm_attribute_t blank = {0};
-    nocterm_attribute_t key   = a_fg(COL_KEY, true);
-    nocterm_attribute_t val   = a_fg(COL_PLAIN, false);
-    nocterm_attribute_t dim   = a_fg(COL_DIM, false);
-
-    clear_widget(w, blank);
-
-    if (g_count == 0) {
-        draw_str(w, 0, 0, "(empty directory)", dim);
-        return;
-    }
-
-    fe_entry_t *e = &g_entries[g_sel];
-    int row = 0;
-    char line[PATH_MAX + 64];
-
-    /* ── metadata block ── */
-    int c = draw_str(w, row, 0, "Name  ", key);
-    draw_str(w, row, c, e->name, val); row++;
-
-    const char *type = e->is_link ? "symbolic link" :
-                       e->is_dir  ? "directory" :
-                       e->is_exec ? "executable" :
-                       e->stat_ok && S_ISREG(e->mode) ? "regular file" : "special";
-    c = draw_str(w, row, 0, "Type  ", key);
-    draw_str(w, row, c, type, val); row++;
-
-    if (e->stat_ok) {
-        char hs[32]; human_size(e->size, hs, sizeof hs);
-        c = draw_str(w, row, 0, "Size  ", key);
-        draw_str(w, row, c, hs, val); row++;
-
-        char ms[16]; mode_string(e->mode, ms);
-        c = draw_str(w, row, 0, "Perms ", key);
-        draw_str(w, row, c, ms, val); row++;
-
-        struct stat st;
-        if (stat(e->name, &st) == 0) {
-            struct passwd *pw = getpwuid(st.st_uid);
-            struct group  *gr = getgrgid(st.st_gid);
-            snprintf(line, sizeof line, "%s:%s",
-                     pw ? pw->pw_name : "?", gr ? gr->gr_name : "?");
-            c = draw_str(w, row, 0, "Owner ", key);
-            draw_str(w, row, c, line, val); row++;
-        }
-
-        char tbuf[32];
-        struct tm tm;
-        localtime_r(&e->mtime, &tm);
-        strftime(tbuf, sizeof tbuf, "%Y-%m-%d %H:%M:%S", &tm);
-        c = draw_str(w, row, 0, "Time  ", key);
-        draw_str(w, row, c, tbuf, val); row++;
-    }
-
-    /* ── separator ── */
-    row++;
-    if (row < H) {
-        for (int x = 0; x < W; x++)
-            cell_put(w, row, x, nocterm_char_from_wchar(L'─'), dim);
-        row++;
-    }
-
-    /* ── body: directory summary or text preview ── */
-    if (e->is_dir) {
-        draw_str(w, row, 0, "Press Enter to open this directory.", dim);
-        return;
-    }
-
-    FILE *f = fopen(e->name, "rb");
-    if (!f) {
-        snprintf(line, sizeof line, "(cannot read: %s)", strerror(errno));
-        draw_str(w, row, 0, line, dim);
-        return;
-    }
-
-    unsigned char buf[64 * 1024];
-    size_t n = fread(buf, 1, sizeof buf, f);
-    fclose(f);
-
-    if (!looks_textual(buf, n)) {
-        draw_str(w, row, 0, "(binary file — no preview)", dim);
-        return;
-    }
-    if (n == 0) {
-        draw_str(w, row, 0, "(empty file)", dim);
-        return;
-    }
-
-    /* print up to the remaining rows, expanding tabs and clipping width */
-    size_t i = 0;
-    while (row < H && i < n) {
-        char text[1024];
-        int  len = 0;
-        while (i < n && buf[i] != '\n' && len < (int)sizeof text - 1) {
-            unsigned char ch = buf[i++];
-            if (ch == '\r') continue;
-            if (ch == '\t') {
-                int pad = 4 - (len % 4);
-                while (pad-- && len < (int)sizeof text - 1) text[len++] = ' ';
-            } else {
-                text[len++] = (char)ch;
-            }
-        }
-        if (i < n && buf[i] == '\n') i++;
-        text[len] = '\0';
-        draw_str(w, row++, 0, text, val);
+        col = draw_str(w, r, col, e->name, attr);
+        if (suffix && col < cell_w(w))
+            cell_put(w, r, col, nocterm_char_from_wchar(suffix), attr);
     }
 }
 
@@ -521,7 +370,7 @@ static void render_bars(void)
         nocterm_attribute_t bar = a_fg_bg(0, COL_ACCENT, true);
         clear_widget(g_title, bar);
         char path[PATH_MAX + 32];
-        snprintf(path, sizeof path, " nocterm explorer  %s", g_cwd);
+        snprintf(path, sizeof path, " nocterm explorer  ▸  %s", g_cwd);
         /* if the path is too long, keep the tail (most relevant part) */
         int avail = cell_w(g_title);
         if ((int)strlen(path) > avail && avail > 4) {
@@ -544,8 +393,8 @@ static void render_bars(void)
             draw_str(g_status, 0, 0, info, a_fg(1, true));
         } else {
             snprintf(info, sizeof info,
-                     " %lld/%llu  hidden:%s   "
-                     "[Enter] open  [Bksp] up  [.] hidden  [r] refresh  [?] help  [q] quit",
+                     " %lld/%llu  •  hidden:%s   "
+                     "↑↓ move   → open   ← up   . hidden   r refresh   ? help   q quit",
                      (long long)(g_count ? g_sel + 1 : 0),
                      (unsigned long long)g_count,
                      g_show_hidden ? "on" : "off");
@@ -556,15 +405,11 @@ static void render_bars(void)
 
 static void render_all(void)
 {
-    /* reflect the focused selection in the pane titles */
+    /* reflect the focused selection in the pane title */
     if (g_list_box)
         nocterm_decorbox_set_label(g_list_box, " Files ", sizeof " Files ",
                                    a_fg(COL_ACCENT, true), 2);
-    if (g_preview_box)
-        nocterm_decorbox_set_label(g_preview_box, " Preview ", sizeof " Preview ",
-                                   a_fg(COL_ACCENT, true), 2);
     render_list();
-    render_preview();
     render_bars();
 }
 
@@ -581,10 +426,10 @@ NOCTERM_TIMER_CALLBACK(paint_cb)
 /* ════════════════════════════════════════════════════ RESIZE HANDLER ══ */
 
 /*
- * Called while the root widget is being flex-resized.  The two panes occupy the
- * vertical space between the one-row title bar and the one-row status bar, so we
- * recompute their height as a percentage of the (new) screen height before the
- * flex pass recurses into them.
+ * Called while the root widget is being flex-resized.  The list pane occupies
+ * the vertical space between the one-row title bar and the one-row status bar,
+ * so we recompute its height as a percentage of the (new) screen height before
+ * the flex pass recurses into it.
  */
 NOCTERM_WIDGET_RESIZE_HANDLER(app_resize)
 {
@@ -598,9 +443,6 @@ NOCTERM_WIDGET_RESIZE_HANDLER(app_resize)
 
     if (g_list_box)
         nocterm_widget_flex(NOCTERM_WIDGET(g_list_box),
-                            NOCTERM_WIDGET_FLEX_PERCENT_VERTICAL, pct);
-    if (g_preview_box)
-        nocterm_widget_flex(NOCTERM_WIDGET(g_preview_box),
                             NOCTERM_WIDGET_FLEX_PERCENT_VERTICAL, pct);
 
     mark_dirty();
@@ -735,34 +577,19 @@ static nocterm_page_t *build_main_page(void)
     nocterm_widget_align(g_title, NOCTERM_WIDGET_ALIGN_TOP);
     nocterm_widget_align(g_title, NOCTERM_WIDGET_ALIGN_LEFT);
 
-    /* left pane: file list */
+    /* file list: full-width pane between the title and status bars */
     g_list = nocterm_widget_new(1, 1, NOCTERM_WIDGET_FOCUSABLE_NO,
                                 NOCTERM_WIDGET_TYPE_REAL);
     nocterm_widget_flex(g_list, NOCTERM_WIDGET_FLEX_FILL_BOTH);
     g_list_box = make_pane(g_list, " Files ");
     nocterm_widget_flex(NOCTERM_WIDGET(g_list_box),
-                        NOCTERM_WIDGET_FLEX_PERCENT_HORIZONTAL, 50);
+                        NOCTERM_WIDGET_FLEX_PERCENT_HORIZONTAL, 100);
     nocterm_widget_flex(NOCTERM_WIDGET(g_list_box),
                         NOCTERM_WIDGET_FLEX_PERCENT_VERTICAL, 80);
     nocterm_widget_add_subwidget(g_app, NOCTERM_WIDGET(g_list_box));
     nocterm_widget_align(NOCTERM_WIDGET(g_list_box), NOCTERM_WIDGET_ALIGN_LEFT);
     nocterm_widget_align(NOCTERM_WIDGET(g_list_box), NOCTERM_WIDGET_ALIGN_TOP);
     nocterm_widget_align(NOCTERM_WIDGET(g_list_box),
-                         NOCTERM_WIDGET_ALIGN_MARGIN_VERTICAL, 1);
-
-    /* right pane: preview / details */
-    g_preview = nocterm_widget_new(1, 1, NOCTERM_WIDGET_FOCUSABLE_NO,
-                                   NOCTERM_WIDGET_TYPE_REAL);
-    nocterm_widget_flex(g_preview, NOCTERM_WIDGET_FLEX_FILL_BOTH);
-    g_preview_box = make_pane(g_preview, " Preview ");
-    nocterm_widget_flex(NOCTERM_WIDGET(g_preview_box),
-                        NOCTERM_WIDGET_FLEX_PERCENT_HORIZONTAL, 50);
-    nocterm_widget_flex(NOCTERM_WIDGET(g_preview_box),
-                        NOCTERM_WIDGET_FLEX_PERCENT_VERTICAL, 80);
-    nocterm_widget_add_subwidget(g_app, NOCTERM_WIDGET(g_preview_box));
-    nocterm_widget_align(NOCTERM_WIDGET(g_preview_box), NOCTERM_WIDGET_ALIGN_RIGHT);
-    nocterm_widget_align(NOCTERM_WIDGET(g_preview_box), NOCTERM_WIDGET_ALIGN_TOP);
-    nocterm_widget_align(NOCTERM_WIDGET(g_preview_box),
                          NOCTERM_WIDGET_ALIGN_MARGIN_VERTICAL, 1);
 
     /* status / hint bar: full-width real widget, one row, bottom */

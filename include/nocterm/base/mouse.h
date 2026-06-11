@@ -38,14 +38,14 @@
  */
 
 typedef enum nocterm_mouse_button_t{
+    NOCTERM_MOUSE_BUTTON_UNDEFINED = 0,
     NOCTERM_MOUSE_BUTTON_LMB,
     NOCTERM_MOUSE_BUTTON_RMB,
     NOCTERM_MOUSE_BUTTON_MMB,
     NOCTERM_MOUSE_BUTTON_RELEASE,
     NOCTERM_MOUSE_BUTTON_SCROLL_UP,
     NOCTERM_MOUSE_BUTTON_SCROLL_DOWN,
-    NOCTERM_MOUSE_BUTTON_MOVE,
-    NOCTERM_MOUSE_BUTTON_UNKNOWN
+    NOCTERM_MOUSE_BUTTON_MOVE
 }nocterm_mouse_button_t;
 
 typedef struct nocterm_mouse_modifier_t{
@@ -66,6 +66,13 @@ typedef enum nocterm_mouse_support_t{
     NOCTERM_MOUSE_SUPPORT_SIMPLE,
     NOCTERM_MOUSE_SUPPORT_ADVANCED
 }nocterm_mouse_support_t;
+
+/**
+ * @brief Returns mouse event from key.
+ *
+ * @param support
+ */
+nocterm_mouse_event_t nocterm_mouse_translate(nocterm_key_t* key);
 
 /**
  * @brief Sets the current mouse support level.

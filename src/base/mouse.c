@@ -1,3 +1,4 @@
+#include "nocterm/base/key.h"
 #include <nocterm/base/mouse.h>
 
 // ====================== Internal Access ====================== //
@@ -39,8 +40,17 @@ int nocterm_mouse_disable(void){
     return NOCTERM_FAILURE;
 }
 
-nocterm_mouse_event_t nocterm_mouse_event(uint8_t mouse_byte, uint8_t col_byte, uint8_t row_byte){
+nocterm_mouse_event_t nocterm_mouse_translate(nocterm_key_t* key){
 
+    if(key == NULL || nocterm_key_translate(key) != NOCTERM_KEY_EVENT_MOUSE){
+        return (nocterm_mouse_event_t){.button = NOCTERM_MOUSE_BUTTON_UNDEFINED};
+    }
+
+
+    uint8_t mouse_byte = key->buffer[3];
+    uint8_t col_byte = key->buffer[4];
+    uint8_t row_byte = key->buffer[5];
+    
     mouse_byte -= 32;
 
     nocterm_mouse_event_t new_mouse_event = {0};
@@ -96,6 +106,7 @@ int nocterm_mouse_controller(nocterm_key_t* key){
     static uint8_t mouse_progress_state = 0;
     static nocterm_widget_t* previous_mouse_widget = NULL;
     static nocterm_mouse_event_t previous_mouse_event = {0};
+    static nocterm_key_t previous_mouse_key = {0};
 
     if(key == NULL){
         errno = EINVAL;
@@ -107,7 +118,7 @@ int nocterm_mouse_controller(nocterm_key_t* key){
         return NOCTERM_FAILURE;
     }
 
-    nocterm_mouse_event_t current_mouse_event = nocterm_mouse_event(key->buffer[3], key->buffer[4], key->buffer[5]);
+    nocterm_mouse_event_t current_mouse_event = nocterm_mouse_translate(key);
     
     if(current_mouse_event.row >= nocterm_screen_height || current_mouse_event.col >= nocterm_screen_width){
         return NOCTERM_FAILURE;
@@ -190,6 +201,7 @@ int nocterm_mouse_controller(nocterm_key_t* key){
             case NOCTERM_MOUSE_BUTTON_RMB:{
                 previous_mouse_widget = current_mouse_widget;
                 previous_mouse_event = current_mouse_event;
+                previous_mouse_key = *key;
                 mouse_progress_state = 1;
             }break;
 
@@ -218,21 +230,24 @@ int nocterm_mouse_controller(nocterm_key_t* key){
 
                 }
 
-                if(previous_mouse_event.button == NOCTERM_MOUSE_BUTTON_LMB){
+                switch(previous_mouse_event.button){
+                    case NOCTERM_MOUSE_BUTTON_LMB:
+                    case NOCTERM_MOUSE_BUTTON_RMB:
+                    case NOCTERM_MOUSE_BUTTON_MMB:{
+                        if(current_page->focused_widget == current_mouse_widget->owner || previous_mouse_widget->click_activation){
+                            
+                            if(current_mouse_widget->owner->key_handler){
+                                // Deliver the original press key (LMB/RMB/MMB) rather than
+                                // the release event, so widgets can translate the button.
+                                current_mouse_widget->owner->key_handler(current_mouse_widget->owner, &previous_mouse_key);
+                            }
 
-                    if(current_page->focused_widget == current_mouse_widget->owner || previous_mouse_widget->click_activation){
-                        
-                        if(current_mouse_widget->owner->key_handler){
-                            memcpy(crafted_key.buffer, "\n", 1);
-                            crafted_key.buffer_length = 1;
-                            crafted_key.type = NOCTERM_KEY_TYPE_CONTROL;  
-    
-                            current_mouse_widget->owner->key_handler(current_mouse_widget->owner, &crafted_key);
                         }
+                    }break;
 
-                    }
-
+                    default:break;
                 }
+
 
                 if(current_mouse_widget->owner->focusable){
                     current_page->focused_widget = current_mouse_widget->owner;
