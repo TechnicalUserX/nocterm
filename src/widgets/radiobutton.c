@@ -10,17 +10,24 @@ NOCTERM_INTERNAL NOCTERM_WIDGET_KEY_HANDLER(nocterm_radiobutton_key_handler);
 NOCTERM_INTERNAL NOCTERM_WIDGET_FOCUS_HANDLER(nocterm_radiobutton_focus_handler);
 
 // Updates the marker cell of a radio button to reflect its current selection
-// state, honouring whether the widget is currently focused for the attribute.
+// state.  Only the character changes here; the cell's existing attribute is
+// preserved, because the focus handler owns the cursor/normal styling and has
+// already applied the correct one (FOCUS_ENTER/LEAVE run before the activating
+// key/click reaches this widget).  Re-deriving the attribute from the global
+// focus pointer would be wrong during a mouse click: that pointer is only moved
+// to the clicked widget AFTER its handler runs, so a just-deselected radio would
+// otherwise keep the inverse cursor attribute and never clear it.
 NOCTERM_INTERNAL void nocterm_radiobutton_render_marker(nocterm_radiobutton_t* radiobutton){
 
-    nocterm_attribute_t attribute = nocterm_widget_is_focused(NOCTERM_WIDGET(radiobutton)) ?
-        radiobutton->cursor_attribute : radiobutton->main_attribute;
+    nocterm_widget_t* widget = NOCTERM_WIDGET(radiobutton);
 
-    if(radiobutton->selected){
-        nocterm_widget_update(NOCTERM_WIDGET(radiobutton), 0, 1, radiobutton->select_marker, attribute);
-    }else{
-        nocterm_widget_update(NOCTERM_WIDGET(radiobutton), 0, 1, nocterm_char_from_ascii(' '), attribute);
-    }
+    nocterm_attribute_t attribute = (widget->buffer != NULL && widget->buffer_size > 1)
+        ? widget->buffer[1].attribute
+        : radiobutton->main_attribute;
+
+    nocterm_char_t marker = radiobutton->selected ? radiobutton->select_marker : nocterm_char_from_ascii(' ');
+
+    nocterm_widget_update(widget, 0, 1, marker, attribute);
 }
 
 nocterm_radiobutton_group_t* nocterm_radiobutton_group_new(void){
