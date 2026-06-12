@@ -311,10 +311,17 @@ int nocterm_loop(void){
         }
 
         // REFRESH PHASE
-        if(current_page->root_widget->hard_refresh){
-            if(current_overlay){
-                current_overlay->hard_refresh = true;
-            }
+        // A hard refresh on either layer clears the whole screen and resets cell
+        // ownership below, so BOTH layers must fully repaint afterwards.  The
+        // propagation has to be bidirectional: if only one layer is hard-refreshed
+        // (e.g. nocterm_overlay_invalidate() with a static page), the clear would
+        // wipe the other layer's content that nothing else re-marks dirty.
+        if(current_page->root_widget->hard_refresh && current_overlay){
+            current_overlay->hard_refresh = true;
+        }
+
+        if(current_overlay && current_overlay->hard_refresh){
+            current_page->root_widget->hard_refresh = true;
         }
 
         if(current_page->root_widget->hard_refresh || (current_overlay && current_overlay->hard_refresh)){

@@ -277,9 +277,10 @@ int nocterm_mouse_controller(nocterm_key_t* key){
                 // We have to check the direction of the 2 dimensional motion
 
                 // If the widget that the drag operation is performed on is not already focused,
-                // discard the operation
-
-                if(current_page->focused_widget->owner == current_mouse_widget->owner){
+                // discard the operation.  focused_widget may be NULL (e.g. the drag began over a
+                // non-focusable widget, which clears the focus), so it must be checked before
+                // dereferencing it.
+                if(current_page->focused_widget && current_page->focused_widget->owner == current_mouse_widget->owner){
 
                     if(previous_mouse_event.row != current_mouse_event.row){
                         // There is vertical movement
