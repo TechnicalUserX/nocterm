@@ -24,7 +24,7 @@ NOCTERM_INTERNAL nocterm_menu_item_array_t* nocterm_menu_item_array_new(void);
 
 NOCTERM_INTERNAL void nocterm_menu_item_array_delete(nocterm_menu_item_array_t* nocterm_menu_item_array);
 
-NOCTERM_INTERNAL void nocterm_menu_item_array_increase_capacity(nocterm_menu_item_array_t* nocterm_menu_item_array);
+NOCTERM_INTERNAL int nocterm_menu_item_array_increase_capacity(nocterm_menu_item_array_t* nocterm_menu_item_array);
 
 NOCTERM_INTERNAL int nocterm_menu_item_array_push_back(nocterm_menu_item_array_t* nocterm_menu_item_array, nocterm_menu_item_t item);
 
@@ -488,19 +488,19 @@ void nocterm_menu_item_array_delete(nocterm_menu_item_array_t* nocterm_menu_item
     free(nocterm_menu_item_array);
 }
 
-void nocterm_menu_item_array_increase_capacity(nocterm_menu_item_array_t* nocterm_menu_item_array){
+int nocterm_menu_item_array_increase_capacity(nocterm_menu_item_array_t* nocterm_menu_item_array){
     if(nocterm_menu_item_array == NULL){
-        return;
+        return NOCTERM_FAILURE;
     }
     if(nocterm_menu_item_array->size == nocterm_menu_item_array->capacity){
         uint64_t new_capacity = nocterm_menu_item_array->capacity * 2 == 0 ? 1 : nocterm_menu_item_array->capacity * 2;
         if(new_capacity < nocterm_menu_item_array->capacity){
-            return;
+            return NOCTERM_FAILURE;
         }
         nocterm_menu_item_t* new_items = (nocterm_menu_item_t*)malloc(sizeof(nocterm_menu_item_t) * (new_capacity));
         if(new_items == NULL){
-            return;
-        }        
+            return NOCTERM_FAILURE;
+        }
 
         memset(new_items, 0x0, sizeof(nocterm_menu_item_t) * (new_capacity));
 
@@ -511,13 +511,16 @@ void nocterm_menu_item_array_increase_capacity(nocterm_menu_item_array_t* nocter
         nocterm_menu_item_array->items = new_items;
         nocterm_menu_item_array->capacity = new_capacity;
     }
+    return NOCTERM_SUCCESS;
 }
 
 int nocterm_menu_item_array_push_back(nocterm_menu_item_array_t* nocterm_menu_item_array, nocterm_menu_item_t item){
     if(nocterm_menu_item_array == NULL){
         return NOCTERM_FAILURE;
     }    
-    nocterm_menu_item_array_increase_capacity(nocterm_menu_item_array);    
+    if(nocterm_menu_item_array_increase_capacity(nocterm_menu_item_array) == NOCTERM_FAILURE){
+        return NOCTERM_FAILURE;
+    }
     nocterm_menu_item_array->items[nocterm_menu_item_array->size] = item;
     nocterm_menu_item_array->size++;
     return NOCTERM_SUCCESS;
@@ -541,7 +544,9 @@ int nocterm_menu_item_array_push_front(nocterm_menu_item_array_t* nocterm_menu_i
     if(nocterm_menu_item_array == NULL){
         return NOCTERM_FAILURE;
     }    
-    nocterm_menu_item_array_increase_capacity(nocterm_menu_item_array);    
+    if(nocterm_menu_item_array_increase_capacity(nocterm_menu_item_array) == NOCTERM_FAILURE){
+        return NOCTERM_FAILURE;
+    }
     memmove(&(nocterm_menu_item_array->items[1]), &(nocterm_menu_item_array->items[0]), sizeof(nocterm_menu_item_t) * nocterm_menu_item_array->size);
     memcpy(&(nocterm_menu_item_array->items[0]), &item, sizeof(nocterm_menu_item_t));
     nocterm_menu_item_array->size++;
@@ -570,7 +575,9 @@ int nocterm_menu_item_array_insert(nocterm_menu_item_array_t* nocterm_menu_item_
     if(index > nocterm_menu_item_array->size){
         return NOCTERM_FAILURE;
     }
-    nocterm_menu_item_array_increase_capacity(nocterm_menu_item_array);
+    if(nocterm_menu_item_array_increase_capacity(nocterm_menu_item_array) == NOCTERM_FAILURE){
+        return NOCTERM_FAILURE;
+    }
     memmove(&(nocterm_menu_item_array->items[index+1]), &(nocterm_menu_item_array->items[index]), sizeof(nocterm_menu_item_t) * (nocterm_menu_item_array->size - index) );
     nocterm_menu_item_array->items[index] = item;
     nocterm_menu_item_array->size++;

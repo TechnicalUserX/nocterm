@@ -28,9 +28,11 @@ uint64_t nocterm_char_string_from_stream(nocterm_char_t* dest, uint64_t dest_siz
 
         size_t multibyte_size = mbrlen(&src[src_position], src_size, &mbstate);
 
-        if(multibyte_size == -1){
-            // Illegal sequence
-            // Malformed src, no valid conversion available
+        if(multibyte_size == (size_t)-1 || multibyte_size == (size_t)-2){
+            // (size_t)-1: illegal sequence — malformed src, no valid conversion.
+            // (size_t)-2: a valid but incomplete multibyte sequence (src ends
+            // mid-codepoint). Either way there is no complete character to copy;
+            // bailing here prevents using the huge (size_t)-N as a memcpy length.
             return 0;
         }
 

@@ -10,6 +10,7 @@ This page lists code examples for various usages of the Nocterm library.
 - \subpage examples_button
 - \subpage examples_checkbox
 - \subpage examples_radiobutton
+- \subpage examples_tabs
 - \subpage examples_loadingbar
 - \subpage examples_entry
 - \subpage examples_textbox

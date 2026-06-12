@@ -21,7 +21,7 @@ NOCTERM_INTERNAL nocterm_listview_item_array_t* nocterm_listview_item_array_new(
 
 NOCTERM_INTERNAL void nocterm_listview_item_array_delete(nocterm_listview_item_array_t* dynamic_array);
 
-NOCTERM_INTERNAL void nocterm_listview_item_array_increase_capacity(nocterm_listview_item_array_t* dynamic_array);
+NOCTERM_INTERNAL int nocterm_listview_item_array_increase_capacity(nocterm_listview_item_array_t* dynamic_array);
 
 NOCTERM_INTERNAL int nocterm_listview_item_array_push_back(nocterm_listview_item_array_t* dynamic_array, nocterm_listview_item_t item);
 
@@ -547,19 +547,19 @@ void nocterm_listview_item_array_delete(nocterm_listview_item_array_t* dynamic_a
     free(dynamic_array);
 }
 
-void nocterm_listview_item_array_increase_capacity(nocterm_listview_item_array_t* dynamic_array){
+int nocterm_listview_item_array_increase_capacity(nocterm_listview_item_array_t* dynamic_array){
     if(dynamic_array == NULL){
-        return;
+        return NOCTERM_FAILURE;
     }
     if(dynamic_array->size == dynamic_array->capacity){
         uint64_t new_capacity = dynamic_array->capacity * 2 == 0 ? 1 : dynamic_array->capacity * 2;
         if(new_capacity < dynamic_array->capacity){
-            exit(NOCTERM_FAILURE);
+            return NOCTERM_FAILURE;
         }
         nocterm_listview_item_t* new_items = (nocterm_listview_item_t*)malloc(sizeof(nocterm_listview_item_t) * (new_capacity));
         if(new_items == NULL){
-            exit(NOCTERM_FAILURE);
-        }        
+            return NOCTERM_FAILURE;
+        }
 
         memset(new_items, 0x0, sizeof(nocterm_listview_item_t) * (new_capacity));
 
@@ -571,13 +571,16 @@ void nocterm_listview_item_array_increase_capacity(nocterm_listview_item_array_t
         dynamic_array->items = new_items;
         dynamic_array->capacity = new_capacity;
     }
+    return NOCTERM_SUCCESS;
 }
 
 int nocterm_listview_item_array_push_back(nocterm_listview_item_array_t* dynamic_array, nocterm_listview_item_t item){
     if(dynamic_array == NULL){
         return NOCTERM_FAILURE;
     }    
-    nocterm_listview_item_array_increase_capacity(dynamic_array);    
+    if(nocterm_listview_item_array_increase_capacity(dynamic_array) == NOCTERM_FAILURE){
+        return NOCTERM_FAILURE;
+    }
     dynamic_array->items[dynamic_array->size] = item;
     dynamic_array->size++;
     return NOCTERM_SUCCESS;
@@ -601,7 +604,9 @@ int nocterm_listview_item_array_push_front(nocterm_listview_item_array_t* dynami
     if(dynamic_array == NULL){
         return NOCTERM_FAILURE;
     }    
-    nocterm_listview_item_array_increase_capacity(dynamic_array);    
+    if(nocterm_listview_item_array_increase_capacity(dynamic_array) == NOCTERM_FAILURE){
+        return NOCTERM_FAILURE;
+    }
     memmove(&(dynamic_array->items[1]), &(dynamic_array->items[0]), sizeof(nocterm_listview_item_t) * dynamic_array->size);
     memcpy(&(dynamic_array->items[0]), &item, sizeof(nocterm_listview_item_t));
     dynamic_array->size++;
@@ -630,7 +635,9 @@ int nocterm_listview_item_array_insert(nocterm_listview_item_array_t* dynamic_ar
     if(index > dynamic_array->size){
         return NOCTERM_FAILURE;
     }
-    nocterm_listview_item_array_increase_capacity(dynamic_array);
+    if(nocterm_listview_item_array_increase_capacity(dynamic_array) == NOCTERM_FAILURE){
+        return NOCTERM_FAILURE;
+    }
     memmove(&(dynamic_array->items[index+1]), &(dynamic_array->items[index]), sizeof(nocterm_listview_item_t) * (dynamic_array->size - index) );
     dynamic_array->items[index] = item;
     dynamic_array->size++;
@@ -673,9 +680,9 @@ int nocterm_listview_item_array_shrink_to_fit(nocterm_listview_item_array_t* dyn
 
     nocterm_listview_item_t* new_items = (nocterm_listview_item_t*)malloc(sizeof(nocterm_listview_item_t) * (dynamic_array->size));
     if(new_items == NULL){
-        exit(NOCTERM_FAILURE);
+        return NOCTERM_FAILURE;
     }
-    
+
     memset(new_items, 0x0, sizeof(nocterm_listview_item_t) * (dynamic_array->size));
 
     memcpy(new_items, dynamic_array->items, sizeof(nocterm_listview_item_t) * dynamic_array->size);

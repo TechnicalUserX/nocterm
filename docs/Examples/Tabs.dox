@@ -1,0 +1,9 @@
+\page examples_tabs Tabs Example
+
+# Source Code
+
+\include tabs/tabs_1.c
+
+# Output
+
+![](images/tabs_1.png)

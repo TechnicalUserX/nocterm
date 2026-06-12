@@ -176,18 +176,32 @@ int nocterm_mouse_controller(nocterm_key_t* key){
     
     }else if(current_mouse_event.button == NOCTERM_MOUSE_BUTTON_MOVE && mouse_progress_state == 0){
 
-        if(current_page->focused_widget && current_page->focused_widget->owner != current_mouse_widget->owner){
-            if(current_page->focused_widget->owner && current_page->focused_widget->owner->focus_handler){
+        nocterm_widget_t* hovered = current_mouse_widget->owner;
+
+        // Re-highlight from the hovered cell alone: when the widget under the
+        // cursor differs from the currently highlighted one, leave the old and
+        // enter the new.  The ENTER must NOT be nested inside the LEAVE check:
+        // moving off a focusable widget onto a non-focusable region clears the
+        // highlight (focused_widget = NULL), and the cursor returning to that
+        // same widget has to be able to re-enter it.  Previously the ENTER was
+        // gated on focused_widget still pointing at the (already-left) widget,
+        // so returning to it never re-highlighted it.
+        if(current_page->focused_widget != hovered){
+
+            if(current_page->focused_widget && current_page->focused_widget->focus_handler){
                 current_page->focused_widget->focus_handler(current_page->focused_widget, NOCTERM_WIDGET_FOCUS_LEAVE);
             }
-    
-            if(current_mouse_widget->owner->focusable && current_mouse_widget->owner->focus_handler){
-                current_mouse_widget->owner->focus_handler(current_mouse_widget->owner, NOCTERM_WIDGET_FOCUS_ENTER);
-            }
-        }
 
-        if(current_mouse_widget->owner && current_mouse_widget->owner->focusable){
-            current_page->focused_widget = current_mouse_widget->owner;
+            if(hovered && hovered->focusable){
+                if(hovered->focus_handler){
+                    hovered->focus_handler(hovered, NOCTERM_WIDGET_FOCUS_ENTER);
+                }
+                current_page->focused_widget = hovered;
+            }else{
+                // Over a non-focusable region: nothing is highlighted now, so a
+                // later hover back onto a focusable widget can enter it again.
+                current_page->focused_widget = NULL;
+            }
         }
         return NOCTERM_SUCCESS;
     }
