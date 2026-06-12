@@ -34,6 +34,7 @@
 #include <nocterm/widgets/entry.h>
 #include <nocterm/widgets/menu.h>
 #include <nocterm/widgets/checkbox.h>
+#include <nocterm/widgets/radiobutton.h>
 #include <nocterm/widgets/pixelgrid.h>
 #include <nocterm/widgets/textview.h>
 #include <nocterm/widgets/levelbar.h>
