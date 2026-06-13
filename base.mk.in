@@ -167,11 +167,14 @@ nocterm-install: superuser
 	@install --target-directory ${DESTDIR}${PREFIX}/lib ${BUILD_LIB_DIR}/libnocterm.a
 	@cp -r ${HDR_DIR}/nocterm ${DESTDIR}${PREFIX}/include
 	@cp -r ${BUILD_HDR_DIR}/nocterm ${DESTDIR}${PREFIX}/include
+	@${MKDIR_P} ${DESTDIR}${PREFIX}/lib/pkgconfig
+	@cp ${BUILD_DIR}/nocterm.pc ${DESTDIR}${PREFIX}/lib/pkgconfig/nocterm.pc
 
 nocterm-uninstall: superuser
 	@$(call build_log, "Uninstalling...")
 	@rm -f ${DESTDIR}${PREFIX}/lib/libnocterm.a
 	@rm -rf ${DESTDIR}${PREFIX}/include/nocterm
+	@rm -f ${DESTDIR}${PREFIX}/lib/pkgconfig/nocterm.pc
 
 nocterm-update: superuser
 	@${MAKE} --no-print-directory nocterm-uninstall

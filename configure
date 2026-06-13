@@ -828,6 +828,12 @@ for target in ${TARGETS}; do
                 config_log FAIL "version.h"
             fi
 
+            if config_build_in "templates/nocterm.pc.in" "${BUILD_DIR}/nocterm.pc"; then
+                config_log PASS "nocterm.pc"
+            else
+                config_log FAIL "nocterm.pc"
+            fi            
+
             if config_sources "$target" "src"; then
                 config_log PASS "${PROJECT} sources"
             else

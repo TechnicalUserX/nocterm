@@ -1,0 +1,6 @@
+Name: nocterm
+Description: Simple terminal user interface library for C/C++
+URL: https://github.com/TechnicalUserX/nocterm
+Version: @VERSION@
+Cflags: -pthread
+Libs: -lnocterm -pthread
