@@ -150,11 +150,29 @@ int nocterm_menu_clear(nocterm_menu_t* menu);
 int nocterm_menu_get_selection(nocterm_menu_t* menu, uint64_t* selection);
 
 /**
+ * @brief Programmatically sets the current selection of a menu widget.
+ *
+ * Moves the selection to @p index and scrolls the viewport the minimal amount
+ * needed to keep that item visible (mirroring the built-in key navigation).
+ * Unlike the key handler, this can be driven from application code, which makes
+ * data-driven behaviours such as "follow / stick to the newest item" possible.
+ *
+ * If @p index is past the last item it is clamped to the last item. If the menu
+ * is empty the selection is reset to 0. Safe to call on an unfocused menu: the
+ * selection state is updated and the highlight is applied on the next focus.
+ *
+ * @param menu
+ * @param index Zero-based item index to select.
+ * @return int
+ */
+int nocterm_menu_set_selection(nocterm_menu_t* menu, uint64_t index);
+
+/**
  * @brief Sets selection attribute of a menu widget.
- * 
- * @param menu 
- * @param attribute 
- * @return int 
+ *
+ * @param menu
+ * @param attribute
+ * @return int
  */
 int nocterm_menu_set_selection_attribute(nocterm_menu_t* menu, nocterm_attribute_t attribute);
 

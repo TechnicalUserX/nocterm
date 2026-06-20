@@ -239,6 +239,78 @@ int nocterm_menu_get_selection(nocterm_menu_t* menu, uint64_t* selection){
     return NOCTERM_SUCCESS;
 }
 
+int nocterm_menu_set_selection(nocterm_menu_t* menu, uint64_t index){
+
+    if(menu == NULL){
+        errno = EINVAL;
+        return NOCTERM_FAILURE;
+    }
+
+    pthread_mutex_lock(&NOCTERM_WIDGET(menu)->lock);
+
+    uint64_t size = menu->item_array->size;
+
+    if(size == 0){
+        // Nothing to select; keep the indices in a sane state.
+        menu->current_item = 0;
+        menu->selection_position = 0;
+        pthread_mutex_unlock(&NOCTERM_WIDGET(menu)->lock);
+        return NOCTERM_SUCCESS;
+    }
+
+    if(index >= size){
+        index = size - 1;
+    }
+
+    bool focused = nocterm_widget_is_focused(NOCTERM_WIDGET(menu));
+
+    // Restore the previously selected row to its own attributes. Only meaningful
+    // when focused (otherwise no row carries the selection attribute), and only
+    // when the old index still refers to a live item after rebuilds.
+    if(focused && menu->current_item < size){
+        for(uint64_t i = 0; i < menu->item_array->items[menu->current_item].content_length && i < NOCTERM_WIDGET(menu)->bounds.width; i++){
+            nocterm_widget_update(NOCTERM_WIDGET(menu), menu->current_item, i, menu->item_array->items[menu->current_item].content[i].character , menu->item_array->items[menu->current_item].content[i].attribute);
+        }
+    }
+
+    menu->current_item = (uint16_t)index;
+
+    // Reposition the viewport, scrolling the minimal amount to reveal the item.
+    nocterm_dimension_size_t vp_height = NOCTERM_WIDGET(menu)->viewport.height;
+    if(vp_height == 0) vp_height = 1;
+    nocterm_dimension_size_t vp_row = NOCTERM_WIDGET(menu)->viewport.row;
+
+    if((nocterm_dimension_size_t)index < vp_row){
+        vp_row = (nocterm_dimension_size_t)index;                 // scroll up: item pinned to top
+    }else if((nocterm_dimension_size_t)index >= vp_row + vp_height){
+        vp_row = (nocterm_dimension_size_t)index - vp_height + 1; // scroll down: item pinned to bottom
+    }
+
+    // Don't scroll past the content once it fills or exceeds the viewport.
+    if(size > vp_height){
+        if(vp_row > (nocterm_dimension_size_t)(size - vp_height)){
+            vp_row = (nocterm_dimension_size_t)(size - vp_height);
+        }
+    }else{
+        vp_row = 0;
+    }
+
+    menu->selection_position = (uint16_t)((nocterm_dimension_size_t)index - vp_row);
+
+    nocterm_widget_set_viewport(NOCTERM_WIDGET(menu), (nocterm_dimension_t){vp_row, 0, vp_height, NOCTERM_WIDGET(menu)->viewport.width});
+
+    // Paint the newly selected row. Left to the focus handler when unfocused.
+    if(focused){
+        for(uint64_t i = 0; i < menu->item_array->items[menu->current_item].content_length && i < NOCTERM_WIDGET(menu)->bounds.width; i++){
+            nocterm_widget_update(NOCTERM_WIDGET(menu), menu->current_item, i, menu->item_array->items[menu->current_item].content[i].character , menu->selection_attribute);
+        }
+    }
+
+    pthread_mutex_unlock(&NOCTERM_WIDGET(menu)->lock);
+
+    return NOCTERM_SUCCESS;
+}
+
 int nocterm_menu_set_selection_attribute(nocterm_menu_t* menu, nocterm_attribute_t attribute){
 
     if(menu == NULL){
